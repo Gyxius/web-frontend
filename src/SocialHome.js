@@ -1,10 +1,15 @@
 import React, { useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
+import users from "./users";
 
-function SocialHome({ userName = "Guest", onJoinEvent, joinedEvents = [], onJoinedEventClick, onUserClick, onLeaveEvent, pendingRequests = [], onCancelPendingRequest }) {
+function SocialHome({ userName = "Guest", onJoinEvent, joinedEvents = [], onJoinedEventClick, onUserClick, onLeaveEvent, pendingRequests = [], onCancelPendingRequest, showDebug }) {
   // Debug: show joinedEvents for current user
-  console.log("[DEBUG] joinedEvents for", userName, joinedEvents);
+  if (showDebug) {
+    console.log("[DEBUG] joinedEvents for", userName, joinedEvents);
+  }
   const [selectedPending, setSelectedPending] = useState(null);
+  // Removed selectedEvent state (no longer needed)
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const socialPoints = 120;
   const nextLevel = 200;
   const highlightEvent = {
@@ -20,14 +25,36 @@ function SocialHome({ userName = "Guest", onJoinEvent, joinedEvents = [], onJoin
   return (
     <div style={styles.container}>
       {/* DEBUG: Show joinedEvents raw data */}
-      <pre style={{ background: "#f0f4f8", color: "#333", fontSize: 12, padding: 8, borderRadius: 8, marginBottom: 8 }}>
-        [DEBUG] joinedEvents: {JSON.stringify(joinedEvents, null, 2)}
-      </pre>
+      {showDebug && (
+        <pre style={{ background: "#f0f4f8", color: "#333", fontSize: 12, padding: 8, borderRadius: 8, marginBottom: 8 }}>
+          [DEBUG] joinedEvents: {JSON.stringify(joinedEvents, null, 2)}
+        </pre>
+      )}
       {/* Top Bar */}
       <div style={styles.header}>
-        <button style={styles.iconButton} onClick={() => onUserClick && onUserClick(userName)}>
+        <button style={styles.iconButton} onClick={() => setShowProfileModal(true)}>
           <FaUserCircle size={40} color="#3b82f6" />
         </button>
+      {/* User Profile Modal */}
+      {showProfileModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowProfileModal(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            {(() => {
+              const userInfo = users.find(u => u.name.toLowerCase() === userName.toLowerCase());
+              if (!userInfo) return <div>No profile info found for {userName}.</div>;
+              return (
+                <>
+                  <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>{userInfo.emoji} {userInfo.name} {userInfo.country}</h3>
+                  <div style={{ fontSize: 16, color: "#555", marginBottom: 8 }}><b>Description:</b> {userInfo.desc}</div>
+                  {userInfo.city && <div style={{ fontSize: 15, color: "#888", marginBottom: 8 }}><b>City:</b> {userInfo.city}</div>}
+                  <div style={{ fontSize: 15, color: "#888", marginBottom: 8 }}><b>Languages:</b> {userInfo.languages.join(", ")}</div>
+                  <button style={styles.cancelButton} onClick={() => setShowProfileModal(false)}>Close</button>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
         <span style={styles.points}>⭐ {socialPoints} pts</span>
       </div>
       {/* Greeting */}
@@ -63,11 +90,36 @@ function SocialHome({ userName = "Guest", onJoinEvent, joinedEvents = [], onJoin
       ) : (
         <div>
           {joinedEvents.map((item, idx) => (
-            <div key={idx} style={styles.eventCard} onClick={() => onJoinedEventClick(item)}>
-              <div style={styles.eventName}>{item.name || item.type || item.category || "Event"}</div>
-              <div style={styles.details}>⏰ {item.time || item.date}</div>
-              {item.budget && <div style={styles.details}>💶 Budget: €{item.budget}</div>}
-              {item.crew && <div style={styles.details}>👥 Crew: {item.crew.length}</div>}
+            <div key={idx} style={styles.eventCard} onClick={() => {
+              console.log(`[ACTIVITY] user "${userName}": clicked on joined event "${item.name || item.type || item.category || "Event"}"`, item);
+              onJoinedEventClick(item);
+            }}>
+              <div style={styles.eventName}>{String(item.name || item.type || item.category || "Event")}</div>
+              <div style={styles.details}>⏰ {String(item.time || item.date)}</div>
+              {item.budget && <div style={styles.details}>💶 Budget: €{String(item.budget)}</div>}
+                {/* Crew display: show count for array of strings, show details for array of objects */}
+                {Array.isArray(item.crew) && item.crew.length > 0 && (
+                  typeof item.crew[0] !== 'object' ? (
+                    <div style={styles.details}>👥 Crew: {item.crew.length}</div>
+                  ) : (
+                    <div style={styles.details}>
+                      👥 Crew:
+                      <ul style={{ margin: 0, paddingLeft: 18 }}>
+                        {item.crew.map((member, i) => {
+                          let display = "";
+                          if (typeof member === "object" && member !== null) {
+                            display = `${member.emoji ? member.emoji + " " : ""}${member.name ? member.name : "Unknown"}`;
+                          } else {
+                            display = String(member);
+                          }
+                          return (
+                            <li key={i} style={{ fontSize: 13, color: "#555" }}>{display}</li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )
+                )}
               <button style={styles.leaveButton} onClick={e => { e.stopPropagation(); onLeaveEvent(item); }}>Leave</button>
             </div>
           ))}

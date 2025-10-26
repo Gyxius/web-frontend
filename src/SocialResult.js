@@ -1,4 +1,5 @@
 import React from "react";
+import users from "./users";
 
 function SocialResult({ event, onBack, onChat, onUserClick }) {
   return (
@@ -12,14 +13,22 @@ function SocialResult({ event, onBack, onChat, onUserClick }) {
         <div style={styles.resultTitle}>🧃 The Residents</div>
         {(event.crew_full || event.residents || []).filter(
           item => item && item.name
-        ).map((item, idx) => (
-          <div key={idx} style={{ ...styles.crewItem, paddingLeft: 20, cursor: "pointer" }} onClick={() => onUserClick && onUserClick(item)}>
-            <span style={styles.bold}>
-              {item.emoji} {item.name} ({item.country})
-            </span>
-            {" "}– "{item.desc}"
-          </div>
-        ))}
+        ).map((item, idx) => {
+          // If missing emoji/country/desc, merge from users.js
+          let merged = item;
+          if (!item.emoji || !item.country || !item.desc) {
+            const userInfo = users.find(u => u.name === item.name);
+            if (userInfo) merged = { ...userInfo, ...item };
+          }
+          return (
+            <div key={idx} style={{ ...styles.crewItem, paddingLeft: 20, cursor: "pointer" }} onClick={() => onUserClick && onUserClick(merged)}>
+              <span style={styles.bold}>
+                {merged.emoji} {merged.name} ({merged.country})
+              </span>
+              {" "}– "{merged.desc}"
+            </div>
+          );
+        })}
       </div>
       <div style={styles.actions}>
         <button style={styles.actionBtn} onClick={onChat}>
