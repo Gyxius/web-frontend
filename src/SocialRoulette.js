@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import localEvents from "./events";
 
 function SocialRoulette({ onResult }) {
   const [spinning, setSpinning] = useState(false);
@@ -12,8 +13,8 @@ function SocialRoulette({ onResult }) {
       const response = await axios.get("http://192.168.1.25:8000/events");
       return response.data;
     } catch (error) {
-      setError("Error fetching events");
-      return null;
+      // Fallback to local seed events
+      return localEvents;
     }
   };
 

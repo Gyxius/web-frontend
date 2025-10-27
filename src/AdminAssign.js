@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import users from "./users";
+import events from "./events";
 
 export default function AdminAssign({ searches, pendingRequests, onAssignEvent, userEvents, onRemoveJoinedEvent }) {
   // Debug: show pendingRequests
@@ -14,11 +15,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   const logAdminActivity = (msg) => {
     console.log(`[ADMIN ACTIVITY] ${msg}`);
   };
-  const events = [
-    { id: "e1", name: "Karaoke on the Rooftop", time: "10:00 PM" },
-    { id: "e2", name: "Picnic @ Montsouris", time: "9:00 PM" },
-    { id: "e3", name: "Board Games Evening", time: "7:30 PM" },
-  ];
+  // Events now provided by a shared dataset (see src/events.js)
 
   // Duolingo-inspired theme to match SocialHome
   const theme = {
