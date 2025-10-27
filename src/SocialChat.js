@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 function SocialChat({
   event,
@@ -12,6 +12,7 @@ function SocialChat({
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
+  const chatBoxRef = useRef(null);
 
   useEffect(() => {
     setMessages(initialMessages);
@@ -24,6 +25,14 @@ function SocialChat({
     setInput("");
     onSendMessage && onSendMessage(msg);
   };
+
+  useEffect(() => {
+    // Auto-scroll to bottom when messages update
+    const box = chatBoxRef.current;
+    if (box) {
+      box.scrollTop = box.scrollHeight;
+    }
+  }, [messages]);
 
   // 🟢 Duolingo-inspired theme (same palette direction as SocialHome)
   const theme = {
@@ -235,7 +244,7 @@ function SocialChat({
       <div style={styles.chat}>
         <div style={styles.chatHeader}>💬 Group Chat</div>
 
-        <div style={styles.chatBox}>
+        <div style={styles.chatBox} ref={chatBoxRef}>
           {messages.map((m, i) => {
             const mine = m.from === currentUser;
             return (

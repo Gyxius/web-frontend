@@ -22,7 +22,10 @@ function App() {
     const saved = localStorage.getItem("userEvents");
     return saved ? JSON.parse(saved) : {};
   });
-  const [chatHistory, setChatHistory] = useState({});
+  const [chatHistory, setChatHistory] = useState(() => {
+    const saved = localStorage.getItem("chatHistory");
+    return saved ? JSON.parse(saved) : {};
+  });
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [friends, setFriends] = useState(() => {
     const saved = localStorage.getItem("friends");
@@ -49,6 +52,9 @@ function App() {
   useEffect(() => {
     localStorage.setItem("friends", JSON.stringify(friends));
   }, [friends]);
+  useEffect(() => {
+    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+  }, [chatHistory]);
   useEffect(() => {
     localStorage.setItem("pendingFriendRequests", JSON.stringify(pendingFriendRequests));
   }, [pendingFriendRequests]);
@@ -178,7 +184,15 @@ function App() {
       <SocialChat
         event={{ ...rouletteResult, crew_full }}
         initialMessages={chatHistory[rouletteResult.name] || []}
-        onSendMessage={() => {}}
+        currentUser={user?.username || user?.name}
+        onSendMessage={(msg) => {
+          const key = rouletteResult.name;
+          setChatHistory((prev) => {
+            const list = prev[key] || [];
+            const withTs = { ...msg, ts: Date.now() };
+            return { ...prev, [key]: [...list, withTs] };
+          });
+        }}
         onBack={() => {
           setShowChat(false);
           setShowResult(true);
