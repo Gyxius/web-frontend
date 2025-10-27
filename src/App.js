@@ -94,17 +94,26 @@ function App() {
       />
     );
   } else if (showChat && rouletteResult) {
+    // Build crew_full: all users who joined this event
+    let crew_full = [];
+    Object.entries(userEvents).forEach(([userKey, events]) => {
+      if (Array.isArray(events) && events.find(ev => ev.name === rouletteResult?.name)) {
+        const userInfo = users.find(u => u.name === userKey || u.username === userKey);
+        if (userInfo) crew_full.push(userInfo);
+        else crew_full.push({ name: userKey });
+      }
+    });
     mainContent = (
       <SocialChat
-  event={rouletteResult}
-  initialMessages={chatHistory[rouletteResult.name] || []}
-  onSendMessage={() => {}}
+        event={{ ...rouletteResult, crew_full }}
+        initialMessages={chatHistory[rouletteResult.name] || []}
+        onSendMessage={() => {}}
         onBack={() => {
           setShowChat(false);
           setShowResult(true);
-  }}
-  onHome={() => {}}
-  onUserClick={setSelectedProfile}
+        }}
+        onHome={() => {}}
+        onUserClick={setSelectedProfile}
         onLeaveEvent={() => {
           setShowChat(false);
           setRouletteResult(null);
@@ -165,7 +174,10 @@ function App() {
           joinedEvents={joinedEvents}
           pendingRequests={pendingRequests.filter(r => r.user === (user?.username || user?.name) && r.event)}
           onCancelPendingRequest={idx => setPendingRequests(prev => prev.filter((_, i) => i !== idx))}
-          onJoinedEventClick={() => {}}
+          onJoinedEventClick={event => {
+            setRouletteResult(event);
+            setShowChat(true);
+          }}
           onUserClick={setSelectedProfile}
           onLeaveEvent={() => {}}
           showDebug={showDebug}
