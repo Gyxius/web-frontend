@@ -1,6 +1,6 @@
 import React from "react";
 
-function UserProfile({ user, onBack, onAddFriend, isFriend, onRequestJoinEvent, joinedEvents }) {
+function UserProfile({ user, onBack, onAddFriend, isFriend, onRequestJoinEvent, joinedEvents, onRemoveFriend }) {
   if (!user) return null;
   return (
     <div style={styles.container}>
@@ -21,7 +21,12 @@ function UserProfile({ user, onBack, onAddFriend, isFriend, onRequestJoinEvent, 
           </button>
         )}
         {isFriend && (
-          <div style={styles.friendStatus}>✅ You are friends</div>
+          <>
+            <div style={styles.friendStatus}>✅ You are friends</div>
+            <button style={styles.removeBtn} onClick={() => onRemoveFriend && onRemoveFriend(user)}>
+              Remove Friend
+            </button>
+          </>
         )}
         {isFriend && joinedEvents.length > 0 && (
           <div style={{ marginTop: 24 }}>
@@ -54,6 +59,7 @@ const styles = {
   info: { fontSize: 14, color: "#333", marginBottom: 6 },
   friendBtn: { marginTop: 16, background: "#10b981", color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 600, cursor: "pointer" },
   friendStatus: { marginTop: 16, color: "#10b981", fontWeight: 600, textAlign: "center" },
+  removeBtn: { marginTop: 8, background: "#ef4444", color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 600, cursor: "pointer" },
   eventCard: { background: "#f9fafb", borderRadius: 8, padding: 12, marginBottom: 12, boxShadow: "0 1px 4px #eee" },
   eventName: { fontSize: 16, fontWeight: 600, marginBottom: 4 },
   details: { fontSize: 14, color: "#444" },

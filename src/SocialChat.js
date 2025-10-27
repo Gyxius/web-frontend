@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function SocialChat({ event, initialMessages = [], onSendMessage, onBack, onHome, onUserClick, onLeaveEvent }) {
+function SocialChat({ event, initialMessages = [], currentUser, onSendMessage, onBack, onHome, onUserClick, onLeaveEvent }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
 
@@ -10,7 +10,7 @@ function SocialChat({ event, initialMessages = [], onSendMessage, onBack, onHome
 
   const sendMsg = () => {
     if (!input.trim()) return;
-    const msg = { from: "You", text: input.trim() };
+    const msg = { from: currentUser, text: input.trim() };
     setMessages((m) => [...m, msg]);
     setInput("");
     if (onSendMessage) onSendMessage(msg);
@@ -34,7 +34,11 @@ function SocialChat({ event, initialMessages = [], onSendMessage, onBack, onHome
         <div style={styles.chatHeader}>💬 Group Chat</div>
         <div style={styles.chatBox}>
           {messages.map((m, i) => (
-            <div key={i}><span style={styles.bold}>{m.from}:</span> {m.text}</div>
+            <div key={i}>
+              <span style={styles.bold}>
+                {m.from === currentUser ? "You" : m.from}:
+              </span> {m.text}
+            </div>
           ))}
         </div>
         <div style={styles.chatInput}>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import users from "./users";
 
-export default function AdminAssign({ searches, pendingRequests, onAssignEvent }) {
+export default function AdminAssign({ searches, pendingRequests, onAssignEvent, userEvents, onRemoveJoinedEvent }) {
   // Debug: show pendingRequests
   console.log("[DEBUG] pendingRequests:", pendingRequests);
   const [selectedIdx, setSelectedIdx] = useState(null);
@@ -36,7 +36,32 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent }
           style={{ flex: 1, padding: 12, fontWeight: 600, background: activeTab === "events" ? "#3b82f6" : "#e0e7ef", color: activeTab === "events" ? "white" : "#333", border: "none", borderRadius: "0 0 8px 8px", cursor: "pointer" }}
           onClick={() => setActiveTab("events")}
         >All Events</button>
+        <button
+          style={{ flex: 1, padding: 12, fontWeight: 600, background: activeTab === "joined" ? "#3b82f6" : "#e0e7ef", color: activeTab === "joined" ? "white" : "#333", border: "none", borderRadius: "0 0 8px 8px", cursor: "pointer" }}
+          onClick={() => setActiveTab("joined")}
+        >All Joined Events</button>
       </div>
+      {activeTab === "joined" && (
+        <div style={{ marginBottom: 32 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>All Joined Events</h3>
+          <ul style={{ padding: 0 }}>
+            {Object.entries(userEvents || {}).map(([userKey, events]) => (
+              <li key={userKey} style={{ background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", padding: 12, marginBottom: 8 }}>
+                <div><b>User:</b> {userKey}</div>
+                <div><b>Joined Events:</b></div>
+                <ul style={{ paddingLeft: 16 }}>
+                  {Array.isArray(events) && events.length > 0 ? events.map((ev, idx) => (
+                    <li key={idx} style={{ display: "flex", alignItems: "center", marginBottom: 4 }}>
+                      <span>{ev.name} {ev.time ? `(${ev.time})` : ""}</span>
+                      <button style={{ marginLeft: 12, background: "#ef4444", color: "white", border: "none", borderRadius: 6, padding: "2px 8px", fontWeight: 600, cursor: "pointer" }} onClick={() => onRemoveJoinedEvent && onRemoveJoinedEvent(userKey, idx)}>Remove</button>
+                    </li>
+                  )) : <li style={{ color: "#888" }}>No events joined.</li>}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {activeTab === "requests" && (
         <div style={{ marginBottom: 32 }}>
           <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Pending Requests</h3>

@@ -1,63 +1,18 @@
-
 import React, { useState, useEffect } from "react";
 import Login from "./Login";
 import SocialHome from "./SocialHome";
 import SocialForm from "./SocialForm";
 import SocialRoulette from "./SocialRoulette";
-import SocialResult from "./SocialResult";
-import SocialChat from "./SocialChat";
-import UserProfile from "./UserProfile";
 import AdminAssign from "./AdminAssign";
+import UserProfile from "./UserProfile";
+import SocialChat from "./SocialChat";
+import SocialResult from "./SocialResult";
+import WaitingForAdmin from "./WaitingForAdmin";
 import users from "./users";
 import axios from "axios";
-import "./App.css";
-
-function WaitingForAdmin({ onHome }) {
-  return (
-    <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-      <h2>Waiting for Admin Approval...</h2>
-      <p>Your request has been sent to the admin.</p>
-      <div style={{ fontSize: 48, margin: 24 }}>⏳</div>
-      <p>Please wait until the admin assigns you to an event.</p>
-      <button
-        style={{ marginTop: 32, background: "#3b82f6", color: "white", border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 600, cursor: "pointer" }}
-        onClick={onHome}
-      >
-        🏠 Home
-      </button>
-    </div>
-  );
-}
 
 function App() {
-  const [user, setUser] = useState(null); // user object or username string
-  // Handler for sign out
-  const handleSignOut = () => {
-    setUser(null);
-  };
-  // Stub missing handler functions
-    const handleAdminAssign = () => {};
-    const handleAddFriend = () => {};
-    const handleRequestJoinEvent = () => {};
-    const handleSendMessage = () => {};
-    const goHome = () => {};
-    const handleLeaveEvent = () => {};
-    const handleJoinEvent = () => {};
-    const handleRouletteRequest = () => {};
-    const handleSocialFormConfirm = () => {};
-    const handleJoinedEventClick = () => {};
-  // ...existing code...
-  // Log user login
-  const handleLogin = (usernameOrObj) => {
-    let userObj = usernameOrObj;
-    // If only username string, try to find user object
-    if (typeof usernameOrObj === "string") {
-      userObj = users.find(u => u.name.toLowerCase() === usernameOrObj.toLowerCase() || u.id === usernameOrObj || u.username === usernameOrObj);
-      if (!userObj) userObj = { username: usernameOrObj, name: usernameOrObj };
-    }
-    console.log(`[ACTIVITY] ${userObj.name || userObj.username} logs in`);
-    setUser(userObj);
-  };
+  const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showRoulette, setShowRoulette] = useState(false);
   const [rouletteResult, setRouletteResult] = useState(null);
@@ -78,7 +33,6 @@ function App() {
     const saved = localStorage.getItem("pendingRequests");
     return saved ? JSON.parse(saved) : [];
   });
-  // Removed showAdminAssignConfirm and setShowAdminAssignConfirm since not used in render
   const [showDebug, setShowDebug] = useState(false);
 
   const joinedEvents = user ? userEvents[user?.username || user?.name] || [] : [];
@@ -86,16 +40,29 @@ function App() {
   useEffect(() => {
     localStorage.setItem("userEvents", JSON.stringify(userEvents));
   }, [userEvents]);
-
   useEffect(() => {
     localStorage.setItem("friends", JSON.stringify(friends));
   }, [friends]);
-
   useEffect(() => {
     localStorage.setItem("pendingRequests", JSON.stringify(pendingRequests));
   }, [pendingRequests]);
 
-  // Removed useEffect that conditionally called setSearches (searches state removed)
+  const handleLogin = (usernameOrObj) => {
+    let userObj = usernameOrObj;
+    if (typeof usernameOrObj === "string") {
+      userObj = users.find(u => u.name.toLowerCase() === usernameOrObj.toLowerCase() || u.id === usernameOrObj || u.username === usernameOrObj);
+      if (!userObj) userObj = { username: usernameOrObj, name: usernameOrObj };
+    }
+    setUser(userObj);
+  };
+  const handleSignOut = () => {
+  setUser(null);
+  setShowRoulette(false);
+  setShowResult(false);
+  setShowChat(false);
+  setWaitingForAdmin(false);
+  setSelectedProfile(null);
+  };
 
   let mainContent;
   if (!user) {
@@ -105,10 +72,10 @@ function App() {
       <>
         <AdminAssign
           pendingRequests={pendingRequests}
-          onAssignEvent={handleAdminAssign}
+          onAssignEvent={() => {}}
         />
         <button
-          onClick={() => setUser(null)}
+          onClick={handleSignOut}
           style={{ position: "absolute", top: 20, right: 20, background: "#ef4444", color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 600, cursor: "pointer", zIndex: 10 }}
         >
           Sign Out
@@ -120,26 +87,25 @@ function App() {
       <UserProfile
         user={selectedProfile}
         onBack={() => setSelectedProfile(null)}
-        onAddFriend={handleAddFriend}
-        isFriend={!!(friends[user?.username || user?.name] && friends[user?.username || user?.name].find(f => f.id === selectedProfile?.id))}
-        onRequestJoinEvent={handleRequestJoinEvent}
+  onAddFriend={() => {}}
+  isFriend={!!(friends[user?.username || user?.name] && friends[user?.username || user?.name].find(f => f.id === selectedProfile?.id))}
+  onRequestJoinEvent={() => {}}
         joinedEvents={userEvents[selectedProfile?.username || selectedProfile?.name] || []}
       />
     );
   } else if (showChat && rouletteResult) {
     mainContent = (
       <SocialChat
-        event={rouletteResult}
-        initialMessages={chatHistory[rouletteResult.name] || []}
-        onSendMessage={(msg) => handleSendMessage(rouletteResult, msg)}
+  event={rouletteResult}
+  initialMessages={chatHistory[rouletteResult.name] || []}
+  onSendMessage={() => {}}
         onBack={() => {
           setShowChat(false);
           setShowResult(true);
-        }}
-        onHome={goHome}
-        onUserClick={setSelectedProfile}
-        onLeaveEvent={(event) => {
-          handleLeaveEvent(event);
+  }}
+  onHome={() => {}}
+  onUserClick={setSelectedProfile}
+        onLeaveEvent={() => {
           setShowChat(false);
           setRouletteResult(null);
         }}
@@ -155,7 +121,6 @@ function App() {
           setRouletteResult(null);
         }}
         onChat={() => {
-          handleJoinEvent(rouletteResult);
           setShowResult(false);
           setShowChat(true);
         }}
@@ -165,14 +130,14 @@ function App() {
   } else if (showRoulette) {
     mainContent = (
       <SocialRoulette onResult={(event) => {
-        handleRouletteRequest(event);
+        setRouletteResult(event);
         setShowRoulette(false);
       }} />
     );
   } else if (waitingForAdmin) {
-    mainContent = (<WaitingForAdmin onHome={goHome} />);
+    mainContent = (<WaitingForAdmin onHome={() => {}} />);
   } else if (showForm) {
-    mainContent = (<SocialForm onConfirm={handleSocialFormConfirm} />);
+    mainContent = (<SocialForm onConfirm={() => {}} />);
   } else {
     mainContent = (
       <>
@@ -189,7 +154,7 @@ function App() {
             padding: "8px 16px",
             fontWeight: 600,
             cursor: "pointer",
-            zIndex: 10,
+            zIndex: 10
           }}
         >
           Sign Out
@@ -200,9 +165,9 @@ function App() {
           joinedEvents={joinedEvents}
           pendingRequests={pendingRequests.filter(r => r.user === (user?.username || user?.name) && r.event)}
           onCancelPendingRequest={idx => setPendingRequests(prev => prev.filter((_, i) => i !== idx))}
-          onJoinedEventClick={handleJoinedEventClick}
+          onJoinedEventClick={() => {}}
           onUserClick={setSelectedProfile}
-          onLeaveEvent={handleLeaveEvent}
+          onLeaveEvent={() => {}}
           showDebug={showDebug}
         />
       </>
