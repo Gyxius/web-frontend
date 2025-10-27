@@ -1,6 +1,6 @@
 import React from "react";
 
-function UserProfile({ user, onBack, onAddFriend, isFriend, onRequestJoinEvent, joinedEvents, onRemoveFriend }) {
+function UserProfile({ user, onBack, onAddFriend, isFriend, hasPendingRequest, incomingRequest, onAcceptFriendRequest, onDeclineFriendRequest, onRequestJoinEvent, joinedEvents, onRemoveFriend }) {
   if (!user) return null;
   return (
     <div style={styles.container}>
@@ -15,10 +15,26 @@ function UserProfile({ user, onBack, onAddFriend, isFriend, onRequestJoinEvent, 
         <div style={styles.info}><b>Points:</b> {user.points}</div>
         <div style={styles.info}><b>Languages:</b> {user.languages?.join ? user.languages.join(", ") : user.languages}</div>
         <div style={styles.info}><b>Interests:</b> {user.interests?.join ? user.interests.join(", ") : user.interests}</div>
-        {!isFriend && (
+        {!isFriend && !hasPendingRequest && !incomingRequest && (
           <button style={styles.friendBtn} onClick={() => onAddFriend && onAddFriend(user)}>
-            Add Friend
+            Request Friend
           </button>
+        )}
+        {hasPendingRequest && !isFriend && (
+          <div style={{ marginTop: 16, color: '#f59e0b', fontWeight: 600, textAlign: 'center' }}>
+            Friend request sent. Waiting for acceptance.
+          </div>
+        )}
+        {incomingRequest && !isFriend && (
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
+            <div style={{ color: '#3b82f6', fontWeight: 600 }}>You have a friend request!</div>
+            <button style={styles.friendBtn} onClick={() => onAcceptFriendRequest && onAcceptFriendRequest(user)}>
+              Accept
+            </button>
+            <button style={styles.removeBtn} onClick={() => onDeclineFriendRequest && onDeclineFriendRequest(user)}>
+              Decline
+            </button>
+          </div>
         )}
         {isFriend && (
           <>

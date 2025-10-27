@@ -13,6 +13,9 @@ function SocialHome({
   pendingRequests = [],
   onCancelPendingRequest,
   showDebug,
+  friendRequestsIncoming = [],
+  onAcceptFriendRequestFrom,
+  onDeclineFriendRequestFrom,
 }) {
   if (showDebug) {
     console.log("[DEBUG] joinedEvents for", userName, joinedEvents);
@@ -342,6 +345,48 @@ function SocialHome({
       </div>
 
       <div style={styles.section}>
+        {/* Friend Requests Notification */}
+        {friendRequestsIncoming && friendRequestsIncoming.length > 0 && (
+          <div style={{ ...styles.highlightCard, marginTop: -4 }}>
+            <div style={{ ...styles.highlightTitle, color: theme.accent }}>🔔 Friend Requests</div>
+            <ul style={{ margin: 0, paddingLeft: 16 }}>
+              {friendRequestsIncoming.map((req, idx) => {
+                const fromKey = req.from;
+                const fromUser = users.find(u => u.name === fromKey || u.username === fromKey);
+                const label = fromUser ? `${fromUser.emoji || ""} ${fromUser.name} ${fromUser.country || ""}` : fromKey;
+                return (
+                  <li key={idx} style={{ marginBottom: 10, listStyle: "disc", color: theme.text }}>
+                    <span style={{ fontWeight: 700 }}>{label}</span>
+                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                      <button
+                        style={{
+                          ...styles.joinButton,
+                          padding: "10px 12px",
+                          flex: "unset",
+                          background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                        }}
+                        onClick={() => onAcceptFriendRequestFrom && onAcceptFriendRequestFrom(fromKey)}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        style={{
+                          ...styles.cancelButton,
+                          padding: "10px 12px",
+                          marginTop: 0,
+                        }}
+                        onClick={() => onDeclineFriendRequestFrom && onDeclineFriendRequestFrom(fromKey)}
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
         <div style={styles.sectionTitle}>👥 Friends are going to</div>
         {friendsActivity.map((f, idx) => (
           <div key={idx} style={styles.details}>

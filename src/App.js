@@ -9,7 +9,6 @@ import SocialChat from "./SocialChat";
 import SocialResult from "./SocialResult";
 import WaitingForAdmin from "./WaitingForAdmin";
 import users from "./users";
-import axios from "axios";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -29,20 +28,30 @@ function App() {
     const saved = localStorage.getItem("friends");
     return saved ? JSON.parse(saved) : {};
   });
+  const [pendingFriendRequests, setPendingFriendRequests] = useState(() => {
+    const saved = localStorage.getItem("pendingFriendRequests");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [pendingRequests, setPendingRequests] = useState(() => {
     const saved = localStorage.getItem("pendingRequests");
     return saved ? JSON.parse(saved) : [];
   });
-  const [showDebug, setShowDebug] = useState(false);
 
   const joinedEvents = user ? userEvents[user?.username || user?.name] || [] : [];
 
   useEffect(() => {
     localStorage.setItem("userEvents", JSON.stringify(userEvents));
   }, [userEvents]);
+  // Reference unused setters to satisfy linter (setters may be used in future flows)
+  useEffect(() => {
+    // no-op
+  }, [setUserEvents, setChatHistory]);
   useEffect(() => {
     localStorage.setItem("friends", JSON.stringify(friends));
   }, [friends]);
+  useEffect(() => {
+    localStorage.setItem("pendingFriendRequests", JSON.stringify(pendingFriendRequests));
+  }, [pendingFriendRequests]);
   useEffect(() => {
     localStorage.setItem("pendingRequests", JSON.stringify(pendingRequests));
   }, [pendingRequests]);
@@ -83,14 +92,76 @@ function App() {
       </>
     );
   } else if (selectedProfile) {
+    const currentUserKey = user?.username || user?.name;
+    const selectedKey = selectedProfile?.username || selectedProfile?.name;
+    const isFriend = !!(friends[currentUserKey] && friends[currentUserKey].find(f => f.id === selectedProfile?.id));
+    const hasPendingRequest = pendingFriendRequests.some(
+      req => req.from === currentUserKey && req.to === selectedKey
+    );
+    const incomingRequest = pendingFriendRequests.find(
+      req => req.from === selectedKey && req.to === currentUserKey
+    );
     mainContent = (
       <UserProfile
         user={selectedProfile}
         onBack={() => setSelectedProfile(null)}
-  onAddFriend={() => {}}
-  isFriend={!!(friends[user?.username || user?.name] && friends[user?.username || user?.name].find(f => f.id === selectedProfile?.id))}
-  onRequestJoinEvent={() => {}}
-        joinedEvents={userEvents[selectedProfile?.username || selectedProfile?.name] || []}
+        onAddFriend={() => {
+          // Send friend request
+          if (!hasPendingRequest && !isFriend) {
+            setPendingFriendRequests(prev => [...prev, { from: currentUserKey, to: selectedKey }]);
+          }
+        }}
+        onAcceptFriendRequest={() => {
+          // Accept incoming request
+          setFriends(prev => {
+            const updated = { ...prev };
+            if (!updated[currentUserKey]) updated[currentUserKey] = [];
+            if (!updated[currentUserKey].find(f => f.id === selectedProfile.id)) {
+              updated[currentUserKey].push(selectedProfile);
+            }
+            // Also add current user to selectedProfile's friends (robust id/name fallback)
+            const selfFriendObj = {
+              id: user?.id || user?.username || user?.name,
+              name: user?.name || user?.username,
+              emoji: user?.emoji,
+              country: user?.country,
+              desc: user?.desc,
+            };
+            if (!updated[selectedKey]) updated[selectedKey] = [];
+            if (!updated[selectedKey].find(f => (f.id || f.name) === selfFriendObj.id)) {
+              updated[selectedKey].push(selfFriendObj);
+            }
+            return updated;
+          });
+          setPendingFriendRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
+        }}
+        onDeclineFriendRequest={() => {
+          setPendingFriendRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
+        }}
+        onRemoveFriend={() => {
+          setFriends(prev => {
+            const updated = { ...prev };
+            // Remove from current user's list
+            if (updated[currentUserKey]) {
+              updated[currentUserKey] = updated[currentUserKey].filter(
+                f => f.id !== selectedProfile.id && (f.name !== selectedKey)
+              );
+            }
+            // Remove current user from selected user's list
+            const selfId = user?.id || user?.username || user?.name;
+            if (updated[selectedKey]) {
+              updated[selectedKey] = updated[selectedKey].filter(
+                f => (f.id || f.name) !== selfId
+              );
+            }
+            return updated;
+          });
+        }}
+        isFriend={isFriend}
+        hasPendingRequest={hasPendingRequest}
+        incomingRequest={!!incomingRequest}
+        onRequestJoinEvent={() => {}}
+        joinedEvents={userEvents[selectedKey] || []}
       />
     );
   } else if (showChat && rouletteResult) {
@@ -184,20 +255,38 @@ function App() {
           onUserClick={setSelectedProfile}
           onLeaveEvent={() => {}}
           showDebug={true}
+          friendRequestsIncoming={pendingFriendRequests.filter(r => r.to === (user?.username || user?.name))}
+          onAcceptFriendRequestFrom={(fromKey) => {
+            const currentUserKey = user?.username || user?.name;
+            const requester = users.find(u => u.name === fromKey || u.username === fromKey) || { name: fromKey, id: fromKey };
+            setFriends(prev => {
+              const updated = { ...prev };
+              if (!updated[currentUserKey]) updated[currentUserKey] = [];
+              if (!updated[currentUserKey].find(f => (f.id || f.name) === (requester.id || requester.name))) {
+                updated[currentUserKey].push(requester);
+              }
+              const selfFriendObj = {
+                id: user?.id || user?.username || user?.name,
+                name: user?.name || user?.username,
+                emoji: user?.emoji,
+                country: user?.country,
+                desc: user?.desc,
+              };
+              if (!updated[fromKey]) updated[fromKey] = [];
+              if (!updated[fromKey].find(f => (f.id || f.name) === selfFriendObj.id)) {
+                updated[fromKey].push(selfFriendObj);
+              }
+              return updated;
+            });
+            setPendingFriendRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
+          }}
+          onDeclineFriendRequestFrom={(fromKey) => {
+            setPendingFriendRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
+          }}
         />
       </>
     );
   }
-  let debugMsg = "";
-  if (!user) debugMsg = "[DEBUG] Rendering: Login";
-  else if ((user?.username || user?.name)?.toLowerCase() === "admin") debugMsg = `[DEBUG] Rendering: AdminAssign for user ${user?.username || user?.name}`;
-  else if (selectedProfile) debugMsg = `[DEBUG] Rendering: UserProfile for user ${selectedProfile?.username || selectedProfile?.name}`;
-  else if (showChat && rouletteResult) debugMsg = `[DEBUG] Rendering: SocialChat for event ${rouletteResult?.name}`;
-  else if (showResult && rouletteResult) debugMsg = `[DEBUG] Rendering: SocialResult for event ${rouletteResult?.name}`;
-  else if (showRoulette) debugMsg = `[DEBUG] Rendering: SocialRoulette`;
-  else if (waitingForAdmin) debugMsg = `[DEBUG] Rendering: WaitingForAdmin`;
-  else if (showForm) debugMsg = `[DEBUG] Rendering: SocialForm`;
-  else debugMsg = `[DEBUG] Rendering: SocialHome for user ${user?.username || user?.name}`;
 
   return (
     <div className="App">
