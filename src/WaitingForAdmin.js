@@ -32,7 +32,7 @@ export default function WaitingForAdmin({ onHome, request, assignedEvent, onGoCh
       justifyContent: "center",
       background: theme.bg,
       padding: 24,
-      fontFamily: "Inter, Roboto, Nunito Sans, Arial, sans-serif",
+  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
     },
     card: {
       background: theme.card,

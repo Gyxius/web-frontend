@@ -10,11 +10,11 @@ const TYPES = [
 ];
 
 const CATEGORIES = [
-  { id: "music", label: "🎶 Music" },
-  { id: "outdoor", label: "🌳 Outdoor" },
-  { id: "games", label: "🎳 Games" },
-  { id: "food", label: "🍽️ Food" },
-  { id: "random", label: "🎲 Random" },
+  { id: "food", label: "�️ Food" },
+  { id: "drinks", label: "� Drinks" },
+  { id: "party", label: "� Party" },
+  { id: "random", label: "� Random" },
+  { id: "walk", label: "🚶 A Walk" },
 ];
 
 const LANGUAGES = [
@@ -25,6 +25,18 @@ const LANGUAGES = [
   { id: "Japanese", label: "🇯🇵 Japanese" },
 ];
 
+// Language exchange pairs - people practicing each other's languages
+const LANGUAGE_PAIRS = [
+  ["French", "English"],
+  ["Spanish", "English"],
+  ["French", "Spanish"],
+  ["Italian", "English"],
+  ["Japanese", "English"],
+  ["French", "Italian"],
+  ["Spanish", "Italian"],
+  ["Japanese", "French"],
+];
+
 // Fixed date/time/budget from the request
 const DEFAULT_DATE = "27/10/2025";
 const DEFAULT_START = "19:00";
@@ -32,29 +44,30 @@ const DEFAULT_END = "22:00";
 const DEFAULT_BUDGET = 10;
 
 const titles = {
-  music: ["Karaoke on the Rooftop", "Acoustic Jam Night", "Open Mic Vibes", "Vinyl Listening Party"],
-  outdoor: ["Picnic @ Montsouris", "Sunset Walk by the Seine", "Park Frisbee Meetup", "Street Photography Tour"],
-  games: ["Board Games Evening", "Switch Party", "Trivia Night", "Chess & Chill"],
   food: ["Pho and Friends", "Taco Tuesday", "Crêpes & Conversation", "Pasta Potluck"],
+  drinks: ["Karaoke on the Rooftop", "Wine & Chat", "Craft Beers Meetup", "Mocktails & Music"],
+  party: ["Board Games Evening", "Switch Party", "Trivia Night", "Dance Social"],
   random: ["Mystery Meetup", "Art Jam", "Language Speed Dating", "DIY Workshop"],
+  walk: ["Sunset Walk by the Seine", "Luxembourg Garden Stroll", "Quai de Seine Walk", "Montmartre Stairs Walk"],
 };
 
 function pick(arr, idx) {
   return arr[idx % arr.length];
 }
 
-function buildName(categoryId, languageId, index) {
+function buildName(categoryId, languagePair, index) {
   const base = pick(titles[categoryId] || ["Community Hangout"], index);
-  const lang = LANGUAGES.find(l => l.id === languageId)?.label || languageId;
-  return `${base} – Practice ${lang.split(" ")[1] || lang}`;
+  const lang1 = LANGUAGES.find(l => l.id === languagePair[0])?.label.split(" ")[1] || languagePair[0];
+  const lang2 = LANGUAGES.find(l => l.id === languagePair[1])?.label.split(" ")[1] || languagePair[1];
+  return `${base} – ${lang1}↔${lang2} Exchange`;
 }
 
 const events = Array.from({ length: 50 }).map((_, i) => {
   const type = TYPES[i % TYPES.length];
   const category = CATEGORIES[i % CATEGORIES.length];
-  const language = LANGUAGES[i % LANGUAGES.length];
+  const languagePair = LANGUAGE_PAIRS[i % LANGUAGE_PAIRS.length];
   const id = `ev-${i + 1}`;
-  const name = buildName(category.id, language.id, i);
+  const name = buildName(category.id, languagePair, i);
   return {
     id,
     name,
@@ -66,10 +79,10 @@ const events = Array.from({ length: 50 }).map((_, i) => {
     typeLabel: type.label,
     category: category.id,
     categoryLabel: category.label,
-    language: language.id,
-    languageLabel: language.label,
-    location: "Paris",
-    description: `Type ${type.label} · ${category.label} · ${language.label} · Budget €${DEFAULT_BUDGET}`,
+    languages: languagePair, // Array of languages for exchange
+    languageLabels: languagePair.map(lang => LANGUAGES.find(l => l.id === lang)?.label || lang).join(" & "),
+    location: type.id === "cite" ? "Cité" : "Paris",
+    description: `Type ${type.label} · ${category.label} · ${languagePair.join("↔")} Exchange · Budget €${DEFAULT_BUDGET}`,
   };
 });
 
@@ -77,163 +90,163 @@ const events = Array.from({ length: 50 }).map((_, i) => {
 const extraEvents = [
   {
     id: "ev-tour-fr-out-1",
-    name: "Sunset Walk by the Seine – Practice French",
+    name: "Sunset Walk by the Seine – French↔English Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "French",
-    languageLabel: "🇫🇷 French",
+    category: "walk",
+    categoryLabel: "🚶 A Walk",
+    languages: ["French", "English"],
+    languageLabels: "🇫🇷 French & 🇬🇧 English",
     location: "Paris",
-    description: "🗼 Touristic · 🌳 Outdoor · 🇫🇷 French · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔English Exchange · Budget €10",
   },
   {
     id: "ev-tour-fr-out-2",
-    name: "Montmartre Stair Climb – Practice French",
+    name: "Montmartre Stair Climb – French↔English Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "French",
-    languageLabel: "🇫🇷 French",
+    category: "walk",
+    categoryLabel: "🚶 A Walk",
+    languages: ["French", "English"],
+    languageLabels: "🇫🇷 French & 🇬🇧 English",
     location: "Paris",
-    description: "🗼 Touristic · 🌳 Outdoor · 🇫🇷 French · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔English Exchange · Budget €10",
   },
   {
     id: "ev-tour-fr-out-3",
-    name: "Luxembourg Garden Stroll – Practice French",
+    name: "Luxembourg Garden Stroll – French↔Spanish Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "French",
-    languageLabel: "🇫🇷 French",
+    category: "walk",
+    categoryLabel: "🚶 A Walk",
+    languages: ["French", "Spanish"],
+    languageLabels: "🇫🇷 French & 🇪🇸 Spanish",
     location: "Paris",
-    description: "🗼 Touristic · 🌳 Outdoor · 🇫🇷 French · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔Spanish Exchange · Budget €10",
   },
   {
     id: "ev-tour-fr-out-4",
-    name: "Parc des Buttes-Chaumont Picnic – Practice French",
+    name: "Parc des Buttes-Chaumont Picnic – French↔Italian Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "French",
-    languageLabel: "🇫🇷 French",
+    category: "walk",
+    categoryLabel: "🚶 A Walk",
+    languages: ["French", "Italian"],
+    languageLabels: "🇫🇷 French & 🇮🇹 Italian",
     location: "Paris",
-    description: "🗼 Touristic · 🌳 Outdoor · 🇫🇷 French · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔Italian Exchange · Budget €10",
   },
   {
     id: "ev-tour-fr-out-5",
-    name: "Paris Street Photography – Practice French",
+    name: "Paris Street Photography – French↔Japanese Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "French",
-    languageLabel: "🇫🇷 French",
+    category: "walk",
+    categoryLabel: "🚶 A Walk",
+    languages: ["French", "Japanese"],
+    languageLabels: "🇫🇷 French & 🇯🇵 Japanese",
     location: "Paris",
-    description: "🗼 Touristic · 🌳 Outdoor · 🇫🇷 French · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔Japanese Exchange · Budget €10",
   },
   {
     id: "ev-cite-es-out-1",
-    name: "Cité Park Hangout – Practice Spanish",
+    name: "Cité Park Hangout – Spanish↔English Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "Spanish",
-    languageLabel: "🇪🇸 Spanish",
-    location: "Paris",
-    description: "🏠 Cité · 🌳 Outdoor · 🇪🇸 Spanish · Budget €10",
+    category: "party",
+    categoryLabel: "� Party",
+    languages: ["Spanish", "English"],
+    languageLabels: "🇪🇸 Spanish & 🇬🇧 English",
+    location: "Cité",
+    description: "🏠 Cité · � Party · Spanish↔English Exchange · Budget €10",
   },
   {
     id: "ev-cite-es-out-2",
-    name: "Campus Garden Meetup – Practice Spanish",
+    name: "Campus Garden Meetup – Spanish↔French Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "Spanish",
-    languageLabel: "🇪🇸 Spanish",
-    location: "Paris",
-    description: "🏠 Cité · 🌳 Outdoor · 🇪🇸 Spanish · Budget €10",
+    category: "party",
+    categoryLabel: "� Party",
+    languages: ["Spanish", "French"],
+    languageLabels: "🇪🇸 Spanish & 🇫🇷 French",
+    location: "Cité",
+    description: "🏠 Cité · � Party · Spanish↔French Exchange · Budget €10",
   },
   {
     id: "ev-cite-es-out-3",
-    name: "Residence Terrace Chat – Practice Spanish",
+    name: "Residence Terrace Chat – Spanish↔Italian Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "Spanish",
-    languageLabel: "🇪🇸 Spanish",
-    location: "Paris",
-    description: "🏠 Cité · 🌳 Outdoor · 🇪🇸 Spanish · Budget €10",
+    category: "party",
+    categoryLabel: "� Party",
+    languages: ["Spanish", "Italian"],
+    languageLabels: "🇪🇸 Spanish & 🇮🇹 Italian",
+    location: "Cité",
+    description: "🏠 Cité · � Party · Spanish↔Italian Exchange · Budget €10",
   },
   {
     id: "ev-cite-es-out-4",
-    name: "Student Village BBQ – Practice Spanish",
+    name: "Student Village BBQ – English↔French Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "Spanish",
-    languageLabel: "🇪🇸 Spanish",
-    location: "Paris",
-    description: "🏠 Cité · 🌳 Outdoor · 🇪🇸 Spanish · Budget €10",
+    category: "party",
+    categoryLabel: "� Party",
+    languages: ["English", "French"],
+    languageLabels: "�� English & 🇫🇷 French",
+    location: "Cité",
+    description: "🏠 Cité · � Party · English↔French Exchange · Budget €10",
   },
   {
     id: "ev-cite-es-out-5",
-    name: "Dorm Courtyard Session – Practice Spanish",
+    name: "Dorm Courtyard Session – Italian↔English Exchange",
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
     budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
-    category: "outdoor",
-    categoryLabel: "🌳 Outdoor",
-    language: "Spanish",
-    languageLabel: "🇪🇸 Spanish",
-    location: "Paris",
-    description: "🏠 Cité · 🌳 Outdoor · 🇪🇸 Spanish · Budget €10",
+    category: "party",
+    categoryLabel: "� Party",
+    languages: ["Italian", "English"],
+    languageLabels: "�� Italian & 🇬🇧 English",
+    location: "Cité",
+    description: "🏠 Cité · � Party · Italian↔English Exchange · Budget €10",
   },
 ];
 

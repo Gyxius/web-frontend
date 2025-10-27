@@ -68,7 +68,7 @@ function SocialHome({
       padding: 24,
       maxWidth: 520,
       margin: "0 auto",
-      fontFamily: "Inter, Roboto, Nunito Sans, Arial, sans-serif",
+  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
     },
     header: {
       display: "flex",
@@ -287,7 +287,7 @@ function SocialHome({
       boxShadow: theme.shadowSoft,
       minWidth: 340,
       maxWidth: 500,
-      fontFamily: "Inter, Roboto, Nunito Sans, Arial, sans-serif",
+  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
       border: "1px solid #EEF2F7",
     },
   };
@@ -409,7 +409,7 @@ function SocialHome({
                     <div key={j} style={{ ...styles.eventCard, cursor: "default" }}>
                       <div style={styles.eventName}>{String(ev.name || ev.type || ev.category || "Event")}</div>
                       <div style={styles.details}>⏰ {String(ev.time || ev.date || "")}</div>
-                      {ev.budget && <div style={styles.details}>💶 Budget: €{String(ev.budget)}</div>}
+                      {/* Budget hidden in simplified flow */}
                       <button
                         style={{ ...styles.joinButton, padding: "10px 12px", alignSelf: "flex-start", marginTop: 10 }}
                         onClick={() => onRequestJoinEvent && onRequestJoinEvent(fe.friend, ev)}
@@ -451,7 +451,7 @@ function SocialHome({
                     {String(item.name || item.type || item.category || "Event")}
                   </div>
                   <div style={styles.details}>⏰ {String(item.time || item.date)}</div>
-                  {item.budget && <div style={styles.details}>💶 Budget: €{String(item.budget)}</div>}
+                  {/* Budget hidden in simplified flow */}
 
                   {Array.isArray(item.crew) && item.crew.length > 0 && (
                     <div style={styles.details}>
@@ -504,7 +504,7 @@ function SocialHome({
           className="joinButton"
           onClick={() => setViewMode((m) => (m === "my" ? "friends" : "my"))}
         >
-          {viewMode === "my" ? "� Friends’ Events" : "🎟️ My Events"}
+          {viewMode === "my" ? "👥 Friends’ Events" : "🎟️ My Events"}
         </button>
       </div>
 
@@ -533,7 +533,7 @@ function SocialHome({
                   <span>
                     {req.event && (
                       <>
-                        <strong>{req.event.type || req.event.category || "Event"}</strong>
+                        <strong>{req.event.location || req.event.category || "Event"}</strong>
                         {req.event.date && <> | <span>{req.event.date}</span></>}
                         {req.event.location && <> | <span>{req.event.location}</span></>}
                         {req.event.details && <> | <span>{req.event.details}</span></>}

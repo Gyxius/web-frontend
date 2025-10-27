@@ -61,7 +61,7 @@ function SocialChat({
       padding: 20,
       borderRadius: theme.radiusLg,
       boxShadow: theme.shadow,
-      fontFamily: "Inter, Roboto, Nunito Sans, Arial, sans-serif",
+  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
       border: `1px solid ${theme.border}`,
     },
 
@@ -224,7 +224,7 @@ function SocialChat({
         <div style={styles.resultTitle}>✨ The Event</div>
         <div><span style={styles.bold}>Event:</span> {event?.name}</div>
         <div><span style={styles.bold}>Time:</span> {event?.time}</div>
-        <div><span style={styles.bold}>Budget:</span> €{event?.budget}</div>
+  {/* Budget hidden in simplified flow */}
 
         <div style={styles.resultTitle}>🧃 The Residents</div>
         {(event?.crew_full || event?.crew || []).map((item, i) => (

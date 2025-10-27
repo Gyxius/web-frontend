@@ -29,7 +29,7 @@ function Login({ onLogin }) {
       borderRadius: theme.radius,
       border: `1px solid ${theme.border}`,
       boxShadow: theme.shadow,
-      fontFamily: "Inter, Roboto, Nunito Sans, Arial, sans-serif",
+  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
     },
     card: {
       background: theme.card,

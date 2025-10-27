@@ -1,33 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const types = [
-  { id: "student", label: "🎓 Student" },
-  { id: "cite", label: "🏠 Cité" },
-  { id: "touristic", label: "🗼 Touristic" },
-  { id: "popular", label: "🔥 Popular" },
-  { id: "local", label: "🧃 Local" },
+// Simplified: choose a location instead of type
+const locations = [
+  { id: "Cité", label: "🏠 Cité" },
+  { id: "Paris", label: "🗼 Paris" },
 ];
 const categories = [
-  { id: "music", label: "🎶 Music" },
-  { id: "outdoor", label: "🌳 Outdoor" },
-  { id: "games", label: "🎳 Games" },
   { id: "food", label: "🍽️ Food" },
+  { id: "drinks", label: "🍹 Drinks" },
+  { id: "party", label: "🎉 Party" },
   { id: "random", label: "🎲 Random" },
+  { id: "walk", label: "🚶 A Walk" },
 ];
 const languages = [
   { id: "Spanish", label: "🇪🇸 Spanish" },
   { id: "French", label: "🇫🇷 French" },
   { id: "English", label: "🇬🇧 English" },
   { id: "Italian", label: "🇮🇹 Italian" },
+  { id: "German", label: "🇩🇪 German" },
+  { id: "Portuguese", label: "🇵🇹 Portuguese" },
   { id: "Japanese", label: "🇯🇵 Japanese" },
+  { id: "Mandarin", label: "🇨🇳 Mandarin" },
+  { id: "Korean", label: "🇰🇷 Korean" },
+  { id: "Arabic", label: "🇸🇦 Arabic" },
+  { id: "Russian", label: "🇷🇺 Russian" },
+  { id: "Hindi", label: "🇮🇳 Hindi" },
+  { id: "Dutch", label: "🇳🇱 Dutch" },
+  { id: "Swedish", label: "🇸🇪 Swedish" },
+  { id: "Polish", label: "🇵🇱 Polish" },
+  { id: "Turkish", label: "🇹🇷 Turkish" },
+  { id: "Greek", label: "🇬🇷 Greek" },
+  { id: "Hebrew", label: "🇮🇱 Hebrew" },
 ];
 
 function SocialForm({ onConfirm, onHome }) {
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(today);
   const [timeOfDay, setTimeOfDay] = useState(null);
-  const [budgetMax, setBudgetMax] = useState(10);
-  const [type, setType] = useState(null);
+  // Budget temporarily removed from the flow
+  const [location, setLocation] = useState(null);
   const [category, setCategory] = useState(null);
   const [language, setLanguage] = useState(null);
 
@@ -47,9 +58,17 @@ function SocialForm({ onConfirm, onHome }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = { date, timeOfDay, budgetMax, type, category, language };
+    const payload = { date, timeOfDay, location, category, language };
     onConfirm && onConfirm(payload);
   };
+
+  // Only show Party for evening/night; clear it if time changes
+  useEffect(() => {
+    const partyAllowed = timeOfDay === "evening" || timeOfDay === "night";
+    if (!partyAllowed && category === "party") {
+      setCategory(null);
+    }
+  }, [timeOfDay, category]);
 
   const styles = {
     form: {
@@ -60,7 +79,7 @@ function SocialForm({ onConfirm, onHome }) {
       borderRadius: theme.radiusLg,
       boxShadow: theme.shadow,
       border: `1px solid ${theme.border}`,
-      fontFamily: "Inter, Roboto, Nunito Sans, Arial, sans-serif",
+  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
       transition: "box-shadow 0.3s, transform 0.2s",
     },
     title: {
@@ -136,13 +155,33 @@ function SocialForm({ onConfirm, onHome }) {
     },
   };
 
+  // Format the selected date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const d = new Date(dateString + "T00:00:00");
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    
+    const dayName = days[d.getDay()];
+    const day = d.getDate();
+    const month = months[d.getMonth()];
+    
+    // Add ordinal suffix (st, nd, rd, th)
+    const getOrdinal = (n) => {
+      const s = ["th", "st", "nd", "rd"];
+      const v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    };
+    
+    return `${dayName} ${getOrdinal(day)} of ${month}`;
+  };
 
 
   return (
     <form onSubmit={handleSubmit} style={styles.form}>
       <h2 style={styles.title}>🎲 Spin to Practice Languages</h2>
       <p style={styles.subtitle}>
-        Pick a language you want to practice, your budget, and the kind of event you like — we’ll find a crew ready to chat and learn together.
+        Pick a language you want to practice, a location (Cité or Paris), and the kind of event you like — we’ll find a crew ready to chat and learn together.
       </p>
 
       <div style={styles.inputs}>
@@ -155,6 +194,11 @@ function SocialForm({ onConfirm, onHome }) {
           onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
           onBlur={e => e.target.style.boxShadow = "none"}
         />
+        {date && (
+          <div style={{ marginTop: -4, marginBottom: 10, fontSize: 14, color: theme.text, fontWeight: 600 }}>
+            {formatDate(date)}
+          </div>
+        )}
 
         <label style={styles.label}>Time of Day</label>
         <div style={styles.pillRow}>
@@ -178,39 +222,29 @@ function SocialForm({ onConfirm, onHome }) {
           ))}
         </div>
 
-        <label style={styles.label}>Max Budget (€)</label>
-        <div style={{ marginBottom: 8, color: theme.textMuted, fontSize: 13 }}>
-          Current: <b style={{ color: theme.text }}>€{budgetMax}</b>
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={budgetMax}
-          onChange={(e) => setBudgetMax(Number(e.target.value))}
-          style={{ width: "100%" }}
-        />
+        {null}
 
-        <label style={styles.label}>Pick a Type</label>
+        <label style={styles.label}>Pick a Location</label>
         <div style={styles.pillRow}>
-          {types.map((t) => (
+          {locations.map((loc) => (
             <button
               type="button"
-              key={t.id}
-              style={{ ...styles.pill, ...(type === t.id ? styles.pillSelected : {}) }}
-              onClick={() => setType(type === t.id ? null : t.id)}
-              onMouseEnter={e => { if (type !== t.id) e.currentTarget.style.transform = "scale(1.04)"; }}
-              onMouseLeave={e => { if (type !== t.id) e.currentTarget.style.transform = "scale(1)"; }}
+              key={loc.id}
+              style={{ ...styles.pill, ...(location === loc.id ? styles.pillSelected : {}) }}
+              onClick={() => setLocation(location === loc.id ? null : loc.id)}
+              onMouseEnter={e => { if (location !== loc.id) e.currentTarget.style.transform = "scale(1.04)"; }}
+              onMouseLeave={e => { if (location !== loc.id) e.currentTarget.style.transform = "scale(1)"; }}
             >
-              <span style={{ ...(type === t.id ? styles.pillTextSelected : styles.pillText) }}>{t.label}</span>
+              <span style={{ ...(location === loc.id ? styles.pillTextSelected : styles.pillText) }}>{loc.label}</span>
             </button>
           ))}
         </div>
 
         <label style={styles.label}>Choose a Category</label>
         <div style={styles.pillRow}>
-          {categories.map((c) => (
+          {categories
+            .filter(c => c.id !== "party" || timeOfDay === "evening" || timeOfDay === "night")
+            .map((c) => (
             <button
               type="button"
               key={c.id}
@@ -225,20 +259,29 @@ function SocialForm({ onConfirm, onHome }) {
         </div>
 
         <label style={styles.label}>Language you want to practice</label>
-        <div style={styles.pillRow}>
+        <select
+          value={language || ""}
+          onChange={(e) => setLanguage(e.target.value || null)}
+          style={{
+            ...styles.input,
+            cursor: "pointer",
+            appearance: "none",
+            backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e\")",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "right 10px center",
+            backgroundSize: "20px",
+            paddingRight: "40px",
+          }}
+          onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
+          onBlur={e => e.target.style.boxShadow = "none"}
+        >
+          <option value="">Select a language...</option>
           {languages.map((lang) => (
-            <button
-              type="button"
-              key={lang.id}
-              style={{ ...styles.pill, ...(language === lang.id ? styles.pillSelected : {}) }}
-              onClick={() => setLanguage(language === lang.id ? null : lang.id)}
-              onMouseEnter={e => { if (language !== lang.id) e.currentTarget.style.transform = "scale(1.04)"; }}
-              onMouseLeave={e => { if (language !== lang.id) e.currentTarget.style.transform = "scale(1)"; }}
-            >
-              <span style={{ ...(language === lang.id ? styles.pillTextSelected : styles.pillText) }}>{lang.label}</span>
-            </button>
+            <option key={lang.id} value={lang.id}>
+              {lang.label}
+            </option>
           ))}
-        </div>
+        </select>
 
         <button
           type="submit"

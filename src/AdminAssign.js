@@ -2,6 +2,32 @@ import React, { useState, useEffect } from "react";
 import users from "./users";
 import events from "./events";
 
+// Interesting places for event creation
+const places = {
+  Cité: [
+    { id: "cite-1", name: "🏛️ Cité Universitaire Main Building", description: "Historic central building" },
+    { id: "cite-2", name: "🌳 Cité Park", description: "Green space for outdoor activities" },
+    { id: "cite-3", name: "🍽️ Cité Restaurant", description: "Main dining hall" },
+    { id: "cite-4", name: "☕ Cité Café", description: "Cozy café for casual meetups" },
+    { id: "cite-5", name: "📚 Cité Library", description: "Study and reading space" },
+    { id: "cite-6", name: "🎭 Cité Theater", description: "Performance and events venue" },
+    { id: "cite-7", name: "🏃 Cité Sports Complex", description: "Gym and sports facilities" },
+    { id: "cite-8", name: "🎨 Cité Art Studio", description: "Creative workspace" },
+  ],
+  Paris: [
+    { id: "paris-1", name: "🗼 Eiffel Tower Area", description: "Iconic landmark and surroundings" },
+    { id: "paris-2", name: "🎨 Louvre Museum", description: "World-famous art museum" },
+    { id: "paris-3", name: "🌉 Seine Riverside", description: "Scenic river walks" },
+    { id: "paris-4", name: "🏰 Notre-Dame Area", description: "Historic cathedral district" },
+    { id: "paris-5", name: "🌳 Luxembourg Gardens", description: "Beautiful public park" },
+    { id: "paris-6", name: "🎭 Montmartre", description: "Artistic neighborhood" },
+    { id: "paris-7", name: "☕ Latin Quarter Cafés", description: "Student area with cafés" },
+    { id: "paris-8", name: "🛍️ Champs-Élysées", description: "Famous avenue" },
+    { id: "paris-9", name: "🏛️ Musée d'Orsay", description: "Impressionist art museum" },
+    { id: "paris-10", name: "🌺 Tuileries Garden", description: "Historic formal garden" },
+  ],
+};
+
 export default function AdminAssign({ searches, pendingRequests, onAssignEvent, userEvents, onRemoveJoinedEvent }) {
   // Debug: show pendingRequests
   console.log("[DEBUG] pendingRequests:", pendingRequests);
@@ -12,6 +38,18 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   const [selectedEventId, setSelectedEventId] = useState(""); // For assignment dropdown
   const [selectedUser, setSelectedUser] = useState(null);
   const [requestDetailIdx, setRequestDetailIdx] = useState(null);
+  
+  // Create Event state
+  const [createEventForm, setCreateEventForm] = useState({
+    name: "",
+    location: "Cité",
+    place: "",
+    date: "",
+    time: "",
+    category: "food",
+    languages: [], // Array of languages for exchange
+    description: "",
+  });
 
   // When opening the assign panel for a request, preselect the first matching event
   useEffect(() => {
@@ -25,15 +63,22 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     }
   }, [selectedIdx, pendingRequests, selectedEventId]);
 
-  // Match on: budget, type, category, language, and optionally timeOfDay (if provided)
+  // Simplified matching: location (Cité or Paris), category, language, and optionally timeOfDay
   const matchesRequest = (ev, req) => {
     const e = ev || {};
     const r = (req && req.event) || {};
-  if (r.type && e.type !== r.type) return false;
+  // Match on requested location when provided
+  if (r.location && e.location && String(e.location).toLowerCase() !== String(r.location).toLowerCase()) return false;
   if (r.category && e.category !== r.category) return false;
-  if (r.language && e.language !== r.language) return false;
-  const maxBudget = (typeof r.budgetMax === "number") ? r.budgetMax : (typeof r.budget === "number" ? r.budget : null);
-  if (maxBudget !== null && typeof e.budget === "number" && e.budget > maxBudget) return false;
+  // Check if requested language is in the event's languages array
+  if (r.language) {
+    if (Array.isArray(e.languages)) {
+      if (!e.languages.includes(r.language)) return false;
+    } else if (e.language !== r.language) {
+      // Fallback for old format
+      return false;
+    }
+  }
     if (r.timeOfDay && r.timeOfDay !== "whole-day") {
       // derive timeOfDay from event start time string (e.time like "19:00")
       const toMinutes = (hhmm) => {
@@ -90,7 +135,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
       padding: 24,
       maxWidth: 680,
       margin: "0 auto",
-      fontFamily: "Inter, Roboto, Nunito Sans, Arial, sans-serif",
+  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
     },
     title: {
       fontSize: 24,
@@ -102,7 +147,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     },
     tabs: {
       display: "grid",
-      gridTemplateColumns: "repeat(4, 1fr)",
+      gridTemplateColumns: "repeat(5, 1fr)",
       gap: 8,
       marginBottom: 18,
     },
@@ -199,7 +244,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
       minWidth: 340,
       maxWidth: 520,
       border: `1px solid ${theme.border}`,
-      fontFamily: "Inter, Roboto, Nunito Sans, Arial, sans-serif",
+  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
     },
     subtitle: { fontSize: 14, color: theme.textMuted },
   };
@@ -211,6 +256,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
         <button style={styles.tabBtn(activeTab === "requests")} onClick={() => setActiveTab("requests")}>Pending Requests</button>
         <button style={styles.tabBtn(activeTab === "users")} onClick={() => setActiveTab("users")}>All Users</button>
         <button style={styles.tabBtn(activeTab === "events")} onClick={() => setActiveTab("events")}>All Events</button>
+        <button style={styles.tabBtn(activeTab === "create")} onClick={() => setActiveTab("create")}>Create Event</button>
         <button style={styles.tabBtn(activeTab === "joined")} onClick={() => setActiveTab("joined")}>Joined Events</button>
       </div>
       {activeTab === "joined" && (
@@ -238,6 +284,280 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           </ul>
         </div>
       )}
+      {activeTab === "create" && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>➕ Create New Event</div>
+          <div style={styles.card}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Event Name</label>
+              <input
+                type="text"
+                value={createEventForm.name}
+                onChange={(e) => setCreateEventForm({ ...createEventForm, name: e.target.value })}
+                placeholder="e.g., French Coffee Chat"
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: `1px solid ${theme.border}`,
+                  fontSize: 14,
+                  outline: "none",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Location</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: 12,
+                    border: `2px solid ${createEventForm.location === "Cité" ? theme.primary : theme.border}`,
+                    background: createEventForm.location === "Cité" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                    color: createEventForm.location === "Cité" ? "white" : theme.text,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setCreateEventForm({ ...createEventForm, location: "Cité", place: "" })}
+                >
+                  🏠 Cité
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: 12,
+                    border: `2px solid ${createEventForm.location === "Paris" ? theme.primary : theme.border}`,
+                    background: createEventForm.location === "Paris" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                    color: createEventForm.location === "Paris" ? "white" : theme.text,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setCreateEventForm({ ...createEventForm, location: "Paris", place: "" })}
+                >
+                  🗼 Paris
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Choose a Place</label>
+              <select
+                value={createEventForm.place}
+                onChange={(e) => setCreateEventForm({ ...createEventForm, place: e.target.value })}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: `1px solid ${theme.border}`,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                <option value="">-- Select a place --</option>
+                {places[createEventForm.location].map((place) => (
+                  <option key={place.id} value={place.name}>
+                    {place.name} - {place.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Date</label>
+                <input
+                  type="date"
+                  value={createEventForm.date}
+                  onChange={(e) => setCreateEventForm({ ...createEventForm, date: e.target.value })}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: `1px solid ${theme.border}`,
+                    fontSize: 14,
+                    outline: "none",
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Time</label>
+                <input
+                  type="time"
+                  value={createEventForm.time}
+                  onChange={(e) => setCreateEventForm({ ...createEventForm, time: e.target.value })}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: `1px solid ${theme.border}`,
+                    fontSize: 14,
+                    outline: "none",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Category</label>
+                <select
+                  value={createEventForm.category}
+                  onChange={(e) => setCreateEventForm({ ...createEventForm, category: e.target.value })}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: `1px solid ${theme.border}`,
+                    fontSize: 14,
+                    cursor: "pointer",
+                    outline: "none",
+                  }}
+                >
+                  <option value="food">🍽️ Food</option>
+                  <option value="drinks">🍹 Drinks</option>
+                  <option value="party">🎉 Party</option>
+                  <option value="random">🎲 Random</option>
+                  <option value="walk">🚶 A Walk</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
+                Language Exchange (select 2-3 languages)
+              </label>
+              <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: "repeat(3, 1fr)", 
+                gap: 8,
+                maxHeight: "200px",
+                overflowY: "auto",
+                padding: "8px",
+                border: `1px solid ${theme.border}`,
+                borderRadius: 12,
+                background: "#FAFAFA",
+              }}>
+                {[
+                  { id: "Spanish", label: "🇪🇸 Spanish" },
+                  { id: "French", label: "🇫🇷 French" },
+                  { id: "English", label: "🇬🇧 English" },
+                  { id: "Italian", label: "🇮🇹 Italian" },
+                  { id: "German", label: "🇩🇪 German" },
+                  { id: "Portuguese", label: "🇵🇹 Portuguese" },
+                  { id: "Japanese", label: "🇯🇵 Japanese" },
+                  { id: "Mandarin", label: "🇨🇳 Mandarin" },
+                  { id: "Korean", label: "🇰🇷 Korean" },
+                  { id: "Arabic", label: "🇸🇦 Arabic" },
+                  { id: "Russian", label: "🇷🇺 Russian" },
+                  { id: "Hindi", label: "🇮🇳 Hindi" },
+                  { id: "Dutch", label: "🇳🇱 Dutch" },
+                  { id: "Swedish", label: "🇸🇪 Swedish" },
+                  { id: "Polish", label: "🇵🇱 Polish" },
+                  { id: "Turkish", label: "🇹🇷 Turkish" },
+                  { id: "Greek", label: "🇬🇷 Greek" },
+                  { id: "Hebrew", label: "🇮🇱 Hebrew" },
+                ].map((lang) => (
+                  <label
+                    key={lang.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      background: createEventForm.languages.includes(lang.id) ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : "white",
+                      color: createEventForm.languages.includes(lang.id) ? "white" : theme.text,
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: createEventForm.languages.includes(lang.id) ? 900 : 600,
+                      border: `1px solid ${createEventForm.languages.includes(lang.id) ? theme.primary : theme.border}`,
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={createEventForm.languages.includes(lang.id)}
+                      onChange={(e) => {
+                        const langs = e.target.checked
+                          ? [...createEventForm.languages, lang.id]
+                          : createEventForm.languages.filter(l => l !== lang.id);
+                        setCreateEventForm({ ...createEventForm, languages: langs });
+                      }}
+                      style={{ marginRight: 6, cursor: "pointer" }}
+                    />
+                    {lang.label}
+                  </label>
+                ))}
+              </div>
+              {createEventForm.languages.length > 0 && (
+                <div style={{ marginTop: 8, fontSize: 13, color: theme.accent, fontWeight: 600 }}>
+                  Selected: {createEventForm.languages.join(" ↔ ")}
+                </div>
+              )}
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Description (optional)</label>
+              <textarea
+                value={createEventForm.description}
+                onChange={(e) => setCreateEventForm({ ...createEventForm, description: e.target.value })}
+                placeholder="Add details about the event..."
+                rows={3}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: `1px solid ${theme.border}`,
+                  fontSize: 14,
+                  outline: "none",
+                  fontFamily: "inherit",
+                  resize: "vertical",
+                }}
+              />
+            </div>
+
+            <button
+              style={{
+                ...styles.primaryBtn,
+                width: "100%",
+                padding: "12px",
+                fontSize: 15,
+              }}
+              onClick={() => {
+                if (!createEventForm.name || !createEventForm.place || !createEventForm.date || !createEventForm.time) {
+                  alert("Please fill in all required fields: Event Name, Place, Date, and Time");
+                  return;
+                }
+                if (createEventForm.languages.length < 2) {
+                  alert("Please select at least 2 languages for the language exchange");
+                  return;
+                }
+                logAdminActivity(`Created new event: ${createEventForm.name} at ${createEventForm.place}`);
+                // Here you would typically call a function to add the event to your events array
+                alert(`Event "${createEventForm.name}" created successfully!\n\nLocation: ${createEventForm.location}\nPlace: ${createEventForm.place}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\nLanguages: ${createEventForm.languages.join(" ↔ ")}`);
+                // Reset form
+                setCreateEventForm({
+                  name: "",
+                  location: "Cité",
+                  place: "",
+                  date: "",
+                  time: "",
+                  category: "food",
+                  languages: [],
+                  description: "",
+                });
+              }}
+            >
+              ✨ Create Event
+            </button>
+          </div>
+        </div>
+      )}
       {activeTab === "requests" && (
         <div style={styles.section}>
           <div style={styles.sectionTitle}>📝 Pending Requests</div>
@@ -261,7 +581,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                     <div>
                       <div style={{ fontWeight: 800 }}>{typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}</div>
                       <div style={{ fontSize: 13.5, color: theme.textMuted }}>
-                        {req.event?.type || req.event?.category || req.event?.name || "Event"}
+                        {req.event?.location || req.event?.category || req.event?.name || "Event"}
                         {req.event?.date ? ` | ${req.event.date}` : ""}
                         {req.targetFriend ? ` | via ${req.targetFriend}` : ""}
                       </div>
@@ -358,7 +678,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 10, color: theme.primary }}>✨ The Event</div>
                 <div style={{ fontSize: 16, marginBottom: 4 }}><b>Event:</b> {String(selectedEventForModal.name)}</div>
                 <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Time:</b> {String(selectedEventForModal.time || selectedEventForModal.date)}</div>
-                {selectedEventForModal.budget && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Budget:</b> €{String(selectedEventForModal.budget)}</div>}
+                {/* Budget hidden in simplified flow */}
                 {selectedEventForModal.location && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Location:</b> {String(selectedEventForModal.location)}</div>}
                 {selectedEventForModal.description && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Description:</b> {String(selectedEventForModal.description)}</div>}
                 <div style={{ fontSize: 18, fontWeight: 800, marginTop: 16, marginBottom: 8, color: theme.accent }}>🧃 The Residents</div>

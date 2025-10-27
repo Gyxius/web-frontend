@@ -359,7 +359,15 @@ function App() {
             setShowChat(true);
           }}
           onUserClick={setSelectedProfile}
-          onLeaveEvent={() => {}}
+          onLeaveEvent={(evToRemove) => {
+            const currentUserKey = user?.username || user?.name;
+            setUserEvents(prev => {
+              const updated = { ...prev };
+              const list = Array.isArray(updated[currentUserKey]) ? updated[currentUserKey] : [];
+              updated[currentUserKey] = list.filter(ev => String(ev.id || ev.name) !== String(evToRemove?.id || evToRemove?.name));
+              return updated;
+            });
+          }}
           showDebug={true}
           friendEvents={(friends[user?.username || user?.name] || []).map(fr => ({
             friend: fr,
