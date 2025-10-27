@@ -255,6 +255,17 @@ function App() {
           onUserClick={setSelectedProfile}
           onLeaveEvent={() => {}}
           showDebug={true}
+          friendEvents={(friends[user?.username || user?.name] || []).map(fr => ({
+            friend: fr,
+            events: userEvents[fr?.username || fr?.name] || []
+          })).filter(fe => Array.isArray(fe.events) && fe.events.length > 0)}
+          onRequestJoinEvent={(friend, event) => {
+            const requester = user?.username || user?.name;
+            setPendingRequests(prev => [
+              ...prev,
+              { user: requester, event, targetFriend: friend?.name || friend?.username }
+            ]);
+          }}
           friendRequestsIncoming={pendingFriendRequests.filter(r => r.to === (user?.username || user?.name))}
           onAcceptFriendRequestFrom={(fromKey) => {
             const currentUserKey = user?.username || user?.name;

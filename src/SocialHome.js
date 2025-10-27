@@ -13,6 +13,8 @@ function SocialHome({
   pendingRequests = [],
   onCancelPendingRequest,
   showDebug,
+  friendEvents = [],
+  onRequestJoinEvent,
   friendRequestsIncoming = [],
   onAcceptFriendRequestFrom,
   onDeclineFriendRequestFrom,
@@ -23,6 +25,8 @@ function SocialHome({
 
   const [selectedPending, setSelectedPending] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  // View mode: 'my' shows only user's joined events, 'friends' shows only friends' joined events
+  const [viewMode, setViewMode] = useState("my");
 
   const fadeIn = { animation: "fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1)" };
   const pulse = { animation: "pulse 1.2s infinite" };
@@ -35,7 +39,7 @@ function SocialHome({
     attendees: 22,
   };
 
-  const friendsActivity = [];
+  // Removed friendsActivity list; we now show detailed Friends’ Joined Events below
 
   // 🟢 Duolingo-inspired theme
   const theme = {
@@ -386,73 +390,104 @@ function SocialHome({
             </ul>
           </div>
         )}
-
-        <div style={styles.sectionTitle}>👥 Friends are going to</div>
-        {friendsActivity.map((f, idx) => (
-          <div key={idx} style={styles.details}>
-            • {f.name} → {f.event}
-          </div>
-        ))}
       </div>
 
-      <div style={styles.title}>🎟️ My Joined Events</div>
-      {joinedEvents.length === 0 ? (
-        <div style={styles.empty}>You haven’t joined any events yet.</div>
-      ) : (
-        <div>
-          {joinedEvents.map((item, idx) => (
-            <div
-              key={idx}
-              style={styles.eventCard}
-              className="eventCard"
-              onClick={() => {
-                console.log(
-                  `[ACTIVITY] user "${userName}": clicked on joined event "${item.name || item.type || item.category || "Event"}"`,
-                  item
-                );
-                onJoinedEventClick(item);
-              }}
-            >
-              <div style={styles.eventName}>
-                {String(item.name || item.type || item.category || "Event")}
-              </div>
-              <div style={styles.details}>⏰ {String(item.time || item.date)}</div>
-              {item.budget && <div style={styles.details}>💶 Budget: €{String(item.budget)}</div>}
-
-              {Array.isArray(item.crew) && item.crew.length > 0 && (
-                <div style={styles.details}>
-                  🧃 The Residents:
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    {item.crew.map((member, i) => {
-                      let userInfo =
-                        typeof member === "object" && member !== null
-                          ? member
-                          : users.find((u) => u.name === member || u.username === member);
-                      if (!userInfo) userInfo = { name: member };
-                      return (
-                        <li key={i} style={{ fontSize: 13, color: theme.textMuted }}>
-                          {userInfo.emoji ? userInfo.emoji + " " : ""}
-                          {userInfo.name} {userInfo.country ? `(${userInfo.country})` : ""} – "
-                          {userInfo.desc || "No description."}"
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-
-              <button
-                style={styles.leaveButton}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onLeaveEvent(item);
-                }}
-              >
-                Leave
-              </button>
-            </div>
-          ))}
+      {/* Friends' Joined Events (only in friends view) */}
+      {viewMode === "friends" && (
+        <div style={styles.section} id="friends-joined-events">
+          <div style={styles.sectionTitle}>👥 Friends’ Joined Events</div>
+          {Array.isArray(friendEvents) && friendEvents.length > 0 ? (
+            <ul style={{ padding: 0 }}>
+              {friendEvents.map((fe, i) => (
+                <li key={i} style={{ listStyle: "none", marginBottom: 12 }}>
+                  <div style={{ fontWeight: 800, color: theme.text, marginBottom: 8 }}>
+                  {fe.friend?.emoji ? fe.friend.emoji + " " : ""}
+                  {fe.friend?.name || fe.friend?.username} {fe.friend?.country || ""}
+                  </div>
+                  {fe.events.map((ev, j) => (
+                    <div key={j} style={{ ...styles.eventCard, cursor: "default" }}>
+                      <div style={styles.eventName}>{String(ev.name || ev.type || ev.category || "Event")}</div>
+                      <div style={styles.details}>⏰ {String(ev.time || ev.date || "")}</div>
+                      {ev.budget && <div style={styles.details}>💶 Budget: €{String(ev.budget)}</div>}
+                      <button
+                        style={{ ...styles.joinButton, padding: "10px 12px", alignSelf: "flex-start", marginTop: 10 }}
+                        onClick={() => onRequestJoinEvent && onRequestJoinEvent(fe.friend, ev)}
+                      >
+                        Request to Join
+                      </button>
+                    </div>
+                  ))}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div style={styles.empty}>No friends’ joined events yet.</div>
+          )}
         </div>
+      )}
+
+      {viewMode === "my" && (
+        <>
+          <div style={styles.title}>🎟️ My Joined Events</div>
+          {joinedEvents.length === 0 ? (
+            <div style={styles.empty}>You haven’t joined any events yet.</div>
+          ) : (
+            <div>
+              {joinedEvents.map((item, idx) => (
+                <div
+                  key={idx}
+                  style={styles.eventCard}
+                  className="eventCard"
+                  onClick={() => {
+                    console.log(
+                      `[ACTIVITY] user "${userName}": clicked on joined event "${item.name || item.type || item.category || "Event"}"`,
+                      item
+                    );
+                    onJoinedEventClick(item);
+                  }}
+                >
+                  <div style={styles.eventName}>
+                    {String(item.name || item.type || item.category || "Event")}
+                  </div>
+                  <div style={styles.details}>⏰ {String(item.time || item.date)}</div>
+                  {item.budget && <div style={styles.details}>💶 Budget: €{String(item.budget)}</div>}
+
+                  {Array.isArray(item.crew) && item.crew.length > 0 && (
+                    <div style={styles.details}>
+                      🧃 The Residents:
+                      <ul style={{ margin: 0, paddingLeft: 18 }}>
+                        {item.crew.map((member, i) => {
+                          let userInfo =
+                            typeof member === "object" && member !== null
+                              ? member
+                              : users.find((u) => u.name === member || u.username === member);
+                          if (!userInfo) userInfo = { name: member };
+                          return (
+                            <li key={i} style={{ fontSize: 13, color: theme.textMuted }}>
+                              {userInfo.emoji ? userInfo.emoji + " " : ""}
+                              {userInfo.name} {userInfo.country ? `(${userInfo.country})` : ""} – "
+                              {userInfo.desc || "No description."}"
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
+                  <button
+                    style={styles.leaveButton}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onLeaveEvent(item);
+                    }}
+                  >
+                    Leave
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <div style={styles.joinButtonRow}>
@@ -466,9 +501,9 @@ function SocialHome({
             boxShadow: "0 6px 16px rgba(28,176,246,0.28)",
           }}
           className="joinButton"
-          onClick={() => onUserClick && onUserClick("friends")}
+          onClick={() => setViewMode((m) => (m === "my" ? "friends" : "my"))}
         >
-          👥 Friends’ Events
+          {viewMode === "my" ? "� Friends’ Events" : "🎟️ My Events"}
         </button>
       </div>
 
