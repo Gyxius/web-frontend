@@ -1,0 +1,32 @@
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.eventCard {
+  animation: fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.eventCard:hover {
+  box-shadow: 0 4px 20px rgba(59,130,246,0.15);
+  transform: scale(1.03);
+}
+.joinButton {
+  transition: background 0.2s, transform 0.2s;
+}
+.joinButton:hover {
+  background: #2563eb;
+  transform: scale(1.04);
+}
+.fab {
+  animation: pulse 1.2s infinite;
+  transition: background 0.2s, transform 0.2s;
+}
+.fab:hover {
+  background: #2563eb;
+  transform: scale(1.08);
+}
