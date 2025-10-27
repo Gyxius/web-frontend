@@ -9,6 +9,7 @@ import SocialChat from "./SocialChat";
 import SocialResult from "./SocialResult";
 import WaitingForAdmin from "./WaitingForAdmin";
 import users from "./users";
+import allEvents from "./events";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -39,6 +40,7 @@ function App() {
     const saved = localStorage.getItem("pendingRequests");
     return saved ? JSON.parse(saved) : [];
   });
+  const [selectedPendingRequestIdx, setSelectedPendingRequestIdx] = useState(null);
 
   const joinedEvents = user ? userEvents[user?.username || user?.name] || [] : [];
 
@@ -87,7 +89,52 @@ function App() {
       <>
         <AdminAssign
           pendingRequests={pendingRequests}
-          onAssignEvent={() => {}}
+          userEvents={userEvents}
+          onRemoveJoinedEvent={(userKey, idx) => {
+            setUserEvents(prev => {
+              const updated = { ...prev };
+              if (updated[userKey]) {
+                updated[userKey] = updated[userKey].filter((_, i) => i !== idx);
+              }
+              return updated;
+            });
+          }}
+          onAssignEvent={(reqIdx, eventId) => {
+            if (!eventId && eventId !== 0) return; // guard
+            const req = pendingRequests[reqIdx];
+            if (!req) return;
+            const userKey = typeof req.user === "object" ? (req.user.username || req.user.name) : req.user;
+            const ev = allEvents.find(e => String(e.id) === String(eventId));
+            if (!ev) return;
+            // Append event to the target user's joined events (avoid duplicates by id)
+            setUserEvents(prev => {
+              const updated = { ...prev };
+              const list = updated[userKey] || [];
+              if (!list.find(x => String(x.id || x.name) === String(ev.id))) {
+                updated[userKey] = [...list, ev];
+              }
+              return updated;
+            });
+            // Update pending request to stage 3 with assigned event id
+            setPendingRequests(prev => prev.map((r, i) => {
+              if (i !== reqIdx) return r;
+              const now = Date.now();
+              const nextHistory = Array.isArray(r.history) ? [...r.history, { stage: 3, ts: now }] : [{ stage: 3, ts: now }];
+              return { ...r, stage: 3, assignedEventId: ev.id, history: nextHistory };
+            }));
+            // Check crew size for stage 4 (simple heuristic: at least 4 users joined)
+            setTimeout(() => {
+              const participants = Object.values(userEvents).reduce((acc, events) => acc + (Array.isArray(events) && events.find(e2 => String(e2.id) === String(ev.id)) ? 1 : 0), 0) + 1; // +1 for newly assigned
+              if (participants >= 4) {
+                setPendingRequests(prev => prev.map((r, i) => {
+                  if (i !== reqIdx) return r;
+                  const now2 = Date.now();
+                  const nextHistory2 = Array.isArray(r.history) ? [...r.history, { stage: 4, ts: now2 }] : [{ stage: 4, ts: now2 }];
+                  return { ...r, stage: 4, history: nextHistory2 };
+                }));
+              }
+            }, 0);
+          }}
         />
         <button
           onClick={handleSignOut}
@@ -232,9 +279,50 @@ function App() {
       }} />
     );
   } else if (waitingForAdmin) {
-    mainContent = (<WaitingForAdmin onHome={() => {}} />);
+    const currentUserKey = user?.username || user?.name;
+    // If a specific request is selected, use it; otherwise find by current user
+    let req;
+    if (selectedPendingRequestIdx !== null && pendingRequests[selectedPendingRequestIdx]) {
+      req = pendingRequests[selectedPendingRequestIdx];
+    } else {
+      req = pendingRequests.find(r => (typeof r.user === 'object' ? (r.user.username || r.user.name) : r.user) === currentUserKey);
+    }
+    const assignedEvent = req?.assignedEventId ? (allEvents.find(e => String(e.id) === String(req.assignedEventId)) || null) : null;
+    mainContent = (
+      <WaitingForAdmin
+        onHome={() => {
+          setWaitingForAdmin(false);
+          setSelectedPendingRequestIdx(null);
+        }}
+        request={req}
+        assignedEvent={assignedEvent}
+        onGoChat={() => {
+          if (!assignedEvent) return;
+          // mark complete by removing the pending request
+          setPendingRequests(prev => prev.filter((_, i) => i !== selectedPendingRequestIdx));
+          setWaitingForAdmin(false);
+          setSelectedPendingRequestIdx(null);
+          setRouletteResult(assignedEvent);
+          setShowChat(true);
+        }}
+      />
+    );
   } else if (showForm) {
-    mainContent = (<SocialForm onConfirm={() => {}} onHome={() => setShowForm(false)} />);
+    mainContent = (
+      <SocialForm
+        onConfirm={(payload) => {
+          const requester = user?.username || user?.name;
+          const now = Date.now();
+          setPendingRequests((prev) => [
+            ...prev,
+            { user: requester, event: payload, stage: 2, history: [{ stage: 1, ts: now }, { stage: 2, ts: now }] },
+          ]);
+          setShowForm(false);
+          setWaitingForAdmin(true);
+        }}
+        onHome={() => setShowForm(false)}
+      />
+    );
   } else {
     mainContent = (
       <>
@@ -262,6 +350,10 @@ function App() {
           joinedEvents={joinedEvents}
           pendingRequests={pendingRequests.filter(r => r.user === (user?.username || user?.name) && r.event)}
           onCancelPendingRequest={idx => setPendingRequests(prev => prev.filter((_, i) => i !== idx))}
+          onOpenPendingRequest={(idx) => {
+            setSelectedPendingRequestIdx(idx);
+            setWaitingForAdmin(true);
+          }}
           onJoinedEventClick={event => {
             setRouletteResult(event);
             setShowChat(true);

@@ -25,9 +25,8 @@ const languages = [
 function SocialForm({ onConfirm, onHome }) {
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(today);
-  const [startTime, setStartTime] = useState("19:00");
-  const [endTime, setEndTime] = useState("22:00");
-  const [budget, setBudget] = useState(10);
+  const [timeOfDay, setTimeOfDay] = useState(null);
+  const [budgetMax, setBudgetMax] = useState(10);
   const [type, setType] = useState(null);
   const [category, setCategory] = useState(null);
   const [language, setLanguage] = useState(null);
@@ -48,7 +47,7 @@ function SocialForm({ onConfirm, onHome }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = { date, start: startTime, end: endTime, budget, type, category, language };
+    const payload = { date, timeOfDay, budgetMax, type, category, language };
     onConfirm && onConfirm(payload);
   };
 
@@ -157,35 +156,40 @@ function SocialForm({ onConfirm, onHome }) {
           onBlur={e => e.target.style.boxShadow = "none"}
         />
 
-        <label style={styles.label}>Start Time</label>
-        <input
-          type="time"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          style={styles.input}
-          onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
-          onBlur={e => e.target.style.boxShadow = "none"}
-        />
+        <label style={styles.label}>Time of Day</label>
+        <div style={styles.pillRow}>
+          {[
+            { id: "morning", label: "🌅 Morning" },
+            { id: "afternoon", label: "🌤️ Afternoon" },
+            { id: "evening", label: "🌇 Evening" },
+            { id: "night", label: "🌙 Night" },
+            { id: "whole-day", label: "🗓️ Whole Day" },
+          ].map((t) => (
+            <button
+              type="button"
+              key={t.id}
+              style={{ ...styles.pill, ...(timeOfDay === t.id ? styles.pillSelected : {}) }}
+              onClick={() => setTimeOfDay(timeOfDay === t.id ? null : t.id)}
+              onMouseEnter={e => { if (timeOfDay !== t.id) e.currentTarget.style.transform = "scale(1.04)"; }}
+              onMouseLeave={e => { if (timeOfDay !== t.id) e.currentTarget.style.transform = "scale(1)"; }}
+            >
+              <span style={{ ...(timeOfDay === t.id ? styles.pillTextSelected : styles.pillText) }}>{t.label}</span>
+            </button>
+          ))}
+        </div>
 
-        <label style={styles.label}>End Time</label>
+        <label style={styles.label}>Max Budget (€)</label>
+        <div style={{ marginBottom: 8, color: theme.textMuted, fontSize: 13 }}>
+          Current: <b style={{ color: theme.text }}>€{budgetMax}</b>
+        </div>
         <input
-          type="time"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-          style={styles.input}
-          onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
-          onBlur={e => e.target.style.boxShadow = "none"}
-        />
-
-        <label style={styles.label}>Your Budget (€)</label>
-        <input
-          type="number"
+          type="range"
           min={0}
-          value={budget}
-          onChange={(e) => setBudget(Number(e.target.value))}
-          style={styles.input}
-          onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
-          onBlur={e => e.target.style.boxShadow = "none"}
+          max={100}
+          step={5}
+          value={budgetMax}
+          onChange={(e) => setBudgetMax(Number(e.target.value))}
+          style={{ width: "100%" }}
         />
 
         <label style={styles.label}>Pick a Type</label>

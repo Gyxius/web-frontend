@@ -10,6 +10,39 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   const [activeTab, setActiveTab] = useState("requests");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [requestDetailIdx, setRequestDetailIdx] = useState(null);
+
+  // Match on: budget, type, category, language, and optionally timeOfDay (if provided)
+  const matchesRequest = (ev, req) => {
+    const e = ev || {};
+    const r = (req && req.event) || {};
+  if (r.type && e.type !== r.type) return false;
+  if (r.category && e.category !== r.category) return false;
+  if (r.language && e.language !== r.language) return false;
+  const maxBudget = (typeof r.budgetMax === "number") ? r.budgetMax : (typeof r.budget === "number" ? r.budget : null);
+  if (maxBudget !== null && typeof e.budget === "number" && e.budget > maxBudget) return false;
+    if (r.timeOfDay && r.timeOfDay !== "whole-day") {
+      // derive timeOfDay from event start time string (e.time like "19:00")
+      const toMinutes = (hhmm) => {
+        if (!hhmm || typeof hhmm !== "string") return null;
+        const [h, m] = hhmm.split(":");
+        const hh = parseInt(h, 10);
+        const mm = parseInt(m, 10);
+        if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
+        return hh * 60 + mm;
+      };
+      const mins = toMinutes(e.time);
+      let evTod = null;
+      if (mins !== null) {
+        if (mins >= 5 * 60 && mins < 12 * 60) evTod = "morning";
+        else if (mins >= 12 * 60 && mins < 17 * 60) evTod = "afternoon";
+        else if (mins >= 17 * 60 && mins < 21 * 60) evTod = "evening";
+        else evTod = "night";
+      }
+      if (evTod && evTod !== r.timeOfDay) return false;
+    }
+    return true;
+  };
 
   // Log admin activities
   const logAdminActivity = (msg) => {
@@ -200,7 +233,12 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           ) : (
             <ul style={{ padding: 0 }}>
               {pendingRequests.map((req, idx) => (
-                <li key={idx} style={styles.itemRow}>
+                <li
+                  key={idx}
+                  style={{ ...styles.itemRow, cursor: "pointer" }}
+                  onClick={() => setRequestDetailIdx(idx)}
+                  title="Click to view full request"
+                >
                   <div>
                     <div style={{ fontWeight: 800 }}>{typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}</div>
                     <div style={{ fontSize: 13.5, color: theme.textMuted }}>
@@ -211,7 +249,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   </div>
                   <button
                     style={styles.primaryBtn}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       logAdminActivity(`Clicked Assign Event for user ${typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}`);
                       setSelectedIdx(idx);
                     }}
@@ -220,6 +259,46 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
               ))}
             </ul>
           )}
+        </div>
+      )}
+
+      {requestDetailIdx !== null && (
+        <div style={styles.modalOverlay} onClick={() => setRequestDetailIdx(null)}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 18, fontWeight: 900, color: theme.accent, marginBottom: 10 }}>Request Details</div>
+            {(() => {
+              const req = pendingRequests[requestDetailIdx] || {};
+              const userLabel = typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user || "");
+              const ev = req.event || {};
+              return (
+                <>
+                  <div style={{ marginBottom: 8 }}><b>User:</b> {userLabel}</div>
+                  {req.targetFriend && (
+                    <div style={{ marginBottom: 8 }}><b>Target Friend:</b> {String(req.targetFriend)}</div>
+                  )}
+                  <div style={{ fontWeight: 800, marginTop: 10, marginBottom: 6, color: theme.primary }}>Event Payload</div>
+                  <ul style={{ margin: 0, paddingLeft: 16, color: theme.text }}>
+                    {Object.keys(ev).length === 0 ? (
+                      <li style={{ color: theme.textMuted }}>No event payload provided.</li>
+                    ) : (
+                      Object.entries(ev).map(([k, v]) => (
+                        <li key={k}>
+                          <b>{k}:</b> {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                  <div style={{ fontWeight: 800, marginTop: 12, marginBottom: 6, color: theme.accent }}>Raw</div>
+                  <pre style={{ background: "#F9FAFB", padding: 12, borderRadius: 12, border: `1px solid ${theme.border}`, maxHeight: 280, overflow: "auto", fontSize: 13 }}>
+                    {JSON.stringify(req, null, 2)}
+                  </pre>
+                  <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 12 }}>
+                    <button style={styles.accentBtn} onClick={() => setRequestDetailIdx(null)}>Close</button>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
         </div>
       )}
       {activeTab === "users" && (
@@ -311,15 +390,28 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
             Assign Event to {typeof pendingRequests[selectedIdx].user === "object" ? (pendingRequests[selectedIdx].user.name || JSON.stringify(pendingRequests[selectedIdx].user)) : String(pendingRequests[selectedIdx].user)}
           </div>
           {logAdminActivity(`Opened assignment modal for user ${typeof pendingRequests[selectedIdx].user === "object" ? (pendingRequests[selectedIdx].user.name || JSON.stringify(pendingRequests[selectedIdx].user)) : String(pendingRequests[selectedIdx].user)}`)}
-          <select value={selectedEvent || ""} onChange={e => {
+          {(() => {
+            const req = pendingRequests[selectedIdx];
+            const filtered = (events || []).filter(ev => matchesRequest(ev, req));
+            return (
+              <>
+                <select value={selectedEvent || ""} onChange={e => {
             setSelectedEvent(e.target.value);
             logAdminActivity(`Selected event ${e.target.value} for user ${pendingRequests[selectedIdx].user}`);
-          }} style={{ padding: 10, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 12, width: "100%" }}>
-            <option value="">-- Choose an Event --</option>
-            {events.map(ev => (
-              <option key={ev.id} value={ev.id}>{ev.name} ({ev.time})</option>
-            ))}
-          </select>
+                }} style={{ padding: 10, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 8, width: "100%" }}>
+                  <option value="">-- Choose a Matching Event --</option>
+                  {filtered.map(ev => (
+                    <option key={ev.id} value={ev.id}>{ev.name} ({ev.time})</option>
+                  ))}
+                </select>
+                {filtered.length === 0 && (
+                  <div style={{ color: theme.textMuted, fontSize: 13.5, marginBottom: 8 }}>
+                    No events match this request. Adjust the user’s request or add more events.
+                  </div>
+                )}
+              </>
+            );
+          })()}
           <div style={{ display: "flex", gap: 10 }}>
             <button style={styles.primaryBtn} onClick={() => {
               logAdminActivity(`Confirmed assignment of event ${selectedEvent} to user ${pendingRequests[selectedIdx].user}`);

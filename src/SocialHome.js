@@ -12,6 +12,7 @@ function SocialHome({
   onLeaveEvent,
   pendingRequests = [],
   onCancelPendingRequest,
+  onOpenPendingRequest,
   showDebug,
   friendEvents = [],
   onRequestJoinEvent,
@@ -514,7 +515,15 @@ function SocialHome({
         ) : (
           <ul style={{ padding: 0 }}>
             {pendingRequests.map((req, idx) => (
-              <li key={idx} style={styles.pendingCard} onClick={() => setSelectedPending(req)}>
+              <li 
+                key={idx} 
+                style={{ ...styles.pendingCard, cursor: 'pointer' }}
+                onClick={() => {
+                  if (onOpenPendingRequest) {
+                    onOpenPendingRequest(idx);
+                  }
+                }}
+              >
                 <span>
                   {req.event && (
                     <>
