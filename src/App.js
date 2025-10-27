@@ -149,7 +149,7 @@ function App() {
   } else if (waitingForAdmin) {
     mainContent = (<WaitingForAdmin onHome={() => {}} />);
   } else if (showForm) {
-    mainContent = (<SocialForm onConfirm={() => {}} />);
+    mainContent = (<SocialForm onConfirm={() => {}} onHome={() => setShowForm(false)} />);
   } else {
     mainContent = (
       <>

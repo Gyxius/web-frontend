@@ -22,7 +22,7 @@ const languages = [
   { id: "Japanese", label: "🇯🇵 Japanese" },
 ];
 
-function SocialForm({ onConfirm }) {
+function SocialForm({ onConfirm, onHome }) {
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(today);
   const [startTime, setStartTime] = useState("19:00");
@@ -120,6 +120,8 @@ function SocialForm({ onConfirm }) {
     },
   };
 
+
+
   return (
     <form onSubmit={handleSubmit} style={styles.form}>
       <h2 style={styles.title}>🎲 Spin to Practice Languages</h2>
@@ -189,6 +191,9 @@ function SocialForm({ onConfirm }) {
         </div>
 
         <button type="submit" style={styles.btn}>Confirm</button>
+        <button type="button" style={{ ...styles.btn, background: theme.accent, boxShadow: theme.shadow, marginTop: 8 }} onClick={onHome}>
+          Go to Homepage
+        </button>
       </div>
     </form>
   );
