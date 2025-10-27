@@ -100,7 +100,7 @@ function App() {
             });
           }}
           onAssignEvent={(reqIdx, eventId) => {
-            if (!eventId && eventId !== 0) return; // guard
+            if (!eventId || eventId === "") return; // guard against empty/falsy eventId
             const req = pendingRequests[reqIdx];
             if (!req) return;
             const userKey = typeof req.user === "object" ? (req.user.username || req.user.name) : req.user;

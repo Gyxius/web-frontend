@@ -510,43 +510,50 @@ function SocialHome({
 
       <div style={styles.section}>
         <div style={styles.sectionTitle}>Pending Requests</div>
-        {pendingRequests.length === 0 ? (
-          <div style={styles.empty}>No pending requests.</div>
-        ) : (
-          <ul style={{ padding: 0 }}>
-            {pendingRequests.map((req, idx) => (
-              <li 
-                key={idx} 
-                style={{ ...styles.pendingCard, cursor: 'pointer' }}
-                onClick={() => {
-                  if (onOpenPendingRequest) {
-                    onOpenPendingRequest(idx);
-                  }
-                }}
-              >
-                <span>
-                  {req.event && (
-                    <>
-                      <strong>{req.event.type || req.event.category || "Event"}</strong>
-                      {req.event.date && <> | <span>{req.event.date}</span></>}
-                      {req.event.location && <> | <span>{req.event.location}</span></>}
-                      {req.event.details && <> | <span>{req.event.details}</span></>}
-                    </>
-                  )}
-                </span>
-                <button
-                  style={styles.cancelButton}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCancelPendingRequest(idx);
+        {(() => {
+          const entries = Array.isArray(pendingRequests)
+            ? pendingRequests.map((req, idx) => ({ req, idx }))
+            : [];
+          const pendingOnly = entries.filter(x => !x.req.stage || x.req.stage < 3);
+          if (pendingOnly.length === 0) {
+            return <div style={styles.empty}>No pending requests.</div>;
+          }
+          return (
+            <ul style={{ padding: 0 }}>
+              {pendingOnly.map(({ req, idx }) => (
+                <li 
+                  key={idx} 
+                  style={{ ...styles.pendingCard, cursor: 'pointer' }}
+                  onClick={() => {
+                    if (onOpenPendingRequest) {
+                      onOpenPendingRequest(idx); // pass original index
+                    }
                   }}
                 >
-                  Cancel
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+                  <span>
+                    {req.event && (
+                      <>
+                        <strong>{req.event.type || req.event.category || "Event"}</strong>
+                        {req.event.date && <> | <span>{req.event.date}</span></>}
+                        {req.event.location && <> | <span>{req.event.location}</span></>}
+                        {req.event.details && <> | <span>{req.event.details}</span></>}
+                      </>
+                    )}
+                  </span>
+                  <button
+                    style={styles.cancelButton}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCancelPendingRequest(idx);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </li>
+              ))}
+            </ul>
+          );
+        })()}
 
         {selectedPending && (
           <div style={styles.modalOverlay} onClick={() => setSelectedPending(null)}>

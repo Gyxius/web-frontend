@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import users from "./users";
 import events from "./events";
 
@@ -8,9 +8,22 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   const [selectedIdx, setSelectedIdx] = useState(null);
   // Only keep one selectedEvent state for event modal
   const [activeTab, setActiveTab] = useState("requests");
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedEventForModal, setSelectedEventForModal] = useState(null); // For viewing event details
+  const [selectedEventId, setSelectedEventId] = useState(""); // For assignment dropdown
   const [selectedUser, setSelectedUser] = useState(null);
   const [requestDetailIdx, setRequestDetailIdx] = useState(null);
+
+  // When opening the assign panel for a request, preselect the first matching event
+  useEffect(() => {
+    if (selectedIdx !== null && Array.isArray(pendingRequests)) {
+      const req = pendingRequests[selectedIdx];
+      if (!req) return;
+      const filtered = (events || []).filter(ev => matchesRequest(ev, req));
+      if (!selectedEventId && filtered.length > 0) {
+        setSelectedEventId(String(filtered[0].id));
+      }
+    }
+  }, [selectedIdx, pendingRequests, selectedEventId]);
 
   // Match on: budget, type, category, language, and optionally timeOfDay (if provided)
   const matchesRequest = (ev, req) => {
@@ -228,37 +241,45 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
       {activeTab === "requests" && (
         <div style={styles.section}>
           <div style={styles.sectionTitle}>📝 Pending Requests</div>
-          {(!pendingRequests || pendingRequests.length === 0) ? (
-            <div style={{ ...styles.card, color: theme.textMuted }}>No pending requests.</div>
-          ) : (
-            <ul style={{ padding: 0 }}>
-              {pendingRequests.map((req, idx) => (
-                <li
-                  key={idx}
-                  style={{ ...styles.itemRow, cursor: "pointer" }}
-                  onClick={() => setRequestDetailIdx(idx)}
-                  title="Click to view full request"
-                >
-                  <div>
-                    <div style={{ fontWeight: 800 }}>{typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}</div>
-                    <div style={{ fontSize: 13.5, color: theme.textMuted }}>
-                      {req.event.type || req.event.category || req.event.name || "Event"}
-                      {req.event.date ? ` | ${req.event.date}` : ""}
-                      {req.targetFriend ? ` | via ${req.targetFriend}` : ""}
+          {(() => {
+            const entries = Array.isArray(pendingRequests)
+              ? pendingRequests.map((req, idx) => ({ req, idx }))
+              : [];
+            const pendingOnly = entries.filter(x => !x.req.stage || x.req.stage < 3);
+            if (pendingOnly.length === 0) {
+              return <div style={{ ...styles.card, color: theme.textMuted }}>No pending requests.</div>;
+            }
+            return (
+              <ul style={{ padding: 0 }}>
+                {pendingOnly.map(({ req, idx }) => (
+                  <li
+                    key={idx}
+                    style={{ ...styles.itemRow, cursor: "pointer" }}
+                    onClick={() => setRequestDetailIdx(idx)}
+                    title="Click to view full request"
+                  >
+                    <div>
+                      <div style={{ fontWeight: 800 }}>{typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}</div>
+                      <div style={{ fontSize: 13.5, color: theme.textMuted }}>
+                        {req.event?.type || req.event?.category || req.event?.name || "Event"}
+                        {req.event?.date ? ` | ${req.event.date}` : ""}
+                        {req.targetFriend ? ` | via ${req.targetFriend}` : ""}
+                      </div>
                     </div>
-                  </div>
-                  <button
-                    style={styles.primaryBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      logAdminActivity(`Clicked Assign Event for user ${typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}`);
-                      setSelectedIdx(idx);
-                    }}
-                  >Assign Event</button>
-                </li>
-              ))}
-            </ul>
-          )}
+                    <button
+                      style={styles.primaryBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        logAdminActivity(`Clicked Assign Event for user ${typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}`);
+                        setSelectedIdx(idx); // use original index
+                        setSelectedEventId(""); // Reset dropdown selection
+                      }}
+                    >Assign Event</button>
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
         </div>
       )}
 
@@ -324,26 +345,26 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           <div style={styles.sectionTitle}>📅 All Events</div>
           <ul style={{ padding: 0 }}>
             {events.map(ev => (
-              <li key={ev.id} style={{ ...styles.card, cursor: "pointer" }} onClick={() => setSelectedEvent(ev)}>
+              <li key={ev.id} style={{ ...styles.card, cursor: "pointer" }} onClick={() => setSelectedEventForModal(ev)}>
                 <div style={{ fontSize: 18.5, fontWeight: 800, color: theme.text }}>{ev.name}</div>
                 <div style={{ fontSize: 14, color: theme.textMuted }}>Time: {ev.time}</div>
               </li>
             ))}
           </ul>
           {/* Event Details Modal */}
-          {selectedEvent && (
-            <div style={styles.modalOverlay} onClick={() => setSelectedEvent(null)}>
+          {selectedEventForModal && (
+            <div style={styles.modalOverlay} onClick={() => setSelectedEventForModal(null)}>
               <div style={styles.modal} onClick={e => e.stopPropagation()}>
                 <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 10, color: theme.primary }}>✨ The Event</div>
-                <div style={{ fontSize: 16, marginBottom: 4 }}><b>Event:</b> {String(selectedEvent.name)}</div>
-                <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Time:</b> {String(selectedEvent.time || selectedEvent.date)}</div>
-                {selectedEvent.budget && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Budget:</b> €{String(selectedEvent.budget)}</div>}
-                {selectedEvent.location && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Location:</b> {String(selectedEvent.location)}</div>}
-                {selectedEvent.description && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Description:</b> {String(selectedEvent.description)}</div>}
+                <div style={{ fontSize: 16, marginBottom: 4 }}><b>Event:</b> {String(selectedEventForModal.name)}</div>
+                <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Time:</b> {String(selectedEventForModal.time || selectedEventForModal.date)}</div>
+                {selectedEventForModal.budget && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Budget:</b> €{String(selectedEventForModal.budget)}</div>}
+                {selectedEventForModal.location && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Location:</b> {String(selectedEventForModal.location)}</div>}
+                {selectedEventForModal.description && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}><b>Description:</b> {String(selectedEventForModal.description)}</div>}
                 <div style={{ fontSize: 18, fontWeight: 800, marginTop: 16, marginBottom: 8, color: theme.accent }}>🧃 The Residents</div>
-                {Array.isArray(selectedEvent.crew) && selectedEvent.crew.length > 0 ? (
+                {Array.isArray(selectedEventForModal.crew) && selectedEventForModal.crew.length > 0 ? (
                   <ul style={{ paddingLeft: 16 }}>
-                    {selectedEvent.crew.map((member, i) => {
+                    {selectedEventForModal.crew.map((member, i) => {
                       let info = member;
                       if (typeof member === "object" && member.name) {
                         try {
@@ -365,7 +386,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 ) : (
                   <div style={{ fontSize: 15, color: theme.textMuted }}>No residents listed.</div>
                 )}
-                <button style={{ ...styles.accentBtn, marginTop: 16 }} onClick={() => setSelectedEvent(null)}>Close</button>
+                <button style={{ ...styles.accentBtn, marginTop: 16 }} onClick={() => setSelectedEventForModal(null)}>Close</button>
               </div>
             </div>
           )}
@@ -395,8 +416,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
             const filtered = (events || []).filter(ev => matchesRequest(ev, req));
             return (
               <>
-                <select value={selectedEvent || ""} onChange={e => {
-            setSelectedEvent(e.target.value);
+                <select value={selectedEventId || ""} onChange={e => {
+            setSelectedEventId(e.target.value);
             logAdminActivity(`Selected event ${e.target.value} for user ${pendingRequests[selectedIdx].user}`);
                 }} style={{ padding: 10, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 8, width: "100%" }}>
                   <option value="">-- Choose a Matching Event --</option>
@@ -406,7 +427,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 </select>
                 {filtered.length === 0 && (
                   <div style={{ color: theme.textMuted, fontSize: 13.5, marginBottom: 8 }}>
-                    No events match this request. Adjust the user’s request or add more events.
+                    No events match this request. Adjust the user's request or add more events.
                   </div>
                 )}
               </>
@@ -414,10 +435,10 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           })()}
           <div style={{ display: "flex", gap: 10 }}>
             <button style={styles.primaryBtn} onClick={() => {
-              logAdminActivity(`Confirmed assignment of event ${selectedEvent} to user ${pendingRequests[selectedIdx].user}`);
-              if (onAssignEvent) onAssignEvent(selectedIdx, selectedEvent);
+              logAdminActivity(`Confirmed assignment of event ${selectedEventId} to user ${pendingRequests[selectedIdx].user}`);
+              if (onAssignEvent) onAssignEvent(selectedIdx, selectedEventId);
               setSelectedIdx(null);
-              setSelectedEvent("");
+              setSelectedEventId("");
             }}>Confirm Assignment</button>
             <button style={styles.dangerBtn} onClick={() => {
               logAdminActivity(`Cancelled assignment for user ${pendingRequests[selectedIdx].user}`);
