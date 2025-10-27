@@ -62,6 +62,7 @@ function SocialForm({ onConfirm, onHome }) {
       boxShadow: theme.shadow,
       border: `1px solid ${theme.border}`,
       fontFamily: "Inter, Roboto, Nunito Sans, Arial, sans-serif",
+      transition: "box-shadow 0.3s, transform 0.2s",
     },
     title: {
       fontSize: 22,
@@ -69,16 +70,18 @@ function SocialForm({ onConfirm, onHome }) {
       marginBottom: 6,
       color: theme.text,
       letterSpacing: "-0.2px",
+      transition: "color 0.2s",
     },
-    subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 16 },
+    subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 16, transition: "color 0.2s" },
     inputs: {
       background: theme.card,
       padding: 18,
       borderRadius: theme.radius,
       border: `1px solid ${theme.border}`,
       boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      transition: "box-shadow 0.2s",
     },
-    label: { display: "block", fontSize: 13, fontWeight: 800, color: theme.textMuted, marginTop: 10, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.8px" },
+    label: { display: "block", fontSize: 13, fontWeight: 800, color: theme.textMuted, marginTop: 10, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.8px", transition: "color 0.2s" },
     input: {
       width: "100%",
       border: `1px solid ${theme.border}`,
@@ -88,6 +91,11 @@ function SocialForm({ onConfirm, onHome }) {
       outline: "none",
       background: "#FFFFFF",
       fontSize: 14.5,
+      transition: "box-shadow 0.2s, border-color 0.2s",
+    },
+    inputFocus: {
+      boxShadow: "0 0 0 2px #58CC02",
+      borderColor: theme.primary,
     },
     pillRow: { display: "flex", flexWrap: "wrap", gap: 8, margin: "6px 0 10px" },
     pill: {
@@ -97,14 +105,16 @@ function SocialForm({ onConfirm, onHome }) {
       background: "#FFFFFF",
       cursor: "pointer",
       boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+      transition: "box-shadow 0.2s, background 0.2s, transform 0.15s",
     },
     pillSelected: {
       background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
       borderColor: "transparent",
       boxShadow: "0 6px 14px rgba(88,204,2,0.22)",
+      transform: "scale(1.08)",
     },
-    pillText: { fontSize: 14, color: theme.text, fontWeight: 600 },
-    pillTextSelected: { color: "#fff", fontWeight: 900 },
+    pillText: { fontSize: 14, color: theme.text, fontWeight: 600, transition: "color 0.2s" },
+    pillTextSelected: { color: "#fff", fontWeight: 900, transition: "color 0.2s" },
     btn: {
       width: "100%",
       padding: "14px",
@@ -117,6 +127,13 @@ function SocialForm({ onConfirm, onHome }) {
       background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
       boxShadow: "0 10px 22px rgba(88,204,2,0.28)",
       marginTop: 16,
+      transition: "box-shadow 0.2s, transform 0.15s, background 0.2s",
+    },
+    btnAccent: {
+      background: theme.accent,
+      boxShadow: theme.shadow,
+      marginTop: 8,
+      transition: "box-shadow 0.2s, transform 0.15s, background 0.2s",
     },
   };
 
@@ -131,13 +148,34 @@ function SocialForm({ onConfirm, onHome }) {
 
       <div style={styles.inputs}>
         <label style={styles.label}>Date</label>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={styles.input} />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          style={styles.input}
+          onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
+          onBlur={e => e.target.style.boxShadow = "none"}
+        />
 
         <label style={styles.label}>Start Time</label>
-        <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} style={styles.input} />
+        <input
+          type="time"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+          style={styles.input}
+          onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
+          onBlur={e => e.target.style.boxShadow = "none"}
+        />
 
         <label style={styles.label}>End Time</label>
-        <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} style={styles.input} />
+        <input
+          type="time"
+          value={endTime}
+          onChange={(e) => setEndTime(e.target.value)}
+          style={styles.input}
+          onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
+          onBlur={e => e.target.style.boxShadow = "none"}
+        />
 
         <label style={styles.label}>Your Budget (€)</label>
         <input
@@ -146,6 +184,8 @@ function SocialForm({ onConfirm, onHome }) {
           value={budget}
           onChange={(e) => setBudget(Number(e.target.value))}
           style={styles.input}
+          onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
+          onBlur={e => e.target.style.boxShadow = "none"}
         />
 
         <label style={styles.label}>Pick a Type</label>
@@ -156,6 +196,8 @@ function SocialForm({ onConfirm, onHome }) {
               key={t.id}
               style={{ ...styles.pill, ...(type === t.id ? styles.pillSelected : {}) }}
               onClick={() => setType(type === t.id ? null : t.id)}
+              onMouseEnter={e => { if (type !== t.id) e.currentTarget.style.transform = "scale(1.04)"; }}
+              onMouseLeave={e => { if (type !== t.id) e.currentTarget.style.transform = "scale(1)"; }}
             >
               <span style={{ ...(type === t.id ? styles.pillTextSelected : styles.pillText) }}>{t.label}</span>
             </button>
@@ -170,6 +212,8 @@ function SocialForm({ onConfirm, onHome }) {
               key={c.id}
               style={{ ...styles.pill, ...(category === c.id ? styles.pillSelected : {}) }}
               onClick={() => setCategory(category === c.id ? null : c.id)}
+              onMouseEnter={e => { if (category !== c.id) e.currentTarget.style.transform = "scale(1.04)"; }}
+              onMouseLeave={e => { if (category !== c.id) e.currentTarget.style.transform = "scale(1)"; }}
             >
               <span style={{ ...(category === c.id ? styles.pillTextSelected : styles.pillText) }}>{c.label}</span>
             </button>
@@ -184,14 +228,29 @@ function SocialForm({ onConfirm, onHome }) {
               key={lang.id}
               style={{ ...styles.pill, ...(language === lang.id ? styles.pillSelected : {}) }}
               onClick={() => setLanguage(language === lang.id ? null : lang.id)}
+              onMouseEnter={e => { if (language !== lang.id) e.currentTarget.style.transform = "scale(1.04)"; }}
+              onMouseLeave={e => { if (language !== lang.id) e.currentTarget.style.transform = "scale(1)"; }}
             >
               <span style={{ ...(language === lang.id ? styles.pillTextSelected : styles.pillText) }}>{lang.label}</span>
             </button>
           ))}
         </div>
 
-        <button type="submit" style={styles.btn}>Confirm</button>
-        <button type="button" style={{ ...styles.btn, background: theme.accent, boxShadow: theme.shadow, marginTop: 8 }} onClick={onHome}>
+        <button
+          type="submit"
+          style={styles.btn}
+          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+        >
+          Confirm
+        </button>
+        <button
+          type="button"
+          style={{ ...styles.btn, ...styles.btnAccent }}
+          onClick={onHome}
+          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+        >
           Go to Homepage
         </button>
       </div>
