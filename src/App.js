@@ -112,7 +112,10 @@ function App() {
           setShowChat(false);
           setShowResult(true);
         }}
-        onHome={() => {}}
+        onHome={() => {
+          setShowChat(false);
+          setRouletteResult(null);
+        }}
         onUserClick={setSelectedProfile}
         onLeaveEvent={() => {
           setShowChat(false);
@@ -180,11 +183,22 @@ function App() {
           }}
           onUserClick={setSelectedProfile}
           onLeaveEvent={() => {}}
-          showDebug={showDebug}
+          showDebug={true}
         />
       </>
     );
   }
+  let debugMsg = "";
+  if (!user) debugMsg = "[DEBUG] Rendering: Login";
+  else if ((user?.username || user?.name)?.toLowerCase() === "admin") debugMsg = `[DEBUG] Rendering: AdminAssign for user ${user?.username || user?.name}`;
+  else if (selectedProfile) debugMsg = `[DEBUG] Rendering: UserProfile for user ${selectedProfile?.username || selectedProfile?.name}`;
+  else if (showChat && rouletteResult) debugMsg = `[DEBUG] Rendering: SocialChat for event ${rouletteResult?.name}`;
+  else if (showResult && rouletteResult) debugMsg = `[DEBUG] Rendering: SocialResult for event ${rouletteResult?.name}`;
+  else if (showRoulette) debugMsg = `[DEBUG] Rendering: SocialRoulette`;
+  else if (waitingForAdmin) debugMsg = `[DEBUG] Rendering: WaitingForAdmin`;
+  else if (showForm) debugMsg = `[DEBUG] Rendering: SocialForm`;
+  else debugMsg = `[DEBUG] Rendering: SocialHome for user ${user?.username || user?.name}`;
+
   return (
     <div className="App">
       {mainContent}
