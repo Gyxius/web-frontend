@@ -97,7 +97,8 @@ function Login({ onLogin }) {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("http://192.168.1.25:8000/login", {
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const response = await fetch(`${apiUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: userName.trim() }),

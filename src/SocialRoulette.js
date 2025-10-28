@@ -10,7 +10,8 @@ function SocialRoulette({ onResult }) {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("http://192.168.1.25:8000/events");
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const response = await axios.get(`${apiUrl}/events`);
       return response.data;
     } catch (error) {
       // Fallback to local seed events
@@ -20,7 +21,8 @@ function SocialRoulette({ onResult }) {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://192.168.1.25:8000/users");
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const response = await axios.get(`${apiUrl}/users`);
       return response.data;
     } catch (error) {
       return [];
