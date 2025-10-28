@@ -1,5 +1,5 @@
 // Auto-generated seed events for the app (50 entries)
-// Fields used across the app: id, name, time, date, budget, type, category, language, location, description
+// Fields used across the app: id, name, time, date, type, category, languages, location, description
 
 const TYPES = [
   { id: "student", label: "🎓 Student" },
@@ -37,11 +37,11 @@ const LANGUAGE_PAIRS = [
   ["Japanese", "French"],
 ];
 
-// Fixed date/time/budget from the request
+// Fixed date/time from the request
 const DEFAULT_DATE = "27/10/2025";
 const DEFAULT_START = "19:00";
 const DEFAULT_END = "22:00";
-const DEFAULT_BUDGET = 10;
+
 
 const titles = {
   food: ["Pho and Friends", "Taco Tuesday", "Crêpes & Conversation", "Pasta Potluck"],
@@ -74,7 +74,6 @@ const events = Array.from({ length: 50 }).map((_, i) => {
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: DEFAULT_BUDGET,
     type: type.id,
     typeLabel: type.label,
     category: category.id,
@@ -82,11 +81,11 @@ const events = Array.from({ length: 50 }).map((_, i) => {
     languages: languagePair, // Array of languages for exchange
     languageLabels: languagePair.map(lang => LANGUAGES.find(l => l.id === lang)?.label || lang).join(" & "),
     location: type.id === "cite" ? "Cité" : "Paris",
-    description: `Type ${type.label} · ${category.label} · ${languagePair.join("↔")} Exchange · Budget €${DEFAULT_BUDGET}`,
+    description: `Type ${type.label} · ${category.label} · ${languagePair.join("↔")} Exchange`,
   };
 });
 
-// Explicit matches for: budget 10, type touristic, category outdoor, language French
+// Extra events for specific matching scenarios
 const extraEvents = [
   {
     id: "ev-tour-fr-out-1",
@@ -94,7 +93,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
     category: "walk",
@@ -102,7 +100,7 @@ const extraEvents = [
     languages: ["French", "English"],
     languageLabels: "🇫🇷 French & 🇬🇧 English",
     location: "Paris",
-    description: "🗼 Touristic · 🚶 A Walk · French↔English Exchange · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔English Exchange",
   },
   {
     id: "ev-tour-fr-out-2",
@@ -110,7 +108,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
     category: "walk",
@@ -118,7 +115,7 @@ const extraEvents = [
     languages: ["French", "English"],
     languageLabels: "🇫🇷 French & 🇬🇧 English",
     location: "Paris",
-    description: "🗼 Touristic · 🚶 A Walk · French↔English Exchange · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔English Exchange",
   },
   {
     id: "ev-tour-fr-out-3",
@@ -126,7 +123,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
     category: "walk",
@@ -134,7 +130,7 @@ const extraEvents = [
     languages: ["French", "Spanish"],
     languageLabels: "🇫🇷 French & 🇪🇸 Spanish",
     location: "Paris",
-    description: "🗼 Touristic · 🚶 A Walk · French↔Spanish Exchange · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔Spanish Exchange",
   },
   {
     id: "ev-tour-fr-out-4",
@@ -142,7 +138,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
     category: "walk",
@@ -150,7 +145,7 @@ const extraEvents = [
     languages: ["French", "Italian"],
     languageLabels: "🇫🇷 French & 🇮🇹 Italian",
     location: "Paris",
-    description: "🗼 Touristic · 🚶 A Walk · French↔Italian Exchange · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔Italian Exchange",
   },
   {
     id: "ev-tour-fr-out-5",
@@ -158,7 +153,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "touristic",
     typeLabel: "🗼 Touristic",
     category: "walk",
@@ -166,7 +160,7 @@ const extraEvents = [
     languages: ["French", "Japanese"],
     languageLabels: "🇫🇷 French & 🇯🇵 Japanese",
     location: "Paris",
-    description: "🗼 Touristic · 🚶 A Walk · French↔Japanese Exchange · Budget €10",
+    description: "🗼 Touristic · 🚶 A Walk · French↔Japanese Exchange",
   },
   {
     id: "ev-cite-es-out-1",
@@ -174,7 +168,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
     category: "party",
@@ -182,7 +175,7 @@ const extraEvents = [
     languages: ["Spanish", "English"],
     languageLabels: "🇪🇸 Spanish & 🇬🇧 English",
     location: "Cité",
-    description: "🏠 Cité · � Party · Spanish↔English Exchange · Budget €10",
+    description: "🏠 Cité · � Party · Spanish↔English Exchange",
   },
   {
     id: "ev-cite-es-out-2",
@@ -190,7 +183,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
     category: "party",
@@ -198,7 +190,7 @@ const extraEvents = [
     languages: ["Spanish", "French"],
     languageLabels: "🇪🇸 Spanish & 🇫🇷 French",
     location: "Cité",
-    description: "🏠 Cité · � Party · Spanish↔French Exchange · Budget €10",
+    description: "🏠 Cité · � Party · Spanish↔French Exchange",
   },
   {
     id: "ev-cite-es-out-3",
@@ -206,7 +198,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
     category: "party",
@@ -214,7 +205,7 @@ const extraEvents = [
     languages: ["Spanish", "Italian"],
     languageLabels: "🇪🇸 Spanish & 🇮🇹 Italian",
     location: "Cité",
-    description: "🏠 Cité · � Party · Spanish↔Italian Exchange · Budget €10",
+    description: "🏠 Cité · � Party · Spanish↔Italian Exchange",
   },
   {
     id: "ev-cite-es-out-4",
@@ -222,7 +213,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
     category: "party",
@@ -230,7 +220,7 @@ const extraEvents = [
     languages: ["English", "French"],
     languageLabels: "�� English & 🇫🇷 French",
     location: "Cité",
-    description: "🏠 Cité · � Party · English↔French Exchange · Budget €10",
+    description: "🏠 Cité · � Party · English↔French Exchange",
   },
   {
     id: "ev-cite-es-out-5",
@@ -238,7 +228,6 @@ const extraEvents = [
     date: DEFAULT_DATE,
     time: DEFAULT_START,
     endTime: DEFAULT_END,
-    budget: 10,
     type: "cite",
     typeLabel: "🏠 Cité",
     category: "party",
@@ -246,7 +235,7 @@ const extraEvents = [
     languages: ["Italian", "English"],
     languageLabels: "�� Italian & 🇬🇧 English",
     location: "Cité",
-    description: "🏠 Cité · � Party · Italian↔English Exchange · Budget €10",
+    description: "🏠 Cité · � Party · Italian↔English Exchange",
   },
 ];
 

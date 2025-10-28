@@ -20,8 +20,8 @@ function App() {
   const [waitingForAdmin, setWaitingForAdmin] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [userEvents, setUserEvents] = useState(() => {
-    const saved = localStorage.getItem("userEvents");
-    return saved ? JSON.parse(saved) : {};
+    // Clear all user events - start fresh
+    return {};
   });
   const [chatHistory, setChatHistory] = useState(() => {
     const saved = localStorage.getItem("chatHistory");

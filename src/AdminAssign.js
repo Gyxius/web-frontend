@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import users from "./users";
-import events from "./events";
 
 // Interesting places for event creation
 const places = {
@@ -31,6 +30,10 @@ const places = {
 export default function AdminAssign({ searches, pendingRequests, onAssignEvent, userEvents, onRemoveJoinedEvent }) {
   // Debug: show pendingRequests
   console.log("[DEBUG] pendingRequests:", pendingRequests);
+  
+  // Manage events list with state to allow removal - start with empty list
+  const [events, setEvents] = useState([]);
+  
   const [selectedIdx, setSelectedIdx] = useState(null);
   // Only keep one selectedEvent state for event modal
   const [activeTab, setActiveTab] = useState("requests");
@@ -61,26 +64,36 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
         setSelectedEventId(String(filtered[0].id));
       }
     }
-  }, [selectedIdx, pendingRequests, selectedEventId]);
+  }, [selectedIdx, pendingRequests, selectedEventId, events]);
 
-  // Simplified matching: location (Cité or Paris), category, language, and optionally timeOfDay
+  // Event assignment matching - only checks: timeOfDay, location, category, language
   const matchesRequest = (ev, req) => {
     const e = ev || {};
     const r = (req && req.event) || {};
-  // Match on requested location when provided
-  if (r.location && e.location && String(e.location).toLowerCase() !== String(r.location).toLowerCase()) return false;
-  if (r.category && e.category !== r.category) return false;
-  // Check if requested language is in the event's languages array
-  if (r.language) {
-    if (Array.isArray(e.languages)) {
-      if (!e.languages.includes(r.language)) return false;
-    } else if (e.language !== r.language) {
-      // Fallback for old format
+    
+    // 1. Location match (Cité or Paris)
+    if (r.location && e.location && String(e.location).toLowerCase() !== String(r.location).toLowerCase()) {
       return false;
     }
-  }
+    
+    // 2. Category match (food, drinks, party, random, walk)
+    if (r.category && e.category !== r.category) {
+      return false;
+    }
+    
+    // 3. Language match - check if requested language is in event's languages array
+    if (r.language) {
+      if (Array.isArray(e.languages)) {
+        if (!e.languages.includes(r.language)) return false;
+      } else if (e.language !== r.language) {
+        // Fallback for old format
+        return false;
+      }
+    }
+    
+    // 4. Time of Day match (morning, afternoon, evening, night, whole-day)
     if (r.timeOfDay && r.timeOfDay !== "whole-day") {
-      // derive timeOfDay from event start time string (e.time like "19:00")
+      // Derive timeOfDay from event start time string (e.time like "19:00")
       const toMinutes = (hhmm) => {
         if (!hhmm || typeof hhmm !== "string") return null;
         const [h, m] = hhmm.split(":");
@@ -92,19 +105,32 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
       const mins = toMinutes(e.time);
       let evTod = null;
       if (mins !== null) {
-        if (mins >= 5 * 60 && mins < 12 * 60) evTod = "morning";
-        else if (mins >= 12 * 60 && mins < 17 * 60) evTod = "afternoon";
-        else if (mins >= 17 * 60 && mins < 21 * 60) evTod = "evening";
-        else evTod = "night";
+        if (mins >= 5 * 60 && mins < 12 * 60) evTod = "morning";        // 5:00 - 11:59
+        else if (mins >= 12 * 60 && mins < 17 * 60) evTod = "afternoon"; // 12:00 - 16:59
+        else if (mins >= 17 * 60 && mins < 21 * 60) evTod = "evening";   // 17:00 - 20:59
+        else evTod = "night";                                             // 21:00 - 4:59
       }
       if (evTod && evTod !== r.timeOfDay) return false;
     }
+    
     return true;
   };
 
   // Log admin activities
   const logAdminActivity = (msg) => {
     console.log(`[ADMIN ACTIVITY] ${msg}`);
+  };
+  
+  // Handle event removal
+  const handleRemoveEvent = (eventId) => {
+    if (window.confirm("Are you sure you want to remove this event?")) {
+      setEvents(events.filter(ev => ev.id !== eventId));
+      logAdminActivity(`Removed event: ${eventId}`);
+      // Close modal if it's open for this event
+      if (selectedEventForModal && selectedEventForModal.id === eventId) {
+        setSelectedEventForModal(null);
+      }
+    }
   };
   // Events now provided by a shared dataset (see src/events.js)
 
@@ -662,12 +688,30 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
 
       {activeTab === "events" && (
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>📅 All Events</div>
+          <div style={styles.sectionTitle}>📅 All Events ({events.length})</div>
           <ul style={{ padding: 0 }}>
             {events.map(ev => (
-              <li key={ev.id} style={{ ...styles.card, cursor: "pointer" }} onClick={() => setSelectedEventForModal(ev)}>
-                <div style={{ fontSize: 18.5, fontWeight: 800, color: theme.text }}>{ev.name}</div>
-                <div style={{ fontSize: 14, color: theme.textMuted }}>Time: {ev.time}</div>
+              <li key={ev.id} style={{ ...styles.card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div 
+                  style={{ flex: 1, cursor: "pointer" }} 
+                  onClick={() => setSelectedEventForModal(ev)}
+                >
+                  <div style={{ fontSize: 18.5, fontWeight: 800, color: theme.text }}>{ev.name}</div>
+                  <div style={{ fontSize: 14, color: theme.textMuted }}>Time: {ev.time}</div>
+                  {ev.languageLabels && (
+                    <div style={{ fontSize: 13, color: theme.accent, marginTop: 4 }}>{ev.languageLabels}</div>
+                  )}
+                </div>
+                <button
+                  style={styles.dangerBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveEvent(ev.id);
+                  }}
+                  title="Remove this event"
+                >
+                  🗑️ Remove
+                </button>
               </li>
             ))}
           </ul>
@@ -706,7 +750,17 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 ) : (
                   <div style={{ fontSize: 15, color: theme.textMuted }}>No residents listed.</div>
                 )}
-                <button style={{ ...styles.accentBtn, marginTop: 16 }} onClick={() => setSelectedEventForModal(null)}>Close</button>
+                <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                  <button style={{ ...styles.accentBtn, flex: 1 }} onClick={() => setSelectedEventForModal(null)}>Close</button>
+                  <button 
+                    style={{ ...styles.dangerBtn, flex: 1, padding: "8px 14px" }} 
+                    onClick={() => {
+                      handleRemoveEvent(selectedEventForModal.id);
+                    }}
+                  >
+                    🗑️ Remove Event
+                  </button>
+                </div>
               </div>
             </div>
           )}
