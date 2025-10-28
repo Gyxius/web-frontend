@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import users from "./users";
 
-// Interesting places for event creation
-const places = {
+// Default places for event creation
+const defaultPlaces = {
   Cité: [
     { id: "cite-1", name: "🏛️ Cité Universitaire Main Building", description: "Historic central building" },
     { id: "cite-2", name: "🌳 Cité Park", description: "Green space for outdoor activities" },
@@ -30,6 +30,17 @@ const places = {
 export default function AdminAssign({ searches, pendingRequests, onAssignEvent, userEvents, onRemoveJoinedEvent }) {
   // Debug: show pendingRequests
   console.log("[DEBUG] pendingRequests:", pendingRequests);
+  
+  // Manage places with state - load from localStorage
+  const [places, setPlaces] = useState(() => {
+    const saved = localStorage.getItem("adminPlaces");
+    return saved ? JSON.parse(saved) : defaultPlaces;
+  });
+  
+  // Save places to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("adminPlaces", JSON.stringify(places));
+  }, [places]);
   
   // Manage events list with state - load from localStorage
   const [events, setEvents] = useState(() => {
@@ -86,6 +97,52 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     description: "",
     isPublic: true, // Default to public events
   });
+
+  // Create Place state
+  const [createPlaceForm, setCreatePlaceForm] = useState({
+    name: "",
+    location: "Cité",
+    description: "",
+  });
+
+  // Function to add a new place
+  const handleAddPlace = () => {
+    if (!createPlaceForm.name.trim()) {
+      alert("Please enter a place name");
+      return;
+    }
+    
+    const newPlace = {
+      id: `${createPlaceForm.location.toLowerCase()}-${Date.now()}`,
+      name: createPlaceForm.name,
+      description: createPlaceForm.description || "Custom location",
+    };
+    
+    setPlaces(prev => ({
+      ...prev,
+      [createPlaceForm.location]: [...prev[createPlaceForm.location], newPlace]
+    }));
+    
+    // Reset form
+    setCreatePlaceForm({
+      name: "",
+      location: "Cité",
+      description: "",
+    });
+    
+    alert("Place added successfully!");
+  };
+
+  // Function to delete a place
+  const handleDeletePlace = (location, placeId) => {
+    if (window.confirm("Are you sure you want to delete this place?")) {
+      setPlaces(prev => ({
+        ...prev,
+        [location]: prev[location].filter(place => place.id !== placeId)
+      }));
+    }
+  };
+
 
   // When opening the assign panel for a request, preselect the first matching event
   useEffect(() => {
@@ -327,12 +384,20 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
 
   return (
     <div style={styles.container}>
-      <div style={styles.title}>🛠️ Admin Dashboard</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 18 }}>
+        <img 
+          src="http://localhost:8000/static/assets/logo.png" 
+          alt="Lemi Logo" 
+          style={{ width: 50, height: 50, objectFit: 'contain' }}
+        />
+        <div style={styles.title}>Lemi Admin Dashboard</div>
+      </div>
       <div style={styles.tabs}>
         <button style={styles.tabBtn(activeTab === "requests")} onClick={() => setActiveTab("requests")}>Pending Requests</button>
         <button style={styles.tabBtn(activeTab === "users")} onClick={() => setActiveTab("users")}>All Users</button>
         <button style={styles.tabBtn(activeTab === "events")} onClick={() => setActiveTab("events")}>All Events</button>
         <button style={styles.tabBtn(activeTab === "create")} onClick={() => setActiveTab("create")}>Create Event</button>
+        <button style={styles.tabBtn(activeTab === "places")} onClick={() => setActiveTab("places")}>Manage Places</button>
         <button style={styles.tabBtn(activeTab === "joined")} onClick={() => setActiveTab("joined")}>Joined Events</button>
       </div>
       {activeTab === "joined" && (
@@ -708,6 +773,168 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           </div>
         </div>
       )}
+
+      {activeTab === "places" && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>📍 Manage Places</div>
+          
+          {/* Add New Place Form */}
+          <div style={{ ...styles.card, marginBottom: 24, background: "linear-gradient(135deg, #F0F9FF, #E0F2FE)" }}>
+            <h3 style={{ margin: "0 0 16px 0", color: theme.text, fontSize: 18, fontWeight: 800 }}>➕ Add New Place</h3>
+            
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Location Type</label>
+              <div style={{ display: "flex", gap: 12 }}>
+                <button
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    borderRadius: 12,
+                    border: `2px solid ${createPlaceForm.location === "Cité" ? theme.primary : theme.border}`,
+                    background: createPlaceForm.location === "Cité" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                    color: createPlaceForm.location === "Cité" ? "white" : theme.text,
+                    cursor: "pointer",
+                    fontWeight: 900,
+                  }}
+                  onClick={() => setCreatePlaceForm({ ...createPlaceForm, location: "Cité" })}
+                >
+                  🏛️ Cité
+                </button>
+                <button
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    borderRadius: 12,
+                    border: `2px solid ${createPlaceForm.location === "Paris" ? theme.primary : theme.border}`,
+                    background: createPlaceForm.location === "Paris" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                    color: createPlaceForm.location === "Paris" ? "white" : theme.text,
+                    cursor: "pointer",
+                    fontWeight: 900,
+                  }}
+                  onClick={() => setCreatePlaceForm({ ...createPlaceForm, location: "Paris" })}
+                >
+                  🗼 Paris
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Place Name</label>
+              <input
+                type="text"
+                value={createPlaceForm.name}
+                onChange={(e) => setCreatePlaceForm({ ...createPlaceForm, name: e.target.value })}
+                placeholder="e.g., 🎵 Music Room, 🍕 Pizza Place"
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: `1px solid ${theme.border}`,
+                  fontSize: 14,
+                  outline: "none",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Description</label>
+              <input
+                type="text"
+                value={createPlaceForm.description}
+                onChange={(e) => setCreatePlaceForm({ ...createPlaceForm, description: e.target.value })}
+                placeholder="Brief description of the place"
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: `1px solid ${theme.border}`,
+                  fontSize: 14,
+                  outline: "none",
+                }}
+              />
+            </div>
+
+            <button
+              onClick={handleAddPlace}
+              style={{
+                width: "100%",
+                padding: "14px 22px",
+                fontSize: 16,
+                fontWeight: 900,
+                color: "white",
+                background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                border: "none",
+                borderRadius: 14,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                boxShadow: theme.shadowSoft,
+              }}
+            >
+              ➕ Add Place
+            </button>
+          </div>
+
+          {/* List of Places by Location */}
+          <div style={{ marginBottom: 24 }}>
+            <h3 style={{ margin: "0 0 12px 0", color: theme.text, fontSize: 18, fontWeight: 800 }}>🏛️ Cité Places</h3>
+            <div style={{ display: "grid", gap: 12 }}>
+              {places.Cité.map((place) => (
+                <div key={place.id} style={{ ...styles.card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontWeight: 800, color: theme.text, marginBottom: 4 }}>{place.name}</div>
+                    <div style={{ fontSize: 13, color: theme.textMuted }}>{place.description}</div>
+                  </div>
+                  <button
+                    onClick={() => handleDeletePlace("Cité", place.id)}
+                    style={{
+                      padding: "8px 16px",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: "white",
+                      background: "#EF4444",
+                      border: "none",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                    }}
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 style={{ margin: "0 0 12px 0", color: theme.text, fontSize: 18, fontWeight: 800 }}>🗼 Paris Places</h3>
+            <div style={{ display: "grid", gap: 12 }}>
+              {places.Paris.map((place) => (
+                <div key={place.id} style={{ ...styles.card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontWeight: 800, color: theme.text, marginBottom: 4 }}>{place.name}</div>
+                    <div style={{ fontSize: 13, color: theme.textMuted }}>{place.description}</div>
+                  </div>
+                  <button
+                    onClick={() => handleDeletePlace("Paris", place.id)}
+                    style={{
+                      padding: "8px 16px",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: "white",
+                      background: "#EF4444",
+                      border: "none",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                    }}
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === "requests" && (
         <div style={styles.section}>
           <div style={styles.sectionTitle}>📝 Pending Requests</div>

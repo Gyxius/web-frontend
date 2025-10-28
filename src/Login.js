@@ -4,6 +4,7 @@ function Login({ onLogin }) {
   const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
   // 🟢 Duolingo-inspired palette (matches your other screens)
   const theme = {
@@ -107,7 +108,7 @@ function Login({ onLogin }) {
       if (response.ok && data.username) {
         onLogin(data.username);
       } else {
-        setError(data?.error || "Login failed. Try a different username.");
+        setError(data?.error || `${isRegistering ? 'Registration' : 'Login'} failed. Try a different username.`);
       }
     } catch {
       setError("Could not connect to backend.");
@@ -120,12 +121,15 @@ function Login({ onLogin }) {
     <form onSubmit={handleLogin} style={styles.wrapper}>
       <div style={styles.card}>
         <div style={styles.brand}>
-          <span role="img" aria-label="owl">🦉</span>
-          <span>Lemi</span>
+          <img 
+            src="http://localhost:8000/static/assets/logo.png" 
+            alt="Lemi Logo" 
+            style={{ width: 60, height: 60, objectFit: 'contain' }}
+          />
         </div>
-        <h2 style={styles.title}>Welcome to Lemi</h2>
+  <h2 style={styles.title}>Welcome to Lemi</h2>
         <p style={styles.subtitle}>
-          Log in to join events, practice languages, and meet people.
+          Lemi allows you to learn your target language with other cité residents
         </p>
 
         <input
@@ -146,10 +150,36 @@ function Login({ onLogin }) {
             ...(loading || !userName.trim() ? styles.button.disabled : null),
           }}
         >
-          {loading ? "Logging in…" : "🟢 Log In"}
+          {loading ? (isRegistering ? "Creating Account…" : "Logging in…") : (isRegistering ? "🟢 Create Account" : "🟢 Log In")}
         </button>
 
         {error ? <p style={styles.error}>{error}</p> : null}
+
+        {/* Toggle between Login and Register */}
+        <div style={{ textAlign: 'center', marginTop: 16, fontSize: 14 }}>
+          <span style={{ color: theme.textMuted }}>
+            {isRegistering ? "Already have an account? " : "Don't have an account? "}
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setIsRegistering(!isRegistering);
+              setError("");
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: theme.primary,
+              fontWeight: 700,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              fontSize: 14,
+              padding: 0,
+            }}
+          >
+            {isRegistering ? "Log In" : "Sign Up"}
+          </button>
+        </div>
       </div>
     </form>
   );

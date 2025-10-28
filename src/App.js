@@ -5,6 +5,7 @@ import SocialForm from "./SocialForm";
 import SocialRoulette from "./SocialRoulette";
 import AdminAssign from "./AdminAssign";
 import UserProfile from "./UserProfile";
+import EditMyProfile from "./EditMyProfile";
 import SocialChat from "./SocialChat";
 import SocialResult from "./SocialResult";
 import WaitingForAdmin from "./WaitingForAdmin";
@@ -18,6 +19,7 @@ function App() {
   const [rouletteResult, setRouletteResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [waitingForAdmin, setWaitingForAdmin] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [userEvents, setUserEvents] = useState(() => {
     // Clear all user events - start fresh
@@ -124,6 +126,13 @@ function App() {
   let mainContent;
   if (!user) {
     mainContent = <Login onLogin={handleLogin} />;
+  } else if (showEditProfile) {
+    mainContent = (
+      <EditMyProfile
+        userName={user?.username || user?.name}
+        onBack={() => setShowEditProfile(false)}
+      />
+    );
   } else if ((user?.username || user?.name)?.toLowerCase() === "admin") {
     mainContent = (
       <>
@@ -419,6 +428,7 @@ function App() {
         <SocialHome
           userName={user?.username || user?.name}
           onJoinEvent={() => setShowForm(true)}
+          onEditProfile={() => setShowEditProfile(true)}
           joinedEvents={joinedEvents}
           suggestedEvents={userSuggestedEvents}
           publicEvents={publicEvents}

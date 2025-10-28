@@ -6,6 +6,7 @@ import "./SocialHome.animations.css";
 function SocialHome({
   userName = "Guest",
   onJoinEvent,
+  onEditProfile,
   joinedEvents = [],
   suggestedEvents = [],
   publicEvents = [],
@@ -293,7 +294,12 @@ function SocialHome({
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <button style={styles.iconButton} onClick={() => setShowProfileModal(true)}>
+        <img 
+          src="http://localhost:8000/static/assets/logo.png" 
+          alt="Lemi Logo" 
+          style={{ width: 40, height: 40, objectFit: 'contain' }}
+        />
+        <button style={styles.iconButton} onClick={() => onEditProfile && onEditProfile()}>
           <FaUserCircle size={40} color={theme.primary} />
         </button>
 
@@ -334,7 +340,7 @@ function SocialHome({
         <span style={styles.points}>⭐ {socialPoints} pts</span>
       </div>
 
-      <div style={styles.greeting}>Hi {userName} 👋, ready for tonight?</div>
+      <div style={styles.greeting}>Hi {userName} 👋</div>
 
       <div style={styles.progressBox}>
         <div style={{ ...styles.progressBar, width: `${(socialPoints / nextLevel) * 100}%` }} />
