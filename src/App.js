@@ -41,12 +41,22 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const [selectedPendingRequestIdx, setSelectedPendingRequestIdx] = useState(null);
+  
+  // Suggested events - events assigned by admin but not yet accepted by user
+  const [suggestedEvents, setSuggestedEvents] = useState(() => {
+    const saved = localStorage.getItem("suggestedEvents");
+    return saved ? JSON.parse(saved) : {};
+  });
 
   const joinedEvents = user ? userEvents[user?.username || user?.name] || [] : [];
+  const userSuggestedEvents = user ? suggestedEvents[user?.username || user?.name] || [] : [];
 
   useEffect(() => {
     localStorage.setItem("userEvents", JSON.stringify(userEvents));
   }, [userEvents]);
+  useEffect(() => {
+    localStorage.setItem("suggestedEvents", JSON.stringify(suggestedEvents));
+  }, [suggestedEvents]);
   // Reference unused setters to satisfy linter (setters may be used in future flows)
   useEffect(() => {
     // no-op
@@ -99,15 +109,16 @@ function App() {
               return updated;
             });
           }}
-          onAssignEvent={(reqIdx, eventId) => {
+          onAssignEvent={(reqIdx, eventId, eventObj) => {
             if (!eventId || eventId === "") return; // guard against empty/falsy eventId
             const req = pendingRequests[reqIdx];
             if (!req) return;
             const userKey = typeof req.user === "object" ? (req.user.username || req.user.name) : req.user;
-            const ev = allEvents.find(e => String(e.id) === String(eventId));
+            // Use passed event object if available, otherwise try to find in allEvents
+            const ev = eventObj || allEvents.find(e => String(e.id) === String(eventId));
             if (!ev) return;
-            // Append event to the target user's joined events (avoid duplicates by id)
-            setUserEvents(prev => {
+            // Add event to suggested events (not joined yet - user needs to accept)
+            setSuggestedEvents(prev => {
               const updated = { ...prev };
               const list = updated[userKey] || [];
               if (!list.find(x => String(x.id || x.name) === String(ev.id))) {
@@ -287,7 +298,14 @@ function App() {
     } else {
       req = pendingRequests.find(r => (typeof r.user === 'object' ? (r.user.username || r.user.name) : r.user) === currentUserKey);
     }
-    const assignedEvent = req?.assignedEventId ? (allEvents.find(e => String(e.id) === String(req.assignedEventId)) || null) : null;
+    // Look for assigned event in suggested events or allEvents
+    let assignedEvent = null;
+    if (req?.assignedEventId) {
+      const suggestedList = userSuggestedEvents || [];
+      assignedEvent = suggestedList.find(e => String(e.id) === String(req.assignedEventId)) || 
+                      allEvents.find(e => String(e.id) === String(req.assignedEventId)) || 
+                      null;
+    }
     mainContent = (
       <WaitingForAdmin
         onHome={() => {
@@ -348,6 +366,51 @@ function App() {
           userName={user?.username || user?.name}
           onJoinEvent={() => setShowForm(true)}
           joinedEvents={joinedEvents}
+          suggestedEvents={userSuggestedEvents}
+          onAcceptSuggestion={(idx, event) => {
+            const currentUserKey = user?.username || user?.name;
+            // Move from suggested to joined events
+            setUserEvents(prev => {
+              const updated = { ...prev };
+              const list = updated[currentUserKey] || [];
+              if (!list.find(x => String(x.id) === String(event.id))) {
+                updated[currentUserKey] = [...list, event];
+              }
+              return updated;
+            });
+            // Remove from suggested events
+            setSuggestedEvents(prev => {
+              const updated = { ...prev };
+              if (updated[currentUserKey]) {
+                updated[currentUserKey] = updated[currentUserKey].filter((_, i) => i !== idx);
+              }
+              return updated;
+            });
+            // Mark pending request as complete (stage 5) and remove it
+            setPendingRequests(prev => prev.filter(r => {
+              const userKey = typeof r.user === "object" ? (r.user.username || r.user.name) : r.user;
+              return userKey !== currentUserKey || String(r.assignedEventId) !== String(event.id);
+            }));
+          }}
+          onDeclineSuggestion={(idx, event) => {
+            const currentUserKey = user?.username || user?.name;
+            // Remove from suggested events
+            setSuggestedEvents(prev => {
+              const updated = { ...prev };
+              if (updated[currentUserKey]) {
+                updated[currentUserKey] = updated[currentUserKey].filter((_, i) => i !== idx);
+              }
+              return updated;
+            });
+            // Revert pending request back to stage 2 (waiting for admin)
+            setPendingRequests(prev => prev.map(r => {
+              const userKey = typeof r.user === "object" ? (r.user.username || r.user.name) : r.user;
+              if (userKey === currentUserKey && String(r.assignedEventId) === String(event.id)) {
+                return { ...r, stage: 2, assignedEventId: null };
+              }
+              return r;
+            }));
+          }}
           pendingRequests={pendingRequests.filter(r => r.user === (user?.username || user?.name) && r.event)}
           onCancelPendingRequest={idx => setPendingRequests(prev => prev.filter((_, i) => i !== idx))}
           onOpenPendingRequest={(idx) => {

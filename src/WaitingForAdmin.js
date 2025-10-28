@@ -6,6 +6,16 @@ export default function WaitingForAdmin({ onHome, request, assignedEvent, onGoCh
     const id = setInterval(() => setTick((t) => t + 1), 500);
     return () => clearInterval(id);
   }, []);
+  
+  // Auto-redirect to home when event is assigned (stage 3)
+  useEffect(() => {
+    if (request?.stage >= 3 && assignedEvent) {
+      const timer = setTimeout(() => {
+        onHome();
+      }, 2000); // Wait 2 seconds so user can see the success message
+      return () => clearTimeout(timer);
+    }
+  }, [request, assignedEvent, onHome]);
 
   // Duolingo-like theme to match SocialHome
   const theme = useMemo(() => ({
@@ -151,9 +161,12 @@ export default function WaitingForAdmin({ onHome, request, assignedEvent, onGoCh
             <>
               {step(1, "Form completed successfully")}
               {step(2, "App received your request")}
-              {step(3, "We found an event", assignedEvent ? `– ${assignedEvent.name}` : "")}
-              {step(4, "Enough users joined the event")}
-              {step(5, "All set – open the chat!")}
+              {step(3, "Admin found a match", assignedEvent ? `– ${assignedEvent.name}` : "")}
+              {stage >= 3 && (
+                <div style={{ marginTop: 12, color: theme.primary, fontWeight: 800, fontSize: 15 }}>
+                  🎉 Event suggestion ready! Redirecting to home...
+                </div>
+              )}
             </>
           );
         })()}
@@ -175,10 +188,7 @@ export default function WaitingForAdmin({ onHome, request, assignedEvent, onGoCh
           <span style={styles.badge}>+{(tick % 7) * 5} XP</span>
         </div>
 
-        {assignedEvent && (
-          <button style={styles.btn} onClick={onGoChat}>Go to Chat</button>
-        )}
-  <button style={{ ...styles.btn, marginTop: 10, background: "#FFFFFF", border: `1px solid ${theme.border}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", color: theme.text }} onClick={onHome}>Go Home</button>
+  <button style={{ ...styles.btn, marginTop: 14, background: "#FFFFFF", border: `1px solid ${theme.border}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", color: theme.text }} onClick={onHome}>Go Home</button>
       </div>
     </div>
   );

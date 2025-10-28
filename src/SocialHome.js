@@ -7,6 +7,9 @@ function SocialHome({
   userName = "Guest",
   onJoinEvent,
   joinedEvents = [],
+  suggestedEvents = [],
+  onAcceptSuggestion,
+  onDeclineSuggestion,
   onJoinedEventClick,
   onUserClick,
   onLeaveEvent,
@@ -348,6 +351,65 @@ function SocialHome({
         <div style={styles.highlightEvent}>{highlightEvent.name}</div>
         <div style={styles.details}>⏰ {highlightEvent.time} · 👥 {highlightEvent.attendees} joined</div>
       </div>
+
+      {/* Suggested Events from Admin */}
+      {suggestedEvents && suggestedEvents.length > 0 && (
+        <div style={{ ...styles.highlightCard, borderLeft: `4px solid ${theme.primary}` }}>
+          <div style={{ ...styles.highlightTitle, color: theme.primary }}>✨ Event Suggestions for You</div>
+          <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+            The admin found {suggestedEvents.length} event{suggestedEvents.length !== 1 ? "s" : ""} matching your preferences!
+          </div>
+          {suggestedEvents.map((event, idx) => (
+            <div key={idx} style={{ 
+              background: theme.bg, 
+              padding: 14, 
+              borderRadius: 12, 
+              marginBottom: 10,
+              border: `1px solid ${theme.track}`,
+            }}>
+              <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, marginBottom: 6 }}>
+                {event.name}
+              </div>
+              <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
+                📍 {event.location} {event.place ? `· ${event.place}` : ""}
+              </div>
+              <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
+                ⏰ {event.date} at {event.time}
+              </div>
+              {event.languages && event.languages.length > 0 && (
+                <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 10 }}>
+                  🗣️ {event.languages.join(" ↔ ")}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <button
+                  style={{
+                    ...styles.joinButton,
+                    padding: "10px 16px",
+                    fontSize: 14,
+                    flex: 1,
+                  }}
+                  onClick={() => onAcceptSuggestion && onAcceptSuggestion(idx, event)}
+                >
+                  ✅ Accept & Join
+                </button>
+                <button
+                  style={{
+                    ...styles.cancelButton,
+                    padding: "10px 16px",
+                    fontSize: 14,
+                    flex: 1,
+                    marginTop: 0,
+                  }}
+                  onClick={() => onDeclineSuggestion && onDeclineSuggestion(idx, event)}
+                >
+                  ❌ Decline
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div style={styles.section}>
         {/* Friend Requests Notification */}

@@ -33,9 +33,18 @@ const languages = [
   { id: "Hebrew", label: "🇮🇱 Hebrew" },
 ];
 
+// Time preference options
+const timePreferences = [
+  { id: "this-week", label: "📅 This Week" },
+  { id: "this-weekend", label: "🎉 This Weekend" },
+  { id: "saturday", label: "📆 Saturday" },
+  { id: "sunday", label: "📆 Sunday" },
+  { id: "next-week", label: "📅 Next Week" },
+  { id: "flexible", label: "🤷 Flexible" },
+];
+
 function SocialForm({ onConfirm, onHome }) {
-  const today = new Date().toISOString().slice(0, 10);
-  const [date, setDate] = useState(today);
+  const [timePreference, setTimePreference] = useState(null);
   const [timeOfDay, setTimeOfDay] = useState(null);
   // Budget temporarily removed from the flow
   const [location, setLocation] = useState(null);
@@ -58,7 +67,7 @@ function SocialForm({ onConfirm, onHome }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = { date, timeOfDay, location, category, language };
+    const payload = { timePreference, timeOfDay, location, category, language };
     onConfirm && onConfirm(payload);
   };
 
@@ -155,27 +164,6 @@ function SocialForm({ onConfirm, onHome }) {
     },
   };
 
-  // Format the selected date for display
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const d = new Date(dateString + "T00:00:00");
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    
-    const dayName = days[d.getDay()];
-    const day = d.getDate();
-    const month = months[d.getMonth()];
-    
-    // Add ordinal suffix (st, nd, rd, th)
-    const getOrdinal = (n) => {
-      const s = ["th", "st", "nd", "rd"];
-      const v = n % 100;
-      return n + (s[(v - 20) % 10] || s[v] || s[0]);
-    };
-    
-    return `${dayName} ${getOrdinal(day)} of ${month}`;
-  };
-
 
   return (
     <form onSubmit={handleSubmit} style={styles.form}>
@@ -185,20 +173,21 @@ function SocialForm({ onConfirm, onHome }) {
       </p>
 
       <div style={styles.inputs}>
-        <label style={styles.label}>Date</label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          style={styles.input}
-          onFocus={e => e.target.style.boxShadow = styles.inputFocus.boxShadow}
-          onBlur={e => e.target.style.boxShadow = "none"}
-        />
-        {date && (
-          <div style={{ marginTop: -4, marginBottom: 10, fontSize: 14, color: theme.text, fontWeight: 600 }}>
-            {formatDate(date)}
-          </div>
-        )}
+        <label style={styles.label}>When do you want to meet?</label>
+        <div style={styles.pillRow}>
+          {timePreferences.map((pref) => (
+            <button
+              type="button"
+              key={pref.id}
+              style={{ ...styles.pill, ...(timePreference === pref.id ? styles.pillSelected : {}) }}
+              onClick={() => setTimePreference(timePreference === pref.id ? null : pref.id)}
+              onMouseEnter={e => { if (timePreference !== pref.id) e.currentTarget.style.transform = "scale(1.04)"; }}
+              onMouseLeave={e => { if (timePreference !== pref.id) e.currentTarget.style.transform = "scale(1)"; }}
+            >
+              <span style={{ ...(timePreference === pref.id ? styles.pillTextSelected : styles.pillText) }}>{pref.label}</span>
+            </button>
+          ))}
+        </div>
 
         <label style={styles.label}>Time of Day</label>
         <div style={styles.pillRow}>

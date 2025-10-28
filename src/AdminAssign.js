@@ -31,8 +31,16 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   // Debug: show pendingRequests
   console.log("[DEBUG] pendingRequests:", pendingRequests);
   
-  // Manage events list with state to allow removal - start with empty list
-  const [events, setEvents] = useState([]);
+  // Manage events list with state - load from localStorage
+  const [events, setEvents] = useState(() => {
+    const saved = localStorage.getItem("adminEvents");
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  // Save events to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("adminEvents", JSON.stringify(events));
+  }, [events]);
   
   const [selectedIdx, setSelectedIdx] = useState(null);
   // Only keep one selectedEvent state for event modal
@@ -41,6 +49,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   const [selectedEventId, setSelectedEventId] = useState(""); // For assignment dropdown
   const [selectedUser, setSelectedUser] = useState(null);
   const [requestDetailIdx, setRequestDetailIdx] = useState(null);
+  const [showAllEvents, setShowAllEvents] = useState(false); // Toggle for showing all events vs suggested
   
   // Create Event state
   const [createEventForm, setCreateEventForm] = useState({
@@ -249,6 +258,23 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
       fontWeight: 800,
       fontSize: 13,
       boxShadow: "0 2px 6px rgba(234,43,43,0.18)",
+    },
+    pill: {
+      background: theme.card,
+      border: `2px solid ${theme.border}`,
+      borderRadius: 12,
+      padding: "8px 14px",
+      cursor: "pointer",
+      fontWeight: 700,
+      fontSize: 14,
+      color: theme.text,
+      transition: "all 0.2s ease",
+    },
+    pillSelected: {
+      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+      border: `2px solid ${theme.primary}`,
+      color: "white",
+      boxShadow: "0 4px 12px rgba(88,204,2,0.25)",
     },
     modalOverlay: {
       position: "fixed",
@@ -564,8 +590,26 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   return;
                 }
                 logAdminActivity(`Created new event: ${createEventForm.name} at ${createEventForm.place}`);
-                // Here you would typically call a function to add the event to your events array
+                
+                // Create new event object
+                const newEvent = {
+                  id: Date.now(), // Simple unique ID
+                  name: createEventForm.name,
+                  location: createEventForm.location,
+                  place: createEventForm.place,
+                  date: createEventForm.date,
+                  time: createEventForm.time,
+                  category: createEventForm.category,
+                  languages: createEventForm.languages,
+                  description: createEventForm.description,
+                  type: "custom", // Mark as admin-created
+                };
+                
+                // Add event to the events array
+                setEvents(prev => [...prev, newEvent]);
+                
                 alert(`Event "${createEventForm.name}" created successfully!\n\nLocation: ${createEventForm.location}\nPlace: ${createEventForm.place}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\nLanguages: ${createEventForm.languages.join(" ↔ ")}`);
+                
                 // Reset form
                 setCreateEventForm({
                   name: "",
@@ -577,6 +621,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   languages: [],
                   description: "",
                 });
+                
+                // Switch to "All Events" tab to show the newly created event
+                setActiveTab("events");
               }}
             >
               ✨ Create Event
@@ -785,23 +832,62 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
             Assign Event to {typeof pendingRequests[selectedIdx].user === "object" ? (pendingRequests[selectedIdx].user.name || JSON.stringify(pendingRequests[selectedIdx].user)) : String(pendingRequests[selectedIdx].user)}
           </div>
           {logAdminActivity(`Opened assignment modal for user ${typeof pendingRequests[selectedIdx].user === "object" ? (pendingRequests[selectedIdx].user.name || JSON.stringify(pendingRequests[selectedIdx].user)) : String(pendingRequests[selectedIdx].user)}`)}
+          
+          {/* Toggle between Suggested and All Events */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            <button
+              style={{
+                ...styles.pill,
+                ...((!showAllEvents) ? styles.pillSelected : {}),
+                fontSize: 13,
+                padding: "6px 12px",
+              }}
+              onClick={() => setShowAllEvents(false)}
+            >
+              🎯 Suggested Events
+            </button>
+            <button
+              style={{
+                ...styles.pill,
+                ...(showAllEvents ? styles.pillSelected : {}),
+                fontSize: 13,
+                padding: "6px 12px",
+              }}
+              onClick={() => setShowAllEvents(true)}
+            >
+              📋 All Events
+            </button>
+          </div>
+          
           {(() => {
             const req = pendingRequests[selectedIdx];
             const filtered = (events || []).filter(ev => matchesRequest(ev, req));
+            const eventsToShow = showAllEvents ? events : filtered;
+            
             return (
               <>
                 <select value={selectedEventId || ""} onChange={e => {
             setSelectedEventId(e.target.value);
             logAdminActivity(`Selected event ${e.target.value} for user ${pendingRequests[selectedIdx].user}`);
                 }} style={{ padding: 10, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 8, width: "100%" }}>
-                  <option value="">-- Choose a Matching Event --</option>
-                  {filtered.map(ev => (
+                  <option value="">-- Choose {showAllEvents ? "an" : "a Matching"} Event --</option>
+                  {eventsToShow.map(ev => (
                     <option key={ev.id} value={ev.id}>{ev.name} ({ev.time})</option>
                   ))}
                 </select>
-                {filtered.length === 0 && (
+                {!showAllEvents && filtered.length === 0 && (
                   <div style={{ color: theme.textMuted, fontSize: 13.5, marginBottom: 8 }}>
-                    No events match this request. Adjust the user's request or add more events.
+                    No events match this request. Try "All Events" or create a new event.
+                  </div>
+                )}
+                {showAllEvents && events.length === 0 && (
+                  <div style={{ color: theme.textMuted, fontSize: 13.5, marginBottom: 8 }}>
+                    No events created yet. Go to "Create Event" tab to add one.
+                  </div>
+                )}
+                {!showAllEvents && filtered.length > 0 && (
+                  <div style={{ color: theme.primary, fontSize: 12.5, marginBottom: 8, fontWeight: 600 }}>
+                    ✨ Showing {filtered.length} suggested event{filtered.length !== 1 ? "s" : ""} based on user preferences
                   </div>
                 )}
               </>
@@ -809,14 +895,25 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           })()}
           <div style={{ display: "flex", gap: 10 }}>
             <button style={styles.primaryBtn} onClick={() => {
+              if (!selectedEventId) {
+                alert("Please select an event first");
+                return;
+              }
+              const selectedEvent = events.find(ev => String(ev.id) === String(selectedEventId));
+              if (!selectedEvent) {
+                alert("Event not found");
+                return;
+              }
               logAdminActivity(`Confirmed assignment of event ${selectedEventId} to user ${pendingRequests[selectedIdx].user}`);
-              if (onAssignEvent) onAssignEvent(selectedIdx, selectedEventId);
+              if (onAssignEvent) onAssignEvent(selectedIdx, selectedEventId, selectedEvent);
               setSelectedIdx(null);
               setSelectedEventId("");
+              setShowAllEvents(false); // Reset toggle
             }}>Confirm Assignment</button>
             <button style={styles.dangerBtn} onClick={() => {
               logAdminActivity(`Cancelled assignment for user ${pendingRequests[selectedIdx].user}`);
               setSelectedIdx(null);
+              setShowAllEvents(false); // Reset toggle
             }}>Cancel</button>
           </div>
         </div>
