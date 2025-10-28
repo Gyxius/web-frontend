@@ -636,7 +636,30 @@ function SocialHome({
                   <div style={styles.eventName}>
                     {String(item.name || item.type || item.category || "Event")}
                   </div>
-                  <div style={styles.details}>⏰ {String(item.time || item.date)}</div>
+                  {/* Show full event details like public events */}
+                  {item.location && (
+                    <div style={styles.details}>
+                      📍 {item.location}{item.place ? ` · ${item.place}` : ""}
+                    </div>
+                  )}
+                  <div style={styles.details}>
+                    ⏰ {item.date ? `${item.date} at ${item.time}` : String(item.time || item.date)}
+                  </div>
+                  {item.languages && item.languages.length > 0 && (
+                    <div style={styles.details}>
+                      🗣️ {item.languages.join(" ↔ ")}
+                    </div>
+                  )}
+                  {item.category && (
+                    <div style={styles.details}>
+                      🎯 {item.category}
+                    </div>
+                  )}
+                  {item.description && (
+                    <div style={{ ...styles.details, fontStyle: "italic" }}>
+                      {item.description}
+                    </div>
+                  )}
                   {/* Budget hidden in simplified flow */}
 
                   {Array.isArray(item.crew) && item.crew.length > 0 && (

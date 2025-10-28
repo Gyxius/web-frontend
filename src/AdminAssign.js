@@ -622,7 +622,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
 
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
-                Language Exchange (select 2-3 languages)
+                Language Exchange {createEventForm.isPublic && <span style={{ color: theme.textMuted, fontWeight: 600, fontSize: 13 }}>(optional)</span>}
+                {!createEventForm.isPublic && <span style={{ color: theme.textMuted, fontWeight: 600, fontSize: 13 }}>(select 2-3 languages)</span>}
               </label>
               <div style={{ 
                 display: "grid", 
@@ -725,8 +726,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   alert("Please fill in all required fields: Event Name, Place, Date, and Time");
                   return;
                 }
-                if (createEventForm.languages.length < 2) {
-                  alert("Please select at least 2 languages for the language exchange");
+                // Language selection is required for private events, optional for public events
+                if (!createEventForm.isPublic && createEventForm.languages.length < 2) {
+                  alert("Please select at least 2 languages for the language exchange (required for private events)");
                   return;
                 }
                 logAdminActivity(`Created new event: ${createEventForm.name} at ${createEventForm.place}`);
@@ -749,7 +751,11 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 // Add event to the events array
                 setEvents(prev => [...prev, newEvent]);
                 
-                alert(`Event "${createEventForm.name}" created successfully!\n\nVisibility: ${createEventForm.isPublic ? "🌍 Public" : "🔒 Private"}\nLocation: ${createEventForm.location}\nPlace: ${createEventForm.place}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\nLanguages: ${createEventForm.languages.join(" ↔ ")}`);
+                const languagesText = createEventForm.languages.length > 0 
+                  ? `Languages: ${createEventForm.languages.join(" ↔ ")}` 
+                  : "Languages: None specified";
+                
+                alert(`Event "${createEventForm.name}" created successfully!\n\nVisibility: ${createEventForm.isPublic ? "🌍 Public" : "🔒 Private"}\nLocation: ${createEventForm.location}\nPlace: ${createEventForm.place}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\n${languagesText}`);
                 
                 // Reset form
                 setCreateEventForm({

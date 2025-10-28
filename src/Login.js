@@ -99,16 +99,27 @@ function Login({ onLogin }) {
     setError("");
     try {
       const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
-      const response = await fetch(`${apiUrl}/login`, {
+      const endpoint = isRegistering ? "/register" : "/login";
+      const response = await fetch(`${apiUrl}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: userName.trim() }),
       });
-      const data = await response.json();
-      if (response.ok && data.username) {
-        onLogin(data.username);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.username) {
+          onLogin(data.username);
+        }
       } else {
-        setError(data?.error || `${isRegistering ? 'Registration' : 'Login'} failed. Try a different username.`);
+        const data = await response.json();
+        if (response.status === 404) {
+          setError("User not found. Only existing users (Mitsu, Zine, Admin) can log in.");
+        } else if (response.status === 400) {
+          setError("Username already exists. Please log in instead.");
+        } else {
+          setError(data?.detail || `${isRegistering ? 'Registration' : 'Login'} failed. Try a different username.`);
+        }
       }
     } catch {
       setError("Could not connect to backend.");

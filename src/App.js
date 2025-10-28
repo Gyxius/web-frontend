@@ -22,8 +22,9 @@ function App() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [userEvents, setUserEvents] = useState(() => {
-    // Clear all user events - start fresh
-    return {};
+    // Load joined events from localStorage
+    const saved = localStorage.getItem("userEvents");
+    return saved ? JSON.parse(saved) : {};
   });
   const [chatHistory, setChatHistory] = useState(() => {
     const saved = localStorage.getItem("chatHistory");

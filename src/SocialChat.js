@@ -223,7 +223,21 @@ function SocialChat({
       <div style={styles.resultBox}>
         <div style={styles.resultTitle}>✨ The Event</div>
         <div><span style={styles.bold}>Event:</span> {event?.name}</div>
-        <div><span style={styles.bold}>Time:</span> {event?.time}</div>
+        {event?.location && (
+          <div><span style={styles.bold}>Location:</span> 📍 {event.location}{event.place ? ` · ${event.place}` : ""}</div>
+        )}
+        <div><span style={styles.bold}>Time:</span> ⏰ {event?.date ? `${event.date} at ${event.time}` : event?.time}</div>
+        {event?.languages && event.languages.length > 0 && (
+          <div><span style={styles.bold}>Languages:</span> 🗣️ {event.languages.join(" ↔ ")}</div>
+        )}
+        {event?.category && (
+          <div><span style={styles.bold}>Category:</span> 🎯 {event.category}</div>
+        )}
+        {event?.description && (
+          <div style={{ marginTop: 8, fontStyle: "italic", color: theme.textMuted }}>
+            {event.description}
+          </div>
+        )}
   {/* Budget hidden in simplified flow */}
 
         <div style={styles.resultTitle}>🧃 The Residents</div>
