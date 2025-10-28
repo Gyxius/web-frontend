@@ -1,21 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 
 export default function WaitingForAdmin({ onHome, request, assignedEvent, onGoChat }) {
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 500);
-    return () => clearInterval(id);
-  }, []);
-  
   // Auto-redirect to home when event is assigned (stage 3)
   useEffect(() => {
-    if (request?.stage >= 3 && assignedEvent) {
+    const stage = request?.stage ?? 2;
+    if (stage >= 3 && assignedEvent) {
       const timer = setTimeout(() => {
         onHome();
-      }, 2000); // Wait 2 seconds so user can see the success message
+      }, 2000); // short delay to let user see success
       return () => clearTimeout(timer);
     }
-  }, [request, assignedEvent, onHome]);
+  }, [request?.stage, assignedEvent, onHome]);
 
   // Duolingo-like theme to match SocialHome
   const theme = useMemo(() => ({
@@ -65,20 +60,6 @@ export default function WaitingForAdmin({ onHome, request, assignedEvent, onGoCh
       color: theme.textMuted,
       marginBottom: 16,
     },
-    progressWrap: {
-      background: theme.track,
-      borderRadius: 999,
-      height: 14,
-      overflow: "hidden",
-      margin: "14px 0 18px",
-      border: `1px solid ${theme.border}`,
-    },
-    progressBar: (pct) => ({
-      height: "100%",
-      width: `${pct}%`,
-      background: `linear-gradient(90deg, ${theme.primaryDark}, ${theme.primary})`,
-      transition: "width 0.4s ease",
-    }),
     quest: {
       display: "flex",
       alignItems: "center",
@@ -88,67 +69,14 @@ export default function WaitingForAdmin({ onHome, request, assignedEvent, onGoCh
       color: theme.text,
       fontWeight: 700,
     },
-    dot: {
-      display: "inline-block",
-      width: 8,
-      height: 8,
-      borderRadius: 10,
-      background: theme.accent,
-      margin: "0 2px",
-      opacity: 0.25,
-    },
-    btn: {
-      marginTop: 14,
-      background: `linear-gradient(135deg, ${theme.accent}, #0AA6EB)`,
-      color: "white",
-      border: "none",
-      borderRadius: 14,
-      padding: "12px 16px",
-      fontWeight: 900,
-      cursor: "pointer",
-      boxShadow: "0 6px 16px rgba(28,176,246,0.28)",
-      width: "100%",
-      fontSize: 15,
-    },
-    miniRow: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      fontSize: 13,
-      color: theme.textMuted,
-      marginTop: 6,
-    },
-    badge: {
-      background: theme.gold,
-      color: "#111827",
-      borderRadius: 999,
-      padding: "4px 10px",
-      fontWeight: 900,
-      fontSize: 12,
-    },
+    // Removed progress, dots, and buttons for a simplified view
   };
 
-  const pct = (tick % 20) * 5; // 0 -> 95 looping
-  const msgs = [
-    "Rolling initiative…",
-    "Matching your crew…",
-    "Charging power-ups…",
-    "Shuffling decks…",
-    "Tuning the vibes…",
-  ];
-  const msg = msgs[tick % msgs.length];
-
-  const activeDots = tick % 4; // 0..3
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-  <div style={styles.title}>🕹️ Waiting for Admin Approval</div>
-        <div style={styles.subtitle}>{msg}</div>
-
-        <div style={styles.progressWrap}>
-          <div style={styles.progressBar(pct)} />
-        </div>
+        <div style={styles.title}>🕹️ Waiting for Admin Approval</div>
 
         {(() => {
           const stage = request?.stage || 2; // default to received
@@ -171,24 +99,24 @@ export default function WaitingForAdmin({ onHome, request, assignedEvent, onGoCh
           );
         })()}
 
-        <div style={{ marginTop: 10 }}>
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
+            <button
+              onClick={onHome}
               style={{
-                ...styles.dot,
-                opacity: activeDots > i ? 1 : 0.25,
+                marginTop: 16,
+                width: "100%",
+                background: "#FFFFFF",
+                border: `1px solid ${theme.border}`,
+                borderRadius: 12,
+                padding: "10px 14px",
+                fontWeight: 800,
+                color: theme.text,
+                cursor: "pointer",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
               }}
-            />
-          ))}
-        </div>
+            >
+              Go Home
+            </button>
 
-        <div style={styles.miniRow}>
-          <span>XP Bonus</span>
-          <span style={styles.badge}>+{(tick % 7) * 5} XP</span>
-        </div>
-
-  <button style={{ ...styles.btn, marginTop: 14, background: "#FFFFFF", border: `1px solid ${theme.border}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", color: theme.text }} onClick={onHome}>Go Home</button>
       </div>
     </div>
   );
