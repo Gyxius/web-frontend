@@ -47,6 +47,36 @@ function App() {
     const saved = localStorage.getItem("suggestedEvents");
     return saved ? JSON.parse(saved) : {};
   });
+  
+  // Public events - load from adminEvents and filter for public only
+  const [publicEvents, setPublicEvents] = useState(() => {
+    const saved = localStorage.getItem("adminEvents");
+    const allEvents = saved ? JSON.parse(saved) : [];
+    return allEvents.filter(event => event.isPublic !== false); // Show public events (isPublic true or undefined for backward compatibility)
+  });
+  
+  // Sync public events with adminEvents whenever localStorage changes
+  useEffect(() => {
+    const syncPublicEvents = () => {
+      const saved = localStorage.getItem("adminEvents");
+      if (saved) {
+        const allEvents = JSON.parse(saved);
+        // Filter to only show public events
+        setPublicEvents(allEvents.filter(event => event.isPublic !== false));
+      }
+    };
+    
+    // Listen for storage changes
+    window.addEventListener("storage", syncPublicEvents);
+    
+    // Also check periodically in case changes happen in same tab
+    const interval = setInterval(syncPublicEvents, 2000);
+    
+    return () => {
+      window.removeEventListener("storage", syncPublicEvents);
+      clearInterval(interval);
+    };
+  }, []);
 
   const joinedEvents = user ? userEvents[user?.username || user?.name] || [] : [];
   const userSuggestedEvents = user ? suggestedEvents[user?.username || user?.name] || [] : [];
@@ -391,6 +421,25 @@ function App() {
           onJoinEvent={() => setShowForm(true)}
           joinedEvents={joinedEvents}
           suggestedEvents={userSuggestedEvents}
+          publicEvents={publicEvents}
+          onJoinPublicEvent={(event) => {
+            const currentUserKey = user?.username || user?.name;
+            // Check if already joined
+            const list = userEvents[currentUserKey] || [];
+            if (list.find(x => String(x.id) === String(event.id))) {
+              alert(`You've already joined "${event.name}"! Check your joined events below.`);
+              return;
+            }
+            // Add public event to joined events
+            setUserEvents(prev => {
+              const updated = { ...prev };
+              const list = updated[currentUserKey] || [];
+              updated[currentUserKey] = [...list, event];
+              return updated;
+            });
+            // Show success message
+            alert(`🎉 Success! You joined "${event.name}"!\n\n📍 ${event.location}${event.place ? ` - ${event.place}` : ''}\n⏰ ${event.date} at ${event.time}\n\nCheck your "My Joined Events" section below to see it!`);
+          }}
           onAcceptSuggestion={(idx, event) => {
             const currentUserKey = user?.username || user?.name;
             // Move from suggested to joined events

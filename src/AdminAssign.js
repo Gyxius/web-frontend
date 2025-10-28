@@ -37,6 +37,29 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     return saved ? JSON.parse(saved) : [];
   });
   
+  // One-time migration: Update existing events without isPublic field to be private
+  useEffect(() => {
+    const migrated = localStorage.getItem("eventsMigrated");
+    if (!migrated) {
+      setEvents(prev => {
+        const updated = prev.map(event => {
+          // If event doesn't have isPublic field yet, check if it's one of the original two events
+          if (event.isPublic === undefined) {
+            // Make "Test" and "Afternoon in Cité" private
+            if (event.name === "Test" || event.name === "Afternoon in Cité") {
+              return { ...event, isPublic: false };
+            }
+            // Other events default to public
+            return { ...event, isPublic: true };
+          }
+          return event;
+        });
+        localStorage.setItem("eventsMigrated", "true");
+        return updated;
+      });
+    }
+  }, []);
+  
   // Save events to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("adminEvents", JSON.stringify(events));
@@ -61,6 +84,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     category: "food",
     languages: [], // Array of languages for exchange
     description: "",
+    isPublic: true, // Default to public events
   });
 
   // When opening the assign panel for a request, preselect the first matching event
@@ -480,6 +504,57 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
               </div>
             </div>
 
+            {/* Public/Private Toggle */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
+                Event Visibility
+              </label>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setCreateEventForm({ ...createEventForm, isPublic: true })}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    borderRadius: 12,
+                    border: `2px solid ${createEventForm.isPublic ? theme.primary : theme.border}`,
+                    background: createEventForm.isPublic ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                    color: createEventForm.isPublic ? "white" : theme.text,
+                    cursor: "pointer",
+                    fontWeight: 800,
+                    fontSize: 14,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  🌍 Public Event
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreateEventForm({ ...createEventForm, isPublic: false })}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    borderRadius: 12,
+                    border: `2px solid ${!createEventForm.isPublic ? theme.accent : theme.border}`,
+                    background: !createEventForm.isPublic ? `linear-gradient(135deg, ${theme.accent}, #0AA6EB)` : theme.card,
+                    color: !createEventForm.isPublic ? "white" : theme.text,
+                    cursor: "pointer",
+                    fontWeight: 800,
+                    fontSize: 14,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  🔒 Private Event
+                </button>
+              </div>
+              <div style={{ fontSize: 12.5, color: theme.textMuted, marginTop: 6, fontStyle: "italic" }}>
+                {createEventForm.isPublic 
+                  ? "👥 Public events are visible to all users on their homepage and anyone can join."
+                  : "🔐 Private events are only for users assigned by admin and won't appear in public listings."
+                }
+              </div>
+            </div>
+
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
                 Language Exchange (select 2-3 languages)
@@ -602,13 +677,14 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   category: createEventForm.category,
                   languages: createEventForm.languages,
                   description: createEventForm.description,
+                  isPublic: createEventForm.isPublic,
                   type: "custom", // Mark as admin-created
                 };
                 
                 // Add event to the events array
                 setEvents(prev => [...prev, newEvent]);
                 
-                alert(`Event "${createEventForm.name}" created successfully!\n\nLocation: ${createEventForm.location}\nPlace: ${createEventForm.place}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\nLanguages: ${createEventForm.languages.join(" ↔ ")}`);
+                alert(`Event "${createEventForm.name}" created successfully!\n\nVisibility: ${createEventForm.isPublic ? "🌍 Public" : "🔒 Private"}\nLocation: ${createEventForm.location}\nPlace: ${createEventForm.place}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\nLanguages: ${createEventForm.languages.join(" ↔ ")}`);
                 
                 // Reset form
                 setCreateEventForm({
@@ -620,6 +696,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   category: "food",
                   languages: [],
                   description: "",
+                  isPublic: true, // Reset to default public
                 });
                 
                 // Switch to "All Events" tab to show the newly created event
@@ -743,7 +820,20 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   style={{ flex: 1, cursor: "pointer" }} 
                   onClick={() => setSelectedEventForModal(ev)}
                 >
-                  <div style={{ fontSize: 18.5, fontWeight: 800, color: theme.text }}>{ev.name}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <div style={{ fontSize: 18.5, fontWeight: 800, color: theme.text }}>{ev.name}</div>
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "3px 8px",
+                      borderRadius: 6,
+                      backgroundColor: ev.isPublic === false ? "#e3f2fd" : "#e8f5e9",
+                      color: ev.isPublic === false ? "#1976d2" : "#2e7d32",
+                      border: `1px solid ${ev.isPublic === false ? "#90caf9" : "#81c784"}`,
+                    }}>
+                      {ev.isPublic === false ? "🔒 Private" : "🌍 Public"}
+                    </span>
+                  </div>
                   <div style={{ fontSize: 14, color: theme.textMuted }}>Time: {ev.time}</div>
                   {ev.languageLabels && (
                     <div style={{ fontSize: 13, color: theme.accent, marginTop: 4 }}>{ev.languageLabels}</div>

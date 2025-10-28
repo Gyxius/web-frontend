@@ -8,6 +8,8 @@ function SocialHome({
   onJoinEvent,
   joinedEvents = [],
   suggestedEvents = [],
+  publicEvents = [],
+  onJoinPublicEvent,
   onAcceptSuggestion,
   onDeclineSuggestion,
   onJoinedEventClick,
@@ -37,13 +39,6 @@ function SocialHome({
 
   const socialPoints = 120;
   const nextLevel = 200;
-  const highlightEvent = {
-    name: "Karaoke on the Rooftop",
-    time: "10:00 PM",
-    attendees: 22,
-  };
-
-  // Removed friendsActivity list; we now show detailed Friends’ Joined Events below
 
   // 🟢 Duolingo-inspired theme
   const theme = {
@@ -346,11 +341,73 @@ function SocialHome({
         <span style={styles.progressText}>Level 2 Explorer ({socialPoints}/{nextLevel})</span>
       </div>
 
-      <div style={styles.highlightCard}>
-        <div style={styles.highlightTitle}>🔥 Popular Tonight</div>
-        <div style={styles.highlightEvent}>{highlightEvent.name}</div>
-        <div style={styles.details}>⏰ {highlightEvent.time} · 👥 {highlightEvent.attendees} joined</div>
-      </div>
+      {/* Public Events - Open to Everyone */}
+      {(() => {
+        // Filter out events that user has already joined
+        const availablePublicEvents = publicEvents.filter(event => 
+          !joinedEvents.some(je => String(je.id) === String(event.id))
+        );
+        
+        if (!availablePublicEvents || availablePublicEvents.length === 0) {
+          return null; // Don't show section if no events available
+        }
+        
+        return (
+        <div style={styles.highlightCard}>
+          <div style={styles.highlightTitle}>🌍 Public Events</div>
+          <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+            Open events you can join right now!
+          </div>
+          {availablePublicEvents.slice(0, 3).map((event, idx) => {
+            return (
+            <div key={idx} style={{ 
+              background: theme.bg, 
+              padding: 14, 
+              borderRadius: 12, 
+              marginBottom: 10,
+              border: `1px solid ${theme.track}`,
+            }}>
+              <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, marginBottom: 6 }}>
+                {event.name}
+              </div>
+              <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
+                📍 {event.location} {event.place ? `· ${event.place}` : ""}
+              </div>
+              <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
+                ⏰ {event.date} at {event.time}
+              </div>
+              {event.languages && event.languages.length > 0 && (
+                <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
+                  🗣️ {event.languages.join(" ↔ ")}
+                </div>
+              )}
+              {event.category && (
+                <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 10 }}>
+                  🎯 {event.category}
+                </div>
+              )}
+              <button
+                style={{
+                  ...styles.joinButton,
+                  padding: "10px 16px",
+                  fontSize: 14,
+                  width: "100%",
+                }}
+                onClick={() => onJoinPublicEvent && onJoinPublicEvent(event)}
+              >
+                🎉 Join Event
+              </button>
+            </div>
+            );
+          })}
+          {availablePublicEvents.length > 3 && (
+            <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8 }}>
+              +{availablePublicEvents.length - 3} more public event{availablePublicEvents.length - 3 !== 1 ? "s" : ""} available
+            </div>
+          )}
+        </div>
+        );
+      })()}
 
       {/* Suggested Events from Admin */}
       {suggestedEvents && suggestedEvents.length > 0 && (
