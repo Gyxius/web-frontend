@@ -392,6 +392,7 @@ function App() {
   } else if (showForm) {
     mainContent = (
       <SocialForm
+        currentUserKey={user?.username || user?.name}
         onConfirm={(payload) => {
           const requester = user?.username || user?.name;
           const now = Date.now();
