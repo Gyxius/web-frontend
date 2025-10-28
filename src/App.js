@@ -117,12 +117,36 @@ function App() {
             // Use passed event object if available, otherwise try to find in allEvents
             const ev = eventObj || allEvents.find(e => String(e.id) === String(eventId));
             if (!ev) return;
-            // Add event to suggested events (not joined yet - user needs to accept)
+            
+            // Calculate match score and details
+            const userRequest = req.event || {};
+            const matchDetails = {
+              location: userRequest.location && ev.location ? 
+                String(ev.location).toLowerCase() === String(userRequest.location).toLowerCase() : null,
+              category: userRequest.category && ev.category ? 
+                ev.category === userRequest.category : null,
+              timePreference: userRequest.timePreference ? 
+                true : null, // Can't match timePreference perfectly, just acknowledge it exists
+              language: userRequest.language && ev.languages ? 
+                ev.languages.includes(userRequest.language) : null,
+            };
+            const matchCount = Object.values(matchDetails).filter(v => v === true).length;
+            const totalCriteria = Object.values(matchDetails).filter(v => v !== null).length;
+            const matchPercentage = totalCriteria > 0 ? Math.round((matchCount / totalCriteria) * 100) : 100;
+            
+            // Add event to suggested events with match info
+            const eventWithMatch = {
+              ...ev,
+              matchDetails,
+              matchPercentage,
+              userRequest, // Include original request for reference
+            };
+            
             setSuggestedEvents(prev => {
               const updated = { ...prev };
               const list = updated[userKey] || [];
               if (!list.find(x => String(x.id || x.name) === String(ev.id))) {
-                updated[userKey] = [...list, ev];
+                updated[userKey] = [...list, eventWithMatch];
               }
               return updated;
             });

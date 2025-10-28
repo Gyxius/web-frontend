@@ -359,7 +359,12 @@ function SocialHome({
           <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
             The admin found {suggestedEvents.length} event{suggestedEvents.length !== 1 ? "s" : ""} matching your preferences!
           </div>
-          {suggestedEvents.map((event, idx) => (
+          {suggestedEvents.map((event, idx) => {
+            const matchPercentage = event.matchPercentage || 100;
+            const matchDetails = event.matchDetails || {};
+            const isPerfectMatch = matchPercentage === 100;
+            
+            return (
             <div key={idx} style={{ 
               background: theme.bg, 
               padding: 14, 
@@ -367,9 +372,64 @@ function SocialHome({
               marginBottom: 10,
               border: `1px solid ${theme.track}`,
             }}>
-              <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, marginBottom: 6 }}>
-                {event.name}
+              {/* Match Score Badge */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ fontWeight: 800, fontSize: 16, color: theme.text }}>
+                  {event.name}
+                </div>
+                <div style={{
+                  background: isPerfectMatch ? 
+                    `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : 
+                    matchPercentage >= 75 ? theme.gold :
+                    matchPercentage >= 50 ? theme.accent : theme.textMuted,
+                  color: isPerfectMatch || matchPercentage >= 50 ? "white" : theme.text,
+                  padding: "4px 10px",
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 900,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                }}>
+                  {isPerfectMatch ? "✨ Perfect Match" : `${matchPercentage}% Match`}
+                </div>
               </div>
+              
+              {/* Criteria Match Indicators */}
+              {!isPerfectMatch && (
+                <div style={{ 
+                  background: "rgba(255,222,89,0.1)", 
+                  border: "1px solid rgba(255,222,89,0.3)",
+                  borderRadius: 8, 
+                  padding: 10, 
+                  marginBottom: 10,
+                  fontSize: 12.5,
+                }}>
+                  <div style={{ fontWeight: 800, color: theme.text, marginBottom: 6 }}>
+                    💡 Match Details:
+                  </div>
+                  {matchDetails.location !== null && (
+                    <div style={{ color: matchDetails.location ? theme.primary : theme.textMuted, marginBottom: 3 }}>
+                      {matchDetails.location ? "✅" : "⚠️"} Location: {event.location} 
+                      {!matchDetails.location && event.userRequest?.location && ` (you wanted ${event.userRequest.location})`}
+                    </div>
+                  )}
+                  {matchDetails.category !== null && (
+                    <div style={{ color: matchDetails.category ? theme.primary : theme.textMuted, marginBottom: 3 }}>
+                      {matchDetails.category ? "✅" : "⚠️"} Category: {event.category}
+                      {!matchDetails.category && event.userRequest?.category && ` (you wanted ${event.userRequest.category})`}
+                    </div>
+                  )}
+                  {matchDetails.language !== null && (
+                    <div style={{ color: matchDetails.language ? theme.primary : theme.textMuted, marginBottom: 3 }}>
+                      {matchDetails.language ? "✅" : "⚠️"} Language: {event.languages?.join(", ")}
+                      {!matchDetails.language && event.userRequest?.language && ` (you wanted ${event.userRequest.language})`}
+                    </div>
+                  )}
+                  <div style={{ marginTop: 6, fontStyle: "italic", color: theme.textMuted }}>
+                    Still a great opportunity to meet new people! 🌟
+                  </div>
+                </div>
+              )}
+              
               <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
                 📍 {event.location} {event.place ? `· ${event.place}` : ""}
               </div>
@@ -407,7 +467,8 @@ function SocialHome({
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
