@@ -365,17 +365,36 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   const handleRemoveEvent = (eventId) => {
     const ev = events.find(e => e.id === eventId);
     if (!ev) return;
-    if (!canRemoveEvent(ev)) {
-      alert('This event includes real users (Mitsu, Zine, or Admin) and cannot be removed.');
-      return;
-    }
-    if (window.confirm("Are you sure you want to remove this event?")) {
+    
+    if (window.confirm(`Are you sure you want to remove "${ev.name}"? This will remove it for all users.`)) {
+      // Remove from local state
       setEvents(events.filter(ev => ev.id !== eventId));
-      logAdminActivity(`Removed event: ${eventId}`);
+      
+      // Remove from adminEvents localStorage
+      const saved = localStorage.getItem("adminEvents");
+      if (saved) {
+        const adminEvents = JSON.parse(saved);
+        const filtered = adminEvents.filter(e => e.id !== eventId);
+        localStorage.setItem("adminEvents", JSON.stringify(filtered));
+      }
+      
+      // Remove from all users' joined events in localStorage
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith("joinedEvents_")) {
+          const joinedEvents = JSON.parse(localStorage.getItem(key) || "[]");
+          const filtered = joinedEvents.filter(e => e.id !== eventId);
+          localStorage.setItem(key, JSON.stringify(filtered));
+        }
+      });
+      
+      logAdminActivity(`Removed event: ${ev.name} (ID: ${eventId})`);
+      
       // Close modal if it's open for this event
       if (selectedEventForModal && selectedEventForModal.id === eventId) {
         setSelectedEventForModal(null);
       }
+      
+      alert(`✅ Event "${ev.name}" has been removed successfully!`);
     }
   };
   // Events now provided by a shared dataset (see src/events.js)
@@ -625,9 +644,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     return Array.from(keys).filter(Boolean);
   };
   const canRemoveEvent = (ev) => {
-    const keys = getEventParticipantKeys(ev);
-    if (keys.length === 0) return true;
-    return !keys.some(isRealUserKey);
+    // Admin can remove any event
+    return true;
   };
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -1810,17 +1828,12 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   )}
                 </div>
                 <button
-                  style={{
-                    ...styles.dangerBtn,
-                    opacity: canRemoveEvent(ev) ? 1 : 0.5,
-                    cursor: canRemoveEvent(ev) ? 'pointer' : 'not-allowed'
-                  }}
-                  disabled={!canRemoveEvent(ev)}
+                  style={styles.dangerBtn}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveEvent(ev.id);
                   }}
-                  title={canRemoveEvent(ev) ? "Remove this event" : "Cannot remove: event contains real users"}
+                  title="Remove this event"
                 >
                   🗑️ Remove
                 </button>

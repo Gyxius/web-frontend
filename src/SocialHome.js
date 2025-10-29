@@ -35,6 +35,7 @@ function SocialHome({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [createEventStep, setCreateEventStep] = useState(1);
+  const [eventPreview, setEventPreview] = useState(null); // For previewing events before joining
   // View mode: 'my' shows only user's joined events, 'friends' shows only friends' joined events
   const [viewMode, setViewMode] = useState("my");
 
@@ -486,7 +487,10 @@ function SocialHome({
               borderRadius: 12, 
               marginBottom: 10,
               border: `1px solid ${theme.track}`,
-            }}>
+              cursor: "pointer",
+            }}
+            onClick={() => setEventPreview(event)}
+            >
               <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, marginBottom: 6 }}>
                 {event.name}
               </div>
@@ -513,7 +517,10 @@ function SocialHome({
                   fontSize: 14,
                   width: "100%",
                 }}
-                onClick={() => onJoinPublicEvent && onJoinPublicEvent(event)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onJoinPublicEvent && onJoinPublicEvent(event);
+                }}
               >
                 🎉 Join Event
               </button>
@@ -526,6 +533,139 @@ function SocialHome({
             </div>
           )}
         </div>
+        );
+      })()}
+
+      {/* All Hosted Events - Events created by users */}
+      {(() => {
+        // Get all public events hosted by other users (show all, even if user has joined)
+        const hostedEventsByOthers = publicEvents.filter(event => {
+          // Check if event has host info or createdBy info
+          const eventCreator = event.host?.name || event.createdBy;
+          if (!eventCreator) return false;
+          
+          // Skip if this is the current user's event
+          if (eventCreator === userName || eventCreator.toLowerCase() === userName.toLowerCase()) return false;
+          
+          // Skip if already joined (user should see it in "My Joined Events")
+          if (joinedEvents.some(je => String(je.id) === String(event.id))) return false;
+          
+          return true;
+        });
+        
+        if (hostedEventsByOthers.length === 0) {
+          return null;
+        }
+        
+        return (
+          <div style={styles.highlightCard}>
+            <div style={styles.highlightTitle}>🎤 Community Events</div>
+            <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+              Events hosted by community members
+            </div>
+            {hostedEventsByOthers.slice(0, 5).map((event, idx) => (
+              <div key={idx} style={{ 
+                background: theme.bg, 
+                padding: 14, 
+                borderRadius: 12, 
+                marginBottom: 10,
+                border: `1px solid ${theme.track}`,
+                cursor: "pointer",
+              }}
+              onClick={() => setEventPreview(event)}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                  <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
+                    {event.name}
+                    {event.languages && event.languages.length > 0 && (
+                      <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
+                        {" - "}
+                        {event.languages.map((lang, i) => {
+                          const flag = getLanguageFlag(lang);
+                          return <span key={i}>{flag} {lang}{i < event.languages.length - 1 ? " ↔ " : ""}</span>;
+                        })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Host Info */}
+                {(() => {
+                  if (event.host) {
+                    return (
+                      <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                        👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
+                          {event.host.emoji} {event.host.name} {event.host.country}
+                        </span>
+                      </div>
+                    );
+                  } else if (event.createdBy) {
+                    // Fallback for older events without host object
+                    const hostUser = users.find(u => u.name === event.createdBy || u.username === event.createdBy);
+                    if (hostUser) {
+                      return (
+                        <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                          👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
+                            {hostUser.emoji} {hostUser.name} {hostUser.country}
+                          </span>
+                        </div>
+                      );
+                    }
+                  }
+                  return null;
+                })()}
+                
+                {event.imageUrl && (
+                  <div style={{
+                    width: "100%",
+                    height: 140,
+                    borderRadius: 12,
+                    marginBottom: 10,
+                    backgroundImage: `url(${event.imageUrl})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }} />
+                )}
+                
+                {event.location && (
+                  <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                    📍 {event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location}
+                    {event.venue && ` · ${event.venue}`}
+                  </div>
+                )}
+                
+                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                  ⏰ {event.date || event.time}
+                </div>
+                
+                {event.category && (
+                  <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
+                    🎯 {event.category}
+                  </div>
+                )}
+                
+                <button
+                  style={{
+                    ...styles.joinButton,
+                    padding: "10px 16px",
+                    fontSize: 14,
+                    width: "100%",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onJoinPublicEvent && onJoinPublicEvent(event);
+                  }}
+                >
+                  🎉 Join Event
+                </button>
+              </div>
+            ))}
+            {hostedEventsByOthers.length > 5 && (
+              <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8 }}>
+                +{hostedEventsByOthers.length - 5} more community event{hostedEventsByOthers.length - 5 !== 1 ? "s" : ""} available
+              </div>
+            )}
+          </div>
         );
       })()}
 
@@ -1896,7 +2036,7 @@ function SocialHome({
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
-                        alert("🎉 Event created successfully! It will appear in Featured Events.");
+                        alert("🎉 Event created successfully!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section");
                       } catch (err) {
                         alert("Failed to create event. Please try again.");
                       }
@@ -1934,6 +2074,270 @@ function SocialHome({
             >
               ×
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Event Preview Modal - For viewing events before joining */}
+      {eventPreview && (
+        <div 
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: 20,
+          }}
+          onClick={() => setEventPreview(null)}
+        >
+          <div 
+            style={{
+              background: theme.card,
+              borderRadius: 18,
+              padding: isMobile ? 24 : 32,
+              maxWidth: 600,
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Event Title */}
+            <h2 style={{ fontSize: 28, fontWeight: 900, color: theme.text, marginBottom: 16 }}>
+              {eventPreview.name}
+            </h2>
+
+            {/* Event Image */}
+            {eventPreview.imageUrl && (
+              <div style={{
+                width: "100%",
+                height: 200,
+                borderRadius: 12,
+                marginBottom: 20,
+                backgroundImage: `url(${eventPreview.imageUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }} />
+            )}
+
+            {/* Languages */}
+            {eventPreview.languages && eventPreview.languages.length > 0 && (
+              <div style={{
+                background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                padding: "16px 20px",
+                borderRadius: 12,
+                marginBottom: 16,
+              }}>
+                <div style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: "rgba(255,255,255,0.9)",
+                  marginBottom: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}>
+                  🗣️ Languages
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {eventPreview.languages.map((lang, i) => (
+                    <div key={i} style={{
+                      background: "white",
+                      padding: "8px 16px",
+                      borderRadius: 999,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}>
+                      <span style={{ fontSize: 20 }}>{getLanguageFlag(lang)}</span>
+                      <span style={{ fontWeight: 700, color: theme.text }}>{lang}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Host Info */}
+            {(() => {
+              if (eventPreview.host) {
+                return (
+                  <div style={{ 
+                    background: theme.bg, 
+                    padding: 16, 
+                    borderRadius: 12, 
+                    marginBottom: 16 
+                  }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
+                      👤 HOSTED BY
+                    </div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: theme.text }}>
+                      {eventPreview.host.emoji} {eventPreview.host.name} {eventPreview.host.country}
+                    </div>
+                    {eventPreview.host.bio && (
+                      <div style={{ fontSize: 14, color: theme.textMuted, marginTop: 4 }}>
+                        "{eventPreview.host.bio}"
+                      </div>
+                    )}
+                  </div>
+                );
+              } else if (eventPreview.createdBy) {
+                const hostUser = users.find(u => u.name === eventPreview.createdBy || u.username === eventPreview.createdBy);
+                if (hostUser) {
+                  return (
+                    <div style={{ 
+                      background: theme.bg, 
+                      padding: 16, 
+                      borderRadius: 12, 
+                      marginBottom: 16 
+                    }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
+                        👤 HOSTED BY
+                      </div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: theme.text }}>
+                        {hostUser.emoji} {hostUser.name} {hostUser.country}
+                      </div>
+                      {hostUser.bio && (
+                        <div style={{ fontSize: 14, color: theme.textMuted, marginTop: 4 }}>
+                          "{hostUser.bio}"
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
+
+            {/* Event Details */}
+            <div style={{ marginBottom: 16 }}>
+              {eventPreview.location && (
+                <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 8, display: "flex", alignItems: "flex-start", gap: 8 }}>
+                  <span>📍</span>
+                  <div>
+                    <div style={{ fontWeight: 600, color: theme.text }}>
+                      {eventPreview.location === "cite" ? "Cité Internationale" : eventPreview.location === "paris" ? "Paris" : eventPreview.location}
+                    </div>
+                    {eventPreview.venue && <div style={{ fontSize: 14 }}>{eventPreview.venue}</div>}
+                    {eventPreview.address && <div style={{ fontSize: 13 }}>{eventPreview.address}</div>}
+                  </div>
+                </div>
+              )}
+              
+              <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 8 }}>
+                📅 {eventPreview.date ? `${eventPreview.date} at ${eventPreview.time}` : eventPreview.time}
+              </div>
+              
+              {eventPreview.category && (
+                <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 8 }}>
+                  🎯 {getCategoryEmoji(eventPreview.category)} {eventPreview.category}
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            {eventPreview.description && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
+                  📝 ABOUT THIS EVENT
+                </div>
+                <div style={{ 
+                  fontSize: 15, 
+                  color: theme.text, 
+                  lineHeight: 1.6,
+                  whiteSpace: "pre-wrap",
+                  background: theme.bg,
+                  padding: 16,
+                  borderRadius: 12,
+                }}>
+                  {eventPreview.description}
+                </div>
+              </div>
+            )}
+
+            {/* Participants */}
+            {eventPreview.crew && eventPreview.crew.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
+                  👥 PARTICIPANTS ({eventPreview.crew.length})
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {eventPreview.crew.slice(0, 10).map((member, i) => {
+                    const userInfo = typeof member === "object" && member !== null
+                      ? member
+                      : users.find((u) => u.name === member || u.username === member) || { name: member };
+                    return (
+                      <div key={i} style={{
+                        background: theme.bg,
+                        padding: "6px 12px",
+                        borderRadius: 999,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: theme.text,
+                      }}>
+                        {userInfo.emoji} {userInfo.name}
+                      </div>
+                    );
+                  })}
+                  {eventPreview.crew.length > 10 && (
+                    <div style={{
+                      background: theme.bg,
+                      padding: "6px 12px",
+                      borderRadius: 999,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: theme.textMuted,
+                    }}>
+                      +{eventPreview.crew.length - 10} more
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                style={{
+                  flex: 1,
+                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                  color: "white",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: 16,
+                  fontWeight: 900,
+                  fontSize: 16,
+                  cursor: "pointer",
+                  boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                }}
+                onClick={() => {
+                  onJoinPublicEvent && onJoinPublicEvent(eventPreview);
+                  setEventPreview(null);
+                }}
+              >
+                🎉 Join This Event
+              </button>
+              <button
+                style={{
+                  padding: "16px 24px",
+                  background: theme.bg,
+                  color: theme.text,
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: 14,
+                  fontWeight: 900,
+                  fontSize: 16,
+                  cursor: "pointer",
+                }}
+                onClick={() => setEventPreview(null)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
