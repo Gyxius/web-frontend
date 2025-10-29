@@ -156,39 +156,41 @@ function EditMyProfile({ userName, onBack, startEditing = false }) {
     setEditedProfile({ ...editedProfile, interests: updated });
   };
 
+  const isMobile = window.innerWidth <= 600;
+
   const styles = {
     container: {
       minHeight: "100vh",
       backgroundColor: theme.bg,
-      padding: "20px",
+      padding: isMobile ? "12px" : "20px",
       fontFamily: "Inter, Roboto, sans-serif",
     },
     header: {
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: 24,
+      marginBottom: isMobile ? 16 : 24,
       maxWidth: 800,
-      margin: "0 auto 24px auto",
+      margin: isMobile ? "0 auto 16px auto" : "0 auto 24px auto",
     },
     backButton: {
       background: "transparent",
       border: "none",
-      fontSize: 24,
+      fontSize: isMobile ? 20 : 24,
       color: theme.primary,
       cursor: "pointer",
-      padding: 8,
+      padding: isMobile ? 6 : 8,
     },
     card: {
       backgroundColor: theme.card,
-      borderRadius: theme.radiusLg,
-      padding: 24,
+      borderRadius: isMobile ? 14 : theme.radiusLg,
+      padding: isMobile ? 16 : 24,
       boxShadow: theme.shadow,
       maxWidth: 800,
-      margin: "0 auto 20px auto",
+      margin: isMobile ? "0 auto 12px auto" : "0 auto 20px auto",
     },
     title: {
-      fontSize: 28,
+      fontSize: isMobile ? 22 : 28,
       fontWeight: 900,
       marginBottom: 8,
       color: theme.text,
@@ -207,10 +209,10 @@ function EditMyProfile({ userName, onBack, startEditing = false }) {
     },
     input: {
       width: "100%",
-      padding: 12,
+      padding: isMobile ? 10 : 12,
       borderRadius: 12,
       border: `2px solid ${theme.border}`,
-      fontSize: 15,
+      fontSize: isMobile ? 14 : 15,
       fontFamily: "inherit",
       outline: "none",
       transition: "border 0.2s",
@@ -218,13 +220,13 @@ function EditMyProfile({ userName, onBack, startEditing = false }) {
     },
     textarea: {
       width: "100%",
-      padding: 12,
+      padding: isMobile ? 10 : 12,
       borderRadius: 12,
       border: `2px solid ${theme.border}`,
-      fontSize: 15,
+      fontSize: isMobile ? 14 : 15,
       fontFamily: "inherit",
       outline: "none",
-      minHeight: 100,
+      minHeight: isMobile ? 80 : 100,
       resize: "vertical",
       boxSizing: "border-box",
     },
@@ -263,13 +265,13 @@ function EditMyProfile({ userName, onBack, startEditing = false }) {
     chipContainer: {
       display: "flex",
       flexWrap: "wrap",
-      gap: 8,
+      gap: isMobile ? 6 : 8,
       marginTop: 8,
     },
     chip: (isSelected) => ({
-      padding: "6px 14px",
+      padding: isMobile ? "5px 10px" : "6px 14px",
       borderRadius: 20,
-      fontSize: 14,
+      fontSize: isMobile ? 12 : 14,
       fontWeight: 600,
       cursor: isEditing ? "pointer" : "default",
       border: `2px solid ${isSelected ? theme.primary : theme.border}`,

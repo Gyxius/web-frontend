@@ -59,15 +59,17 @@ function SocialHome({
     radiusLg: 22,
   };
 
+  const isMobile = window.innerWidth <= 600;
+  
   const styles = {
     container: {
       position: "relative",
       minHeight: "100vh",
       background: theme.bg,
-      padding: 24,
+      padding: isMobile ? 12 : 24,
       maxWidth: 520,
       margin: "0 auto",
-  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
+      fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
     },
     header: {
       display: "flex",
@@ -87,9 +89,9 @@ function SocialHome({
       boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
     },
     greeting: {
-      fontSize: 22,
+      fontSize: isMobile ? 18 : 22,
       fontWeight: 800,
-      marginBottom: 18,
+      marginBottom: isMobile ? 12 : 18,
       color: theme.text,
       letterSpacing: "-0.2px",
     },
@@ -99,8 +101,8 @@ function SocialHome({
       backgroundColor: theme.track,
       borderRadius: 999,
       overflow: "hidden",
-      marginBottom: 22,
-      height: 26,
+      marginBottom: isMobile ? 16 : 22,
+      height: isMobile ? 22 : 26,
       position: "relative",
     },
     progressBar: {
@@ -123,21 +125,21 @@ function SocialHome({
     // Cards
     highlightCard: {
       backgroundColor: theme.card,
-      padding: 20,
-      borderRadius: theme.radiusLg,
-      marginBottom: 22,
+      padding: isMobile ? 14 : 20,
+      borderRadius: isMobile ? 14 : theme.radiusLg,
+      marginBottom: isMobile ? 16 : 22,
       boxShadow: theme.shadow,
       border: "1px solid #EEF2F7",
     },
     highlightTitle: {
-      fontSize: 16,
+      fontSize: isMobile ? 14 : 16,
       fontWeight: 900,
       marginBottom: 8,
       color: theme.primary,
       letterSpacing: "0.3px",
     },
     highlightEvent: {
-      fontSize: 20,
+      fontSize: isMobile ? 17 : 20,
       fontWeight: 800,
       marginBottom: 6,
       color: theme.text,
@@ -173,9 +175,9 @@ function SocialHome({
 
     eventCard: {
       backgroundColor: theme.card,
-      padding: 20,
-      borderRadius: theme.radiusLg,
-      marginBottom: 14,
+      padding: isMobile ? 14 : 20,
+      borderRadius: isMobile ? 14 : theme.radiusLg,
+      marginBottom: isMobile ? 10 : 14,
       boxShadow: theme.shadow,
       border: "1px solid #EEF2F7",
       cursor: "pointer",
@@ -184,13 +186,13 @@ function SocialHome({
       ...fadeIn,
     },
     eventName: {
-      fontSize: 18.5,
+      fontSize: isMobile ? 16 : 18.5,
       fontWeight: 800,
       marginBottom: 8,
       color: theme.text,
       letterSpacing: "-0.2px",
     },
-    details: { fontSize: 14.5, color: theme.textMuted },
+    details: { fontSize: isMobile ? 13 : 14.5, color: theme.textMuted },
 
     leaveButton: {
       marginTop: 12,
@@ -205,16 +207,17 @@ function SocialHome({
       boxShadow: "0 2px 6px rgba(234,43,43,0.18)",
     },
 
-    joinButtonRow: { display: "flex", gap: 14, marginBottom: 22 },
+    joinButtonRow: { display: "flex", gap: isMobile ? 10 : 14, marginBottom: isMobile ? 16 : 22, flexWrap: "wrap" },
     joinButton: {
       flex: 1,
+      minWidth: isMobile ? "100%" : "auto",
       background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
       color: "white",
       border: "none",
       borderRadius: 14,
-      padding: "14px 0",
+      padding: isMobile ? "12px 0" : "14px 0",
       fontWeight: 900,
-      fontSize: 16,
+      fontSize: isMobile ? 15 : 16,
       cursor: "pointer",
       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
       transition: "transform 0.12s ease, box-shadow 0.2s",
@@ -257,17 +260,17 @@ function SocialHome({
     // Floating action button
     fab: {
       position: "fixed",
-      bottom: 32,
-      right: "calc(50vw - 260px + 32px)",
+      bottom: isMobile ? 16 : 32,
+      right: isMobile ? 16 : "calc(50vw - 260px + 32px)",
       background: `radial-gradient(120% 120% at 30% 20%, ${theme.primary} 0%, ${theme.primaryDark} 70%)`,
-      width: 64,
-      height: 64,
-      borderRadius: 20,
+      width: isMobile ? 56 : 64,
+      height: isMobile ? 56 : 64,
+      borderRadius: isMobile ? 16 : 20,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       boxShadow: "0 12px 28px rgba(88,204,2,0.40)",
-      fontSize: 30,
+      fontSize: isMobile ? 26 : 30,
       color: "white",
       border: "none",
       cursor: "pointer",
@@ -290,12 +293,14 @@ function SocialHome({
     },
     modal: {
       background: theme.card,
-      borderRadius: theme.radiusLg,
-      padding: 28,
+      borderRadius: isMobile ? 14 : theme.radiusLg,
+      padding: isMobile ? 18 : 28,
       boxShadow: theme.shadowSoft,
-      minWidth: 340,
-      maxWidth: 500,
-  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
+      minWidth: isMobile ? "90vw" : 340,
+      maxWidth: isMobile ? "90vw" : 500,
+      maxHeight: isMobile ? "85vh" : "none",
+      overflowY: isMobile ? "auto" : "visible",
+      fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
       border: "1px solid #EEF2F7",
     },
   };
