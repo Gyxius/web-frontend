@@ -32,8 +32,20 @@ function SocialHome({
 
   const [selectedPending, setSelectedPending] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showCreateEventModal, setShowCreateEventModal] = useState(false);
+  const [createEventStep, setCreateEventStep] = useState(1);
   // View mode: 'my' shows only user's joined events, 'friends' shows only friends' joined events
   const [viewMode, setViewMode] = useState("my");
+
+  // Create event form state
+  const [newEvent, setNewEvent] = useState({
+    name: "",
+    location: "",
+    date: "",
+    time: "",
+    description: "",
+    category: "social",
+  });
 
   const fadeIn = { animation: "fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1)" };
   const pulse = { animation: "pulse 1.2s infinite" };
@@ -361,6 +373,30 @@ function SocialHome({
         <div style={{ ...styles.progressBar, width: `${(socialPoints / nextLevel) * 100}%` }} />
         <span style={styles.progressText}>Level 2 Explorer ({socialPoints}/{nextLevel})</span>
       </div>
+
+      {/* Create Event Action Button */}
+      <button
+        style={{
+          width: "100%",
+          background: `linear-gradient(135deg, ${theme.accent}, #0AA6EB)`,
+          color: "white",
+          border: "none",
+          borderRadius: 14,
+          padding: isMobile ? "12px 16px" : "14px 20px",
+          fontWeight: 900,
+          fontSize: isMobile ? 15 : 16,
+          cursor: "pointer",
+          boxShadow: "0 6px 16px rgba(28,176,246,0.28)",
+          marginBottom: isMobile ? 16 : 22,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+        }}
+        onClick={() => setShowCreateEventModal(true)}
+      >
+        ➕ Create Your Own Event
+      </button>
 
       {/* Public Events - Open to Everyone */}
       {(() => {
@@ -836,6 +872,473 @@ function SocialHome({
       >
         🎲
       </button>
+
+      {/* Create Event Modal - Multi-step Wizard */}
+      {showCreateEventModal && (
+        <div style={styles.modalOverlay} onClick={() => {
+          setShowCreateEventModal(false);
+          setCreateEventStep(1);
+          setNewEvent({ name: "", location: "", date: "", time: "", description: "", category: "social" });
+        }}>
+          <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "visible", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
+            
+            {/* Progress Indicator */}
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 24 }}>
+              {[1, 2, 3, 4, 5, 6].map(step => (
+                <div
+                  key={step}
+                  style={{
+                    width: createEventStep === step ? 32 : 10,
+                    height: 10,
+                    borderRadius: 5,
+                    background: createEventStep >= step ? theme.primary : theme.track,
+                    transition: "all 0.3s ease",
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Step 1: Event Name */}
+            {createEventStep === 1 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  What's your event called? ✨
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Give it a catchy name!
+                </p>
+                <input
+                  type="text"
+                  value={newEvent.name}
+                  onChange={(e) => setNewEvent({...newEvent, name: e.target.value})}
+                  placeholder="e.g., Coffee & Croissants at Cité"
+                  style={{ 
+                    width: "100%", 
+                    padding: isMobile ? 14 : 16, 
+                    borderRadius: 14, 
+                    border: `2px solid ${theme.border}`, 
+                    fontSize: isMobile ? 16 : 18, 
+                    boxSizing: "border-box",
+                    textAlign: "center",
+                    fontWeight: 600,
+                  }}
+                  autoFocus
+                />
+                <button
+                  style={{
+                    width: "100%",
+                    marginTop: 24,
+                    background: newEvent.name.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
+                    color: newEvent.name.trim() ? "white" : theme.textMuted,
+                    border: "none",
+                    borderRadius: 14,
+                    padding: isMobile ? "14px" : "16px",
+                    fontWeight: 900,
+                    fontSize: isMobile ? 16 : 18,
+                    cursor: newEvent.name.trim() ? "pointer" : "not-allowed",
+                    boxShadow: newEvent.name.trim() ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                  }}
+                  onClick={() => newEvent.name.trim() && setCreateEventStep(2)}
+                  disabled={!newEvent.name.trim()}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: Category */}
+            {createEventStep === 2 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  What type of event? 🎯
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Pick a category
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 24 }}>
+                  {[
+                    { value: "social", label: "Social Hangout", emoji: "👥" },
+                    { value: "food", label: "Food & Drinks", emoji: "🍽️" },
+                    { value: "sports", label: "Sports & Fitness", emoji: "⚽" },
+                    { value: "culture", label: "Culture & Arts", emoji: "🎨" },
+                    { value: "study", label: "Study Group", emoji: "📚" },
+                    { value: "other", label: "Other", emoji: "✨" },
+                  ].map(cat => (
+                    <button
+                      key={cat.value}
+                      style={{
+                        padding: isMobile ? 16 : 18,
+                        borderRadius: 14,
+                        border: `2px solid ${newEvent.category === cat.value ? theme.primary : theme.border}`,
+                        background: newEvent.category === cat.value ? theme.primary : theme.card,
+                        color: newEvent.category === cat.value ? "white" : theme.text,
+                        fontSize: isMobile ? 15 : 16,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                      onClick={() => setNewEvent({...newEvent, category: cat.value})}
+                    >
+                      <div style={{ fontSize: 28, marginBottom: 6 }}>{cat.emoji}</div>
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(1)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                      color: "white",
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                    }}
+                    onClick={() => setCreateEventStep(3)}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Location */}
+            {createEventStep === 3 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  Where will it happen? 📍
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Location or venue
+                </p>
+                <input
+                  type="text"
+                  value={newEvent.location}
+                  onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                  placeholder="e.g., Cité Café, Luxembourg Gardens"
+                  style={{ 
+                    width: "100%", 
+                    padding: isMobile ? 14 : 16, 
+                    borderRadius: 14, 
+                    border: `2px solid ${theme.border}`, 
+                    fontSize: isMobile ? 16 : 18, 
+                    boxSizing: "border-box",
+                    textAlign: "center",
+                    fontWeight: 600,
+                  }}
+                  autoFocus
+                />
+                <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(2)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: newEvent.location.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
+                      color: newEvent.location.trim() ? "white" : theme.textMuted,
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: newEvent.location.trim() ? "pointer" : "not-allowed",
+                      boxShadow: newEvent.location.trim() ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                    }}
+                    onClick={() => newEvent.location.trim() && setCreateEventStep(4)}
+                    disabled={!newEvent.location.trim()}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Date */}
+            {createEventStep === 4 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  When's the event? 📅
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Pick a date
+                </p>
+                <input
+                  type="date"
+                  value={newEvent.date}
+                  onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+                  style={{ 
+                    width: "100%", 
+                    padding: isMobile ? 14 : 16, 
+                    borderRadius: 14, 
+                    border: `2px solid ${theme.border}`, 
+                    fontSize: isMobile ? 16 : 18, 
+                    boxSizing: "border-box",
+                    textAlign: "center",
+                    fontWeight: 600,
+                  }}
+                  autoFocus
+                />
+                <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(3)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: newEvent.date ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
+                      color: newEvent.date ? "white" : theme.textMuted,
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: newEvent.date ? "pointer" : "not-allowed",
+                      boxShadow: newEvent.date ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                    }}
+                    onClick={() => newEvent.date && setCreateEventStep(5)}
+                    disabled={!newEvent.date}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: Time */}
+            {createEventStep === 5 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  What time? ⏰
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Pick a time
+                </p>
+                <input
+                  type="time"
+                  value={newEvent.time}
+                  onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+                  style={{ 
+                    width: "100%", 
+                    padding: isMobile ? 14 : 16, 
+                    borderRadius: 14, 
+                    border: `2px solid ${theme.border}`, 
+                    fontSize: isMobile ? 16 : 18, 
+                    boxSizing: "border-box",
+                    textAlign: "center",
+                    fontWeight: 600,
+                  }}
+                  autoFocus
+                />
+                <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(4)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: newEvent.time ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
+                      color: newEvent.time ? "white" : theme.textMuted,
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: newEvent.time ? "pointer" : "not-allowed",
+                      boxShadow: newEvent.time ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                    }}
+                    onClick={() => newEvent.time && setCreateEventStep(6)}
+                    disabled={!newEvent.time}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 6: Description (Optional) */}
+            {createEventStep === 6 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  Tell us more! 💬
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Add a description (optional)
+                </p>
+                <textarea
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                  placeholder="What should people know about this event? (optional)"
+                  style={{ 
+                    width: "100%", 
+                    padding: isMobile ? 14 : 16, 
+                    borderRadius: 14, 
+                    border: `2px solid ${theme.border}`, 
+                    fontSize: isMobile ? 15 : 16, 
+                    minHeight: 120,
+                    resize: "vertical",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                  }}
+                  autoFocus
+                />
+                <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(5)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                      color: "white",
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                    }}
+                    onClick={() => {
+                      // Save to adminEvents in localStorage so it appears in public events
+                      try {
+                        const saved = localStorage.getItem("adminEvents");
+                        const events = saved ? JSON.parse(saved) : [];
+                        const newEventObj = {
+                          id: Date.now(),
+                          name: newEvent.name,
+                          location: newEvent.location,
+                          date: newEvent.date,
+                          time: newEvent.time,
+                          description: newEvent.description,
+                          category: newEvent.category,
+                          isPublic: true,
+                          createdBy: userName,
+                          participants: [userName],
+                          crew: [userName],
+                        };
+                        events.push(newEventObj);
+                        localStorage.setItem("adminEvents", JSON.stringify(events));
+                        
+                        // Also add to user's joined events
+                        onJoinPublicEvent && onJoinPublicEvent(newEventObj);
+                        
+                        // Reset form and close
+                        setNewEvent({ name: "", location: "", date: "", time: "", description: "", category: "social" });
+                        setCreateEventStep(1);
+                        setShowCreateEventModal(false);
+                        alert("🎉 Event created successfully! It will appear in public events.");
+                      } catch (err) {
+                        alert("Failed to create event. Please try again.");
+                      }
+                    }}
+                  >
+                    Create Event ✨
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Close Button */}
+            <button
+              style={{
+                position: "absolute",
+                top: 16,
+                right: 16,
+                background: "transparent",
+                border: "none",
+                fontSize: 24,
+                color: theme.textMuted,
+                cursor: "pointer",
+                width: 32,
+                height: 32,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onClick={() => {
+                setShowCreateEventModal(false);
+                setCreateEventStep(1);
+                setNewEvent({ name: "", location: "", date: "", time: "", description: "", category: "social" });
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
