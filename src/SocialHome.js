@@ -233,6 +233,15 @@ function SocialHome({
       color: theme.textMuted,
       border: "1px solid #EEF2F7",
     },
+    pendingTextWrap: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 4,
+    },
+    meta: {
+      fontSize: 12.5,
+      color: theme.textMuted,
+    },
     cancelButton: {
       background: theme.danger,
       color: "white",
@@ -739,15 +748,40 @@ function SocialHome({
                     }
                   }}
                 >
-                  <span>
-                    {req.event && (
-                      <>
-                        <strong>{req.event.location || req.event.category || "Event"}</strong>
-                        {req.event.date && <> | <span>{req.event.date}</span></>}
-                        {req.event.location && <> | <span>{req.event.location}</span></>}
-                        {req.event.details && <> | <span>{req.event.details}</span></>}
-                      </>
-                    )}
+                  <span style={styles.pendingTextWrap}>
+                    {(() => {
+                      const ev = req.event || {};
+                      const title = ev.name || ev.category || ev.place || ev.location || "Request";
+                      const parts = [];
+                      if (ev.place && ev.place !== title) parts.push(ev.place);
+                      if (ev.location && ev.location !== title && ev.location !== ev.place) parts.push(ev.location);
+                      // Preferences from SocialForm
+                      if (ev.timePreference) parts.push(ev.timePreference.replace(/-/g, ' '));
+                      if (ev.timeOfDay) parts.push(ev.timeOfDay);
+                      if (ev.language) parts.push(`lang: ${ev.language}`);
+                      // Calendar details if present
+                      if (ev.date) parts.push(ev.time ? `${ev.date} at ${ev.time}` : ev.date);
+                      if (ev.details) parts.push(ev.details);
+                      return (
+                        <>
+                          <strong style={{ color: '#1F2937' }}>{title}</strong>
+                          {parts.length > 0 && (
+                            <span className="pending-sub" style={{ color: '#6B7280' }}>
+                              {parts.join(' · ')}
+                            </span>
+                          )}
+                          {(() => {
+                            const ts = req.createdAt || (Array.isArray(req.history) && req.history.length > 0 ? req.history[0].ts : null);
+                            if (!ts) return null;
+                            const d = new Date(ts);
+                            const when = d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                            return (
+                              <span style={styles.meta}>Requested on {when}</span>
+                            );
+                          })()}
+                        </>
+                      );
+                    })()}
                   </span>
                   <button
                     style={styles.cancelButton}

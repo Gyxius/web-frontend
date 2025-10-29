@@ -52,7 +52,7 @@ const timeOfDayOptions = [
   { id: "whole-day", label: "🗓️ Whole Day" },
 ];
 
-function SocialForm({ onConfirm, onHome, currentUserKey }) {
+function SocialForm({ onConfirm, onHome, currentUserKey, initialValues = null, editing = false }) {
   const [step, setStep] = useState(0);
   const [slideDirection, setSlideDirection] = useState("forward");
   const [timePreference, setTimePreference] = useState(null);
@@ -112,6 +112,18 @@ function SocialForm({ onConfirm, onHome, currentUserKey }) {
       // ignore parsing errors
     }
   }, [currentUserKey]);
+
+  // If editing: prefill fields from initialValues
+  useEffect(() => {
+    if (!initialValues) return;
+    try {
+      if (initialValues.timePreference) setTimePreference(initialValues.timePreference);
+      if (initialValues.timeOfDay) setTimeOfDay(initialValues.timeOfDay);
+      if (initialValues.location) setLocation(initialValues.location);
+      if (initialValues.category) setCategory(initialValues.category);
+      if (initialValues.language) setLanguage(initialValues.language);
+    } catch {}
+  }, [initialValues]);
 
   const handleNext = () => {
     setSlideDirection("forward");
@@ -465,7 +477,7 @@ function SocialForm({ onConfirm, onHome, currentUserKey }) {
                 ← Back
               </button>
               <button style={styles.btn} onClick={handleSubmit} disabled={!language}>
-                Confirm ✓
+                {editing ? "Save changes ✓" : "Confirm ✓"}
               </button>
             </div>
             <button

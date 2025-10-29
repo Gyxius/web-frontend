@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PendingRequestDetails from "./PendingRequestDetails";
 import Login from "./Login";
 import SocialHome from "./SocialHome";
 import SocialForm from "./SocialForm";
@@ -19,7 +20,10 @@ function App() {
   const [rouletteResult, setRouletteResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [waitingForAdmin, setWaitingForAdmin] = useState(false);
+  const [showPendingDetails, setShowPendingDetails] = useState(false);
+  const [editingPendingIdx, setEditingPendingIdx] = useState(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [justRegistered, setJustRegistered] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [userEvents, setUserEvents] = useState(() => {
     // Load joined events from localStorage
@@ -126,12 +130,21 @@ function App() {
 
   let mainContent;
   if (!user) {
-    mainContent = <Login onLogin={handleLogin} />;
+    mainContent = (
+      <Login
+        onLogin={handleLogin}
+        onRegistered={() => {
+          setJustRegistered(true);
+          setShowEditProfile(true);
+        }}
+      />
+    );
   } else if (showEditProfile) {
     mainContent = (
       <EditMyProfile
         userName={user?.username || user?.name}
-        onBack={() => setShowEditProfile(false)}
+        onBack={() => { setShowEditProfile(false); setJustRegistered(false); }}
+        startEditing={!!justRegistered}
       />
     );
   } else if ((user?.username || user?.name)?.toLowerCase() === "admin") {
@@ -209,6 +222,14 @@ function App() {
                 }));
               }
             }, 0);
+          }}
+          onAddPendingRequests={(batch, mode) => {
+            if (mode === 'clear') {
+              setPendingRequests([]);
+              return;
+            }
+            if (!Array.isArray(batch) || batch.length === 0) return;
+            setPendingRequests(prev => [...prev, ...batch]);
           }}
         />
         <button
@@ -353,6 +374,29 @@ function App() {
         setShowRoulette(false);
       }} />
     );
+  } else if (showPendingDetails) {
+    const req = selectedPendingRequestIdx !== null ? pendingRequests[selectedPendingRequestIdx] : null;
+    mainContent = (
+      <PendingRequestDetails
+        request={req}
+        onBack={() => {
+          setShowPendingDetails(false);
+          setSelectedPendingRequestIdx(null);
+        }}
+        onEdit={() => {
+          if (selectedPendingRequestIdx === null) return;
+          setEditingPendingIdx(selectedPendingRequestIdx);
+          setShowPendingDetails(false);
+          setShowForm(true);
+        }}
+        onCancel={() => {
+          if (selectedPendingRequestIdx === null) return;
+          setPendingRequests(prev => prev.filter((_, i) => i !== selectedPendingRequestIdx));
+          setShowPendingDetails(false);
+          setSelectedPendingRequestIdx(null);
+        }}
+      />
+    );
   } else if (waitingForAdmin) {
     const currentUserKey = user?.username || user?.name;
     // If a specific request is selected, use it; otherwise find by current user
@@ -390,20 +434,46 @@ function App() {
       />
     );
   } else if (showForm) {
+    const editingInit = editingPendingIdx !== null ? (pendingRequests[editingPendingIdx]?.event || null) : null;
     mainContent = (
       <SocialForm
         currentUserKey={user?.username || user?.name}
+        initialValues={editingInit}
+        editing={editingPendingIdx !== null}
         onConfirm={(payload) => {
-          const requester = user?.username || user?.name;
           const now = Date.now();
-          setPendingRequests((prev) => [
-            ...prev,
-            { user: requester, event: payload, stage: 2, history: [{ stage: 1, ts: now }, { stage: 2, ts: now }] },
-          ]);
-          setShowForm(false);
-          setWaitingForAdmin(true);
+          if (editingPendingIdx !== null) {
+            // Update existing pending request
+            setPendingRequests(prev => prev.map((r, i) => {
+              if (i === editingPendingIdx) {
+                return {
+                  ...r,
+                  event: payload,
+                  stage: 2,
+                  assignedEventId: null,
+                  history: Array.isArray(r.history) ? [...r.history, { stage: 2, ts: now }] : [{ stage: 2, ts: now }],
+                };
+              }
+              return r;
+            }));
+            setEditingPendingIdx(null);
+            setShowForm(false);
+            setWaitingForAdmin(true);
+          } else {
+            // Create new request
+            const requester = user?.username || user?.name;
+            setPendingRequests((prev) => [
+              ...prev,
+              { user: requester, event: payload, stage: 2, createdAt: now, history: [{ stage: 1, ts: now }, { stage: 2, ts: now }] },
+            ]);
+            setShowForm(false);
+            setWaitingForAdmin(true);
+          }
         }}
-        onHome={() => setShowForm(false)}
+        onHome={() => {
+          setEditingPendingIdx(null);
+          setShowForm(false);
+        }}
       />
     );
   } else {
@@ -500,7 +570,8 @@ function App() {
           onCancelPendingRequest={idx => setPendingRequests(prev => prev.filter((_, i) => i !== idx))}
           onOpenPendingRequest={(idx) => {
             setSelectedPendingRequestIdx(idx);
-            setWaitingForAdmin(true);
+            setShowPendingDetails(true);
+            setWaitingForAdmin(false);
           }}
           onJoinedEventClick={event => {
             setRouletteResult(event);
@@ -525,7 +596,7 @@ function App() {
             const requester = user?.username || user?.name;
             setPendingRequests(prev => [
               ...prev,
-              { user: requester, event, targetFriend: friend?.name || friend?.username }
+              { user: requester, event, targetFriend: friend?.name || friend?.username, createdAt: Date.now() }
             ]);
           }}
           friendRequestsIncoming={pendingFriendRequests.filter(r => r.to === (user?.username || user?.name))}

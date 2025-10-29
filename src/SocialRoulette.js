@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import localEvents from "./events";
 
 function SocialRoulette({ onResult }) {
@@ -11,8 +10,9 @@ function SocialRoulette({ onResult }) {
   const fetchEvents = async () => {
     try {
       const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
-      const response = await axios.get(`${apiUrl}/events`);
-      return response.data;
+      const res = await fetch(`${apiUrl}/events`);
+      if (!res.ok) throw new Error("Bad response");
+      return await res.json();
     } catch (error) {
       // Fallback to local seed events
       return localEvents;
@@ -22,8 +22,9 @@ function SocialRoulette({ onResult }) {
   const fetchUsers = async () => {
     try {
       const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
-      const response = await axios.get(`${apiUrl}/users`);
-      return response.data;
+      const res = await fetch(`${apiUrl}/users`);
+      if (!res.ok) throw new Error("Bad response");
+      return await res.json();
     } catch (error) {
       return [];
     }

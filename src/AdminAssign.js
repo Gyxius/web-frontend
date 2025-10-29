@@ -27,7 +27,7 @@ const defaultPlaces = {
   ],
 };
 
-export default function AdminAssign({ searches, pendingRequests, onAssignEvent, userEvents, onRemoveJoinedEvent }) {
+export default function AdminAssign({ searches, pendingRequests, onAssignEvent, userEvents, onRemoveJoinedEvent, onAddPendingRequests }) {
   // Debug: show pendingRequests
   console.log("[DEBUG] pendingRequests:", pendingRequests);
   
@@ -47,6 +47,17 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     const saved = localStorage.getItem("adminEvents");
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Proposed events (auto-generated, not published yet)
+  const [proposals, setProposals] = useState(() => {
+    const saved = localStorage.getItem("proposedEvents");
+    return saved ? JSON.parse(saved) : [];
+  });
+  useEffect(() => {
+    localStorage.setItem("proposedEvents", JSON.stringify(proposals));
+  }, [proposals]);
+  const [editProposalIdx, setEditProposalIdx] = useState(null);
+  const [editProposal, setEditProposal] = useState(null);
   
   // One-time migration: Update existing events without isPublic field to be private
   useEffect(() => {
@@ -80,10 +91,29 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   // Only keep one selectedEvent state for event modal
   const [activeTab, setActiveTab] = useState("requests");
   const [selectedEventForModal, setSelectedEventForModal] = useState(null); // For viewing event details
+  const [selectedProposalForModal, setSelectedProposalForModal] = useState(null); // For viewing auto‑proposal details
+  const [removedBots, setRemovedBots] = useState(() => {
+    try {
+      const raw = localStorage.getItem('removedBots');
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  });
   const [selectedEventId, setSelectedEventId] = useState(""); // For assignment dropdown
   const [selectedUser, setSelectedUser] = useState(null);
   const [requestDetailIdx, setRequestDetailIdx] = useState(null);
   const [showAllEvents, setShowAllEvents] = useState(false); // Toggle for showing all events vs suggested
+  // Invitations state
+  const [invites, setInvites] = useState(() => {
+    try {
+      const raw = localStorage.getItem('lemi_invites');
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('lemi_invites', JSON.stringify(invites)); } catch {}
+  }, [invites]);
   
   // Create Event state
   const [createEventForm, setCreateEventForm] = useState({
@@ -142,6 +172,126 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
       }));
     }
   };
+
+  // --- Auto-group pending requests into proposed events ---
+  const THRESHOLD = 4;
+  const WINDOW_HOURS = 48;
+  const withinWindow = (ts) => !ts ? false : (Date.now() - ts) <= WINDOW_HOURS * 3600 * 1000;
+  const norm = (v) => (v || "").toString().trim().toLowerCase();
+  const bucketTimeOfDay = (tod) => {
+    const t = norm(tod);
+    if (t === "evening" || t === "night") return "evening"; // relax a bit
+    if (["morning","afternoon","evening","night"].includes(t)) return t;
+    return "";
+  };
+  const groupKey = (req) => {
+    const ev = req?.event || {};
+    const location = norm(ev.location || ev.place);
+    const category = norm(ev.category);
+    const tod = bucketTimeOfDay(ev.timeOfDay);
+    let language = norm(ev.language);
+    if (!language) language = "any";
+    return [location, category, tod, language].join("|");
+  };
+  const chooseLanguage = (members) => {
+    const counts = {};
+    members.forEach(r => {
+      const lang = norm(r.event?.language) || "any";
+      counts[lang] = (counts[lang] || 0) + 1;
+    });
+    // prefer specific language over any
+    let best = null, bestCount = -1;
+    Object.entries(counts).forEach(([lang, c]) => {
+      if (lang === "any") return;
+      if (c > bestCount) { best = lang; bestCount = c; }
+    });
+    if (best) return best;
+    return counts["any"] ? "any" : null;
+  };
+  const pickPlaceFor = (loc) => {
+    const list = places[loc] || places[capitalize(loc)] || [];
+    return list[0]?.name || "";
+  };
+  const capitalize = (s) => (s && s[0] ? s[0].toUpperCase() + s.slice(1) : s);
+  const timeFor = (timePreference, timeOfDay) => {
+    // Very simple mapping: choose next day(s) based on preference
+    const now = new Date();
+    const tPref = norm(timePreference);
+    const tod = bucketTimeOfDay(timeOfDay) || "afternoon";
+    const setTod = (d) => {
+      const hh = tod === "morning" ? 10 : tod === "afternoon" ? 16 : tod === "evening" ? 20 : 21;
+      d.setHours(hh, 0, 0, 0);
+    };
+    const dt = new Date(now);
+    if (tPref === "saturday" || tPref === "sunday") {
+      const target = tPref === "saturday" ? 6 : 0; // 0=Sun,6=Sat
+      while (dt.getDay() !== target) dt.setDate(dt.getDate() + 1);
+      setTod(dt);
+    } else if (tPref === "this-weekend") {
+      // go to next Saturday
+      while (dt.getDay() !== 6) dt.setDate(dt.getDate() + 1);
+      setTod(dt);
+    } else if (tPref === "next-week") {
+      dt.setDate(dt.getDate() + 7);
+      setTod(dt);
+    } else {
+      // this-week / flexible
+      dt.setDate(dt.getDate() + 2);
+      setTod(dt);
+    }
+    const date = dt.toISOString().slice(0,10);
+    const time = dt.toTimeString().slice(0,5);
+    return { date, time };
+  };
+  const buildProposalFromGroup = (members, key) => {
+    const sample = members[0];
+    const ev = sample.event || {};
+    const location = ev.location || ev.place || "Cité";
+    const category = ev.category || "drinks";
+    const tod = ev.timeOfDay || "evening";
+    const langChosen = chooseLanguage(members);
+    const { date, time } = timeFor(ev.timePreference, ev.timeOfDay);
+    const name = `${category === 'drinks' ? 'Drinks' : capitalize(category)}${langChosen && langChosen !== 'any' ? ' · ' + capitalize(langChosen) : ''}`;
+    const place = pickPlaceFor(location) || ev.place || "";
+    return {
+      id: `prop-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+      name,
+      location,
+      place,
+      date,
+      time,
+      category,
+      languages: langChosen && langChosen !== 'any' ? [capitalize(langChosen)] : [],
+      isPublic: false,
+      proposed: true,
+      participants: members.map(r => (typeof r.user === 'object' ? (r.user.username || r.user.name) : r.user)),
+      matchDetails: { key, size: members.length, timeOfDay: tod },
+    };
+  };
+
+  useEffect(() => {
+    // Build groups from fresh pending requests
+    const nowGroups = {};
+    const fresh = (pendingRequests || []).filter(r => (r.stage || 2) < 3 && withinWindow(r.createdAt || (Array.isArray(r.history) && r.history[0]?.ts)));
+    fresh.forEach(r => {
+      const k = groupKey(r);
+      if (!nowGroups[k]) nowGroups[k] = [];
+      nowGroups[k].push(r);
+    });
+    const existingKeys = new Set((proposals || []).map(p => p.matchDetails?.key));
+    const newOnes = [];
+    Object.entries(nowGroups).forEach(([k, members]) => {
+      if (members.length >= THRESHOLD && !existingKeys.has(k)) {
+        newOnes.push(buildProposalFromGroup(members, k));
+      }
+    });
+    if (newOnes.length > 0) {
+      setProposals(prev => [...prev, ...newOnes]);
+    }
+  // We intentionally exclude proposals and function deps to avoid regenerating on each render.
+  // This effect runs when pendingRequests changes, which is the intended trigger.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingRequests]);
 
 
   // When opening the assign panel for a request, preselect the first matching event
@@ -211,8 +361,14 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     console.log(`[ADMIN ACTIVITY] ${msg}`);
   };
   
-  // Handle event removal
+  // Handle event removal (bots-only events are removable)
   const handleRemoveEvent = (eventId) => {
+    const ev = events.find(e => e.id === eventId);
+    if (!ev) return;
+    if (!canRemoveEvent(ev)) {
+      alert('This event includes real users (Mitsu, Zine, or Admin) and cannot be removed.');
+      return;
+    }
     if (window.confirm("Are you sure you want to remove this event?")) {
       setEvents(events.filter(ev => ev.id !== eventId));
       logAdminActivity(`Removed event: ${eventId}`);
@@ -263,7 +419,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     },
     tabs: {
       display: "grid",
-      gridTemplateColumns: "repeat(5, 1fr)",
+      gridTemplateColumns: "repeat(9, 1fr)",
       gap: 8,
       marginBottom: 18,
     },
@@ -382,6 +538,88 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     subtitle: { fontSize: 14, color: theme.textMuted },
   };
 
+  // Real users vs bots helpers and removal safeguards
+  const REAL_USERS = new Set(["mitsu", "zine", "admin"]);
+  const isRealUserKey = (key) => {
+    if (!key) return false;
+    const k = String(key).toLowerCase();
+    if (REAL_USERS.has(k)) return true;
+    const u = users.find(uu => (uu.username || uu.name || '').toLowerCase() === k);
+    return !!u?.isReal;
+  };
+  const removedBotSet = new Set(removedBots.map(x => String(x).toLowerCase()));
+
+  // Include dynamically registered users (from localStorage profiles)
+  const dynamicUsers = (() => {
+    try {
+      const keys = Object.keys(localStorage || {});
+      const profKeys = keys.filter(k => k.startsWith('userProfile_'));
+      const list = [];
+      profKeys.forEach(k => {
+        try {
+          const username = k.replace('userProfile_', '');
+          const raw = localStorage.getItem(k);
+          const prof = raw ? JSON.parse(raw) : null;
+          if (!username) return;
+          // Avoid adding built-in admin and default real users twice
+          const lower = String(username).toLowerCase();
+          if (["admin","mitsu","zine"].includes(lower)) return;
+          list.push({
+            id: `dyn-${username}`,
+            name: (prof && prof.name) || username,
+            username,
+            emoji: (prof && prof.emoji) || "🙂",
+            country: (prof && prof.country) || undefined,
+            desc: (prof && prof.desc) || "No description.",
+            city: (prof && prof.city) || undefined,
+            languages: (prof && Array.isArray(prof.languages) ? prof.languages : []),
+            isReal: true,
+          });
+        } catch {}
+      });
+      return list;
+    } catch { return []; }
+  })();
+
+  // Merge static users with dynamic profiles, dedupe by username/name
+  const allUsersCombined = (() => {
+    const map = new Map();
+    users.forEach(u => {
+      const key = (u.username || u.name || '').toLowerCase();
+      if (!key) return;
+      map.set(key, u);
+    });
+    dynamicUsers.forEach(u => {
+      const key = (u.username || u.name || '').toLowerCase();
+      if (!key) return;
+      if (!map.has(key)) map.set(key, u);
+    });
+    return Array.from(map.values());
+  })();
+
+  const visibleUsers = allUsersCombined.filter(u => !removedBotSet.has((u.username || u.name || '').toLowerCase()));
+
+  const getEventParticipantKeys = (ev) => {
+    const keys = new Set();
+    if (Array.isArray(ev?.participants)) {
+      ev.participants.forEach(u => keys.add(typeof u === 'object' ? (u.username || u.name) : u));
+    }
+    if (Array.isArray(ev?.crew)) {
+      ev.crew.forEach(u => keys.add(typeof u === 'object' ? (u.username || u.name) : u));
+    }
+    Object.entries(userEvents || {}).forEach(([userKey, list]) => {
+      if (Array.isArray(list) && list.find(e2 => String(e2.id) === String(ev.id))) {
+        keys.add(userKey);
+      }
+    });
+    return Array.from(keys).filter(Boolean);
+  };
+  const canRemoveEvent = (ev) => {
+    const keys = getEventParticipantKeys(ev);
+    if (keys.length === 0) return true;
+    return !keys.some(isRealUserKey);
+  };
+
   return (
     <div style={styles.container}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 18 }}>
@@ -394,12 +632,423 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
       </div>
       <div style={styles.tabs}>
         <button style={styles.tabBtn(activeTab === "requests")} onClick={() => setActiveTab("requests")}>Pending Requests</button>
+        <button style={styles.tabBtn(activeTab === "proposals")} onClick={() => setActiveTab("proposals")}>Auto‑Proposals</button>
         <button style={styles.tabBtn(activeTab === "users")} onClick={() => setActiveTab("users")}>All Users</button>
         <button style={styles.tabBtn(activeTab === "events")} onClick={() => setActiveTab("events")}>All Events</button>
         <button style={styles.tabBtn(activeTab === "create")} onClick={() => setActiveTab("create")}>Create Event</button>
         <button style={styles.tabBtn(activeTab === "places")} onClick={() => setActiveTab("places")}>Manage Places</button>
         <button style={styles.tabBtn(activeTab === "joined")} onClick={() => setActiveTab("joined")}>Joined Events</button>
+        <button style={styles.tabBtn(activeTab === "faker")} onClick={() => setActiveTab("faker")}>Test Tools</button>
+        <button style={styles.tabBtn(activeTab === "invites")} onClick={() => setActiveTab("invites")}>Invitations</button>
       </div>
+      {activeTab === "faker" && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>🧪 Test Data Generator</div>
+          <div style={{ ...styles.card, display: 'grid', gap: 10 }}>
+            <button
+              style={styles.primaryBtn}
+              onClick={() => {
+                const now = Date.now();
+                const mk = (name) => ({
+                  user: name,
+                  event: { location: 'Cité', category: 'drinks', timeOfDay: 'evening', timePreference: 'this-weekend', language: 'French' },
+                  createdAt: now,
+                  stage: 2,
+                  history: [{ stage: 1, ts: now }, { stage: 2, ts: now }],
+                });
+                const batch = ['Alice', 'Bob', 'Charlie', 'Diana'].map(mk);
+                onAddPendingRequests && onAddPendingRequests(batch);
+                alert('Generated 4 matching requests (Cité · drinks · evening · French · this-weekend). Check Auto‑Proposals.');
+              }}
+            >Generate 4 matching requests</button>
+
+            <button
+              style={styles.accentBtn}
+              onClick={() => {
+                const now = Date.now();
+                const reqs = [
+                  { user: 'Eve', event: { location: 'Cité', category: 'drinks', timeOfDay: 'evening', timePreference: 'this-week', language: 'any' } },
+                  { user: 'Frank', event: { location: 'Cité', category: 'drinks', timeOfDay: 'evening', timePreference: 'this-week', language: 'French' } },
+                  { user: 'Grace', event: { location: 'Paris', category: 'walk', timeOfDay: 'afternoon', timePreference: 'saturday', language: 'English' } },
+                  { user: 'Heidi', event: { location: 'Paris', category: 'walk', timeOfDay: 'afternoon', timePreference: 'saturday', language: 'English' } },
+                  { user: 'Ivan', event: { location: 'Paris', category: 'walk', timeOfDay: 'afternoon', timePreference: 'saturday', language: 'English' } },
+                ].map(r => ({ ...r, createdAt: now, stage: 2, history: [{ stage: 1, ts: now }, { stage: 2, ts: now }] }));
+                onAddPendingRequests && onAddPendingRequests(reqs);
+                alert('Generated a mixed set including a 3‑person group for Paris · walk · afternoon · English. Add one more to reach 4.');
+              }}
+            >Generate mixed set</button>
+
+            <button
+              style={styles.dangerBtn}
+              onClick={() => {
+                if (!window.confirm('Clear ALL pending requests?')) return;
+                onAddPendingRequests && onAddPendingRequests([],'clear');
+              }}
+            >Clear all pending</button>
+          </div>
+          <div style={{ ...styles.card, color: '#6B7280', fontSize: 13 }}>
+            Tips:
+            <ul>
+              <li>Use “Generate 4 matching requests” to immediately trigger a proposal.</li>
+              <li>Use “Generate mixed set”, then add one more matching request manually to reach threshold.</li>
+              <li>Proposals appear in the Auto‑Proposals tab; click “Publish & Assign” to create the event and assign.</li>
+            </ul>
+          </div>
+        </div>
+      )}
+      {activeTab === "invites" && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>🔑 Invitations</div>
+          <div style={{ ...styles.card, display: 'grid', gap: 10 }}>
+            <InviteCreator onCreate={(codeObj) => setInvites(prev => [codeObj, ...prev])} />
+          </div>
+          <div style={{ ...styles.card }}>
+            <InviteList invites={invites} onUpdate={setInvites} />
+          </div>
+        </div>
+      )}
+      {activeTab === "proposals" && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>✨ Auto‑Generated Proposals</div>
+          {Array.isArray(proposals) && proposals.length > 0 ? (
+            <ul style={{ padding: 0 }}>
+              {proposals.map((p, i) => (
+                <li key={p.id} style={{ ...styles.itemRow, alignItems: 'flex-start' }}>
+                  <div
+                    style={{ maxWidth: '70%', cursor: 'pointer' }}
+                    onClick={() => setSelectedProposalForModal(p)}
+                    title="Click to view details"
+                  >
+                    <div style={{ fontWeight: 900, color: theme.text }}>{p.name}</div>
+                    <div style={{ fontSize: 13.5, color: theme.textMuted }}>
+                      📍 {p.location}{p.place ? ` · ${p.place}` : ''} · ⏰ {p.date} at {p.time}
+                    </div>
+                    <div style={{ fontSize: 13.5, color: theme.textMuted }}>
+                      🎯 {p.category}{p.languages && p.languages.length ? ` · 🗣️ ${p.languages.join(', ')}` : ''}
+                    </div>
+                    <div style={{ fontSize: 12.5, color: theme.textMuted, marginTop: 6 }}>
+                      👥 Participants: {Array.isArray(p.participants) ? p.participants.join(', ') : ''}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <button
+                      style={styles.accentBtn}
+                      onClick={() => {
+                        setEditProposalIdx(i);
+                        // Create an editable copy (avoid mutating original while editing)
+                        setEditProposal({
+                          name: p.name || '',
+                          location: p.location || 'Cité',
+                          place: p.place || '',
+                          date: p.date || '',
+                          time: p.time || '',
+                          category: p.category || 'drinks',
+                          languages: Array.isArray(p.languages) ? p.languages.slice() : [],
+                          description: p.description || '',
+                          participants: Array.isArray(p.participants) ? p.participants.slice() : [],
+                        });
+                      }}
+                    >Edit</button>
+                    <button
+                      style={styles.primaryBtn}
+                      onClick={() => {
+                        // Publish event then assign to participants
+                        const newEvent = {
+                          ...p,
+                          proposed: false,
+                          id: `auto-${Date.now()}-${Math.random().toString(36).slice(2,5)}`,
+                        };
+                        setEvents(prev => [...prev, newEvent]);
+                        // Assign to each participant's pending request
+                        (p.participants || []).forEach(userKey => {
+                          const reqIdx = (pendingRequests || []).findIndex(r => (typeof r.user === 'object' ? (r.user.username || r.user.name) : r.user) === userKey && (r.stage || 2) < 3);
+                          if (reqIdx >= 0 && onAssignEvent) {
+                            onAssignEvent(reqIdx, newEvent.id, newEvent);
+                          }
+                        });
+                        // remove proposal
+                        setProposals(prev => prev.filter(pp => pp.id !== p.id));
+                        alert('Published and assigned successfully.');
+                      }}
+                    >Publish & Assign</button>
+                    <button
+                      style={styles.dangerBtn}
+                      onClick={() => setProposals(prev => prev.filter(pp => pp.id !== p.id))}
+                    >Discard</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div style={{ ...styles.card, color: theme.textMuted }}>No proposals yet. They’ll appear automatically when 4 similar requests are received within 48 hours.</div>
+          )}
+        </div>
+      )}
+
+      {/* Proposal Details Modal */}
+      {selectedProposalForModal && (
+        <div style={styles.modalOverlay} onClick={() => setSelectedProposalForModal(null)}>
+          <div style={{ ...styles.modal, maxWidth: 640 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 6, color: theme.primary }}>✨ Proposed Event</div>
+            <div style={{ fontSize: 16, marginBottom: 4 }}><b>Name:</b> {String(selectedProposalForModal.name || '')}</div>
+            <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}>
+              <b>When:</b> {String(selectedProposalForModal.date || '')} at {String(selectedProposalForModal.time || '')}
+            </div>
+            <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}>
+              <b>Where:</b> {String(selectedProposalForModal.location || '')}{selectedProposalForModal.place ? ` · ${String(selectedProposalForModal.place)}` : ''}
+            </div>
+            <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 4 }}>
+              <b>Category:</b> {String(selectedProposalForModal.category || '')}
+              {Array.isArray(selectedProposalForModal.languages) && selectedProposalForModal.languages.length > 0 && (
+                <> · <b>Languages:</b> {selectedProposalForModal.languages.join(', ')}</>
+              )}
+            </div>
+            {selectedProposalForModal.description && (
+              <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 8 }}>
+                <b>Description:</b> {String(selectedProposalForModal.description)}
+              </div>
+            )}
+            {selectedProposalForModal.matchDetails && (
+              <div style={{ fontSize: 12.5, color: theme.textMuted, marginBottom: 12 }}>
+                <b>Auto-group:</b> {String(selectedProposalForModal.matchDetails.timeOfDay || '')} · size {String(selectedProposalForModal.matchDetails.size || '')}
+              </div>
+            )}
+
+            <div style={{ fontSize: 18, fontWeight: 900, marginTop: 10, marginBottom: 8, color: theme.accent }}>👥 Participants</div>
+            {Array.isArray(selectedProposalForModal.participants) && selectedProposalForModal.participants.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {selectedProposalForModal.participants.map((u, idx) => {
+                  const label = typeof u === 'object' ? (u.name || u.username || JSON.stringify(u)) : String(u);
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        const found = users.find(uu => uu.name === label || uu.username === label);
+                        if (found) setSelectedUser(found);
+                        else setSelectedUser({ name: label, languages: [], desc: 'No profile info available' });
+                      }}
+                      style={{
+                        border: `1px solid ${theme.border}`,
+                        background: '#F9FAFB',
+                        color: theme.text,
+                        borderRadius: 999,
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        fontSize: 13,
+                      }}
+                      title={`View ${label}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ fontSize: 14, color: theme.textMuted }}>(no participants)</div>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
+              <button style={styles.accentBtn} onClick={() => setSelectedProposalForModal(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Proposal Modal */}
+      {editProposal && editProposalIdx !== null && (
+        <div style={styles.modalOverlay} onClick={() => { setEditProposal(null); setEditProposalIdx(null); }}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 18, fontWeight: 900, color: theme.accent, marginBottom: 10 }}>Edit Proposal</div>
+            <div style={{ display: 'grid', gap: 10 }}>
+              <div>
+                <label style={{ fontWeight: 800, fontSize: 13, color: theme.text }}>Event Name</label>
+                <input
+                  type="text"
+                  value={editProposal.name}
+                  onChange={(e) => setEditProposal(prev => ({ ...prev, name: e.target.value }))}
+                  style={{ width: '100%', padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10 }}
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontWeight: 800, fontSize: 13, color: theme.text }}>Location</label>
+                  <select
+                    value={editProposal.location}
+                    onChange={(e) => {
+                      const newLoc = e.target.value;
+                      const firstPlace = (places[newLoc] && places[newLoc][0]?.name) || '';
+                      setEditProposal(prev => ({ ...prev, location: newLoc, place: firstPlace }));
+                    }}
+                    style={{ width: '100%', padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10 }}
+                  >
+                    {Object.keys(places).map(loc => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontWeight: 800, fontSize: 13, color: theme.text }}>Place</label>
+                  <select
+                    value={editProposal.place}
+                    onChange={(e) => setEditProposal(prev => ({ ...prev, place: e.target.value }))}
+                    style={{ width: '100%', padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10 }}
+                  >
+                    {(places[editProposal.location] || []).map(pl => (
+                      <option key={pl.id} value={pl.name}>{pl.name}</option>
+                    ))}
+                    {!((places[editProposal.location] || []).length) && (
+                      <option value="">(no places)</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontWeight: 800, fontSize: 13, color: theme.text }}>Date</label>
+                  <input
+                    type="date"
+                    value={editProposal.date}
+                    onChange={(e) => setEditProposal(prev => ({ ...prev, date: e.target.value }))}
+                    style={{ width: '100%', padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontWeight: 800, fontSize: 13, color: theme.text }}>Time</label>
+                  <input
+                    type="time"
+                    value={editProposal.time}
+                    onChange={(e) => setEditProposal(prev => ({ ...prev, time: e.target.value }))}
+                    style={{ width: '100%', padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10 }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontWeight: 800, fontSize: 13, color: theme.text }}>Category</label>
+                  <select
+                    value={editProposal.category}
+                    onChange={(e) => setEditProposal(prev => ({ ...prev, category: e.target.value }))}
+                    style={{ width: '100%', padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10 }}
+                  >
+                    <option value="food">food</option>
+                    <option value="drinks">drinks</option>
+                    <option value="party">party</option>
+                    <option value="random">random</option>
+                    <option value="walk">walk</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontWeight: 800, fontSize: 13, color: theme.text }}>Languages (comma‑separated)</label>
+                  <input
+                    type="text"
+                    value={(editProposal.languages || []).join(', ')}
+                    onChange={(e) => setEditProposal(prev => ({ ...prev, languages: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+                    placeholder="e.g., French, English"
+                    style={{ width: '100%', padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10 }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label style={{ fontWeight: 800, fontSize: 13, color: theme.text }}>Description (optional)</label>
+                <textarea
+                  rows={3}
+                  value={editProposal.description}
+                  onChange={(e) => setEditProposal(prev => ({ ...prev, description: e.target.value }))}
+                  style={{ width: '100%', padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10, resize: 'vertical' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontWeight: 800, fontSize: 13, color: theme.text }}>Participants</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6, marginBottom: 8 }}>
+                  {(editProposal.participants || []).length === 0 && (
+                    <span style={{ fontSize: 13, color: theme.textMuted }}>(none)</span>
+                  )}
+                  {(editProposal.participants || []).map(u => (
+                    <span key={u} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '6px 10px', borderRadius: 999,
+                      background: '#F3F4F6', border: `1px solid ${theme.border}`,
+                      fontSize: 13, color: theme.text
+                    }}>
+                      {u}
+                      <button
+                        onClick={() => setEditProposal(prev => ({ ...prev, participants: (prev.participants || []).filter(x => x !== u) }))}
+                        style={{ background: 'transparent', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontWeight: 900 }}
+                        title="Remove"
+                      >×</button>
+                    </span>
+                  ))}
+                </div>
+                {(() => {
+                  const candidateUsers = Array.from(new Set(
+                    (pendingRequests || [])
+                      .filter(r => (r.stage || 2) < 3)
+                      .map(r => (typeof r.user === 'object' ? (r.user.username || r.user.name) : r.user))
+                  )).filter(u => !(editProposal.participants || []).includes(u));
+                  return (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <select
+                        value={editProposal.addCandidate || ''}
+                        onChange={(e) => setEditProposal(prev => ({ ...prev, addCandidate: e.target.value }))}
+                        style={{ flex: 1, padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10 }}
+                      >
+                        <option value="">Add participant…</option>
+                        {candidateUsers.map(u => (
+                          <option key={u} value={u}>{u}</option>
+                        ))}
+                      </select>
+                      <button
+                        style={styles.accentBtn}
+                        onClick={() => {
+                          const sel = editProposal.addCandidate;
+                          if (!sel) return;
+                          if ((editProposal.participants || []).includes(sel)) return;
+                          setEditProposal(prev => ({
+                            ...prev,
+                            participants: [ ...(prev.participants || []), sel ],
+                            addCandidate: '',
+                          }));
+                        }}
+                      >Add</button>
+                    </div>
+                  );
+                })()}
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                <button
+                  style={styles.accentBtn}
+                  onClick={() => {
+                    // Basic validation
+                    if (!editProposal.name.trim()) { alert('Please provide an event name'); return; }
+                    if (!editProposal.date || !editProposal.time) { alert('Please choose date and time'); return; }
+                    setProposals(prev => prev.map((p, idx) => {
+                      if (idx !== editProposalIdx) return p;
+                      return {
+                        ...p,
+                        name: editProposal.name,
+                        location: editProposal.location,
+                        place: editProposal.place,
+                        date: editProposal.date,
+                        time: editProposal.time,
+                        category: editProposal.category,
+                        languages: Array.isArray(editProposal.languages) ? editProposal.languages : [],
+                        description: editProposal.description,
+                        participants: Array.isArray(editProposal.participants) ? editProposal.participants : [],
+                      };
+                    }));
+                    setEditProposal(null);
+                    setEditProposalIdx(null);
+                  }}
+                >Save</button>
+                <button
+                  style={styles.dangerBtn}
+                  onClick={() => { setEditProposal(null); setEditProposalIdx(null); }}
+                >Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {activeTab === "joined" && (
         <div style={styles.section}>
           <div style={styles.sectionTitle}>🎟️ All Joined Events</div>
@@ -962,12 +1611,52 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                     title="Click to view full request"
                   >
                     <div>
-                      <div style={{ fontWeight: 800 }}>{typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}</div>
-                      <div style={{ fontSize: 13.5, color: theme.textMuted }}>
-                        {req.event?.location || req.event?.category || req.event?.name || "Event"}
-                        {req.event?.date ? ` | ${req.event.date}` : ""}
-                        {req.targetFriend ? ` | via ${req.targetFriend}` : ""}
+                      <div style={{ fontWeight: 800, color: theme.text }}>
+                        {typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}
+                        {req.targetFriend && (
+                          <span style={{
+                            marginLeft: 8,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            padding: "3px 8px",
+                            borderRadius: 8,
+                            background: "#F3F4F6",
+                            border: `1px solid ${theme.border}`,
+                            color: theme.textMuted,
+                          }}>
+                            via {String(req.targetFriend)}
+                          </span>
+                        )}
                       </div>
+                      {(() => {
+                        const ev = req.event || {};
+                        const title = ev.name || ev.category || ev.place || ev.location || "Request";
+                        const parts = [];
+                        if (ev.place && ev.place !== title) parts.push(ev.place);
+                        if (ev.location && ev.location !== title && ev.location !== ev.place) parts.push(ev.location);
+                        if (ev.timePreference) parts.push(ev.timePreference.replace(/-/g, ' '));
+                        if (ev.timeOfDay) parts.push(ev.timeOfDay);
+                        if (ev.category) parts.push(`cat: ${ev.category}`);
+                        if (ev.language) parts.push(`lang: ${ev.language}`);
+                        if (ev.date) parts.push(ev.time ? `${ev.date} at ${ev.time}` : ev.date);
+                        const ts = req.createdAt || (Array.isArray(req.history) && req.history.length > 0 ? req.history[0].ts : null);
+                        const when = ts ? new Date(ts).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : null;
+                        return (
+                          <>
+                            <div style={{ fontSize: 13.5, color: theme.text }}>
+                              <b style={{ color: theme.text }}>{title}</b>
+                            </div>
+                            {parts.length > 0 && (
+                              <div style={{ fontSize: 13, color: theme.textMuted }}>
+                                {parts.join(' · ')}
+                              </div>
+                            )}
+                            {when && (
+                              <div style={{ fontSize: 12.5, color: theme.textMuted }}>Requested on {when}</div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                     <button
                       style={styles.primaryBtn}
@@ -996,7 +1685,13 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
               const ev = req.event || {};
               return (
                 <>
-                  <div style={{ marginBottom: 8 }}><b>User:</b> {userLabel}</div>
+                  <div style={{ marginBottom: 8 }}><b>User:</b> {userLabel} {req.targetFriend ? `(via ${String(req.targetFriend)})` : ""}</div>
+                  {(() => {
+                    const ts = req.createdAt || (Array.isArray(req.history) && req.history.length > 0 ? req.history[0].ts : null);
+                    if (!ts) return null;
+                    const when = new Date(ts).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    return <div style={{ marginBottom: 8, color: theme.textMuted }}><b>Requested on:</b> {when}</div>;
+                  })()}
                   {req.targetFriend && (
                     <div style={{ marginBottom: 8 }}><b>Target Friend:</b> {String(req.targetFriend)}</div>
                   )}
@@ -1029,16 +1724,47 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
         <div style={styles.section}>
           <div style={styles.sectionTitle}>👥 All Users</div>
           <ul style={{ padding: 0 }}>
-            {users.map(user => (
-              <li key={user.id} style={{ ...styles.card, cursor: "pointer" }} onClick={() => setSelectedUser(user)}>
-                <div style={{ fontSize: 18.5, fontWeight: 800, color: theme.text, marginBottom: 6 }}>
-                  {user.emoji} {user.name} {user.country}
-                </div>
-                <div style={{ fontSize: 14, color: theme.textMuted }}>{user.desc}</div>
-                {user.city && <div style={{ fontSize: 13, color: theme.textMuted }}><b>City:</b> {user.city}</div>}
-                <div style={{ fontSize: 13, color: theme.textMuted }}><b>Languages:</b> {user.languages.join(", ")}</div>
-              </li>
-            ))}
+            {visibleUsers.map(user => {
+              const key = (user.username || user.name || '').toLowerCase();
+              const isReal = !!user.isReal || isRealUserKey(key);
+              const isBot = !isReal;
+              return (
+                <li key={user.id} style={{ ...styles.card, cursor: "pointer" }}>
+                  <div onClick={() => setSelectedUser(user)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <div style={{ fontSize: 18.5, fontWeight: 800, color: theme.text }}>
+                        {user.emoji} {user.name} {user.country}
+                      </div>
+                      <span style={{
+                        fontSize: 11,
+                        fontWeight: 800,
+                        padding: '3px 8px',
+                        borderRadius: 8,
+                        background: isReal ? '#E8F5E9' : '#F3F4F6',
+                        border: `1px solid ${isReal ? '#81c784' : theme.border}`,
+                        color: isReal ? '#2e7d32' : theme.textMuted,
+                      }}>{isReal ? 'REAL' : 'BOT'}</span>
+                    </div>
+                    <div style={{ fontSize: 14, color: theme.textMuted }}>{user.desc}</div>
+                    {user.city && <div style={{ fontSize: 13, color: theme.textMuted }}><b>City:</b> {user.city}</div>}
+                    <div style={{ fontSize: 13, color: theme.textMuted }}><b>Languages:</b> {user.languages.join(', ')}</div>
+                  </div>
+                  {isBot && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                      <button
+                        style={styles.dangerBtn}
+                        onClick={() => {
+                          const arr = Array.from(new Set([...removedBots, (user.username || user.name)]));
+                          setRemovedBots(arr);
+                          try { localStorage.setItem('removedBots', JSON.stringify(arr)); } catch {}
+                        }}
+                        title="Remove bot from list"
+                      >Remove</button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -1073,12 +1799,17 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   )}
                 </div>
                 <button
-                  style={styles.dangerBtn}
+                  style={{
+                    ...styles.dangerBtn,
+                    opacity: canRemoveEvent(ev) ? 1 : 0.5,
+                    cursor: canRemoveEvent(ev) ? 'pointer' : 'not-allowed'
+                  }}
+                  disabled={!canRemoveEvent(ev)}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveEvent(ev.id);
                   }}
-                  title="Remove this event"
+                  title={canRemoveEvent(ev) ? "Remove this event" : "Cannot remove: event contains real users"}
                 >
                   🗑️ Remove
                 </button>
@@ -1137,15 +1868,172 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
         </div>
       )}
       {selectedUser && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h3 style={{ fontSize: 24, fontWeight: 900, marginBottom: 16, color: theme.text }}>
-              {selectedUser.emoji} {selectedUser.name} {selectedUser.country}
-            </h3>
-            <div style={{ fontSize: 16, color: theme.textMuted, marginBottom: 8 }}><b>Description:</b> {selectedUser.desc}</div>
-            {selectedUser.city && <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 8 }}><b>City:</b> {selectedUser.city}</div>}
-            <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 8 }}><b>Languages:</b> {selectedUser.languages.join(", ")}</div>
-            <button style={{ ...styles.accentBtn, marginTop: 16 }} onClick={() => setSelectedUser(null)}>Close</button>
+        <div style={styles.modalOverlay} onClick={() => setSelectedUser(null)}>
+          <div style={{ ...styles.modal, maxWidth: 720 }} onClick={(e) => e.stopPropagation()}>
+            {(() => {
+              const key = (selectedUser.username || selectedUser.name || '').toString();
+              let prof = null;
+              try {
+                const raw = key ? localStorage.getItem(`userProfile_${key}`) : null;
+                prof = raw ? JSON.parse(raw) : null;
+              } catch {}
+              const merged = {
+                // identity
+                username: selectedUser.username || key,
+                name: selectedUser.name || (prof && prof.name) || key,
+                emoji: selectedUser.emoji || (prof && prof.emoji) || '🙂',
+                country: selectedUser.country || (prof && prof.country) || '',
+                // basics
+                firstName: (prof && prof.firstName) || '',
+                age: (prof && prof.age) || '',
+                city: (prof && prof.city) || selectedUser.city || '',
+                house: (prof && prof.house) || '',
+                countriesFrom: (prof && prof.countriesFrom) || [],
+                university: (prof && prof.university) || '',
+                degree: (prof && prof.degree) || '',
+                // about
+                desc: (prof && prof.desc) || selectedUser.desc || 'No description.',
+                bio: (prof && prof.bio) || '',
+                // languages
+                languages: (prof && Array.isArray(prof.languages) ? prof.languages : (Array.isArray(selectedUser.languages) ? selectedUser.languages : [])),
+                languageLevels: (prof && prof.languageLevels) || {},
+                // interests
+                interests: (prof && Array.isArray(prof.interests) ? prof.interests : []),
+                // flags
+                isReal: !!selectedUser.isReal || isRealUserKey(key.toLowerCase()),
+              };
+              const joined = (userEvents && userEvents[key]) || [];
+              return (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <div style={{ fontSize: 26 }}>{merged.emoji}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: theme.text }}>{merged.name} {merged.country || ''}</div>
+                    <span style={{
+                      marginLeft: 'auto',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      padding: '3px 8px',
+                      borderRadius: 8,
+                      background: merged.isReal ? '#E8F5E9' : '#F3F4F6',
+                      border: `1px solid ${merged.isReal ? '#81c784' : theme.border}`,
+                      color: merged.isReal ? '#2e7d32' : theme.textMuted,
+                    }}>{merged.isReal ? 'REAL' : 'BOT'}</span>
+                  </div>
+                  <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 14 }}>
+                    <b>Username:</b> {merged.username}
+                  </div>
+
+                  <div style={{ display: 'grid', gap: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>First Name</div>
+                        <div style={{ fontSize: 15, color: theme.text }}>{merged.firstName || '—'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Age</div>
+                        <div style={{ fontSize: 15, color: theme.text }}>{merged.age || '—'}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>University</div>
+                        <div style={{ fontSize: 15, color: theme.text }}>{merged.university || '—'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Degree</div>
+                        <div style={{ fontSize: 15, color: theme.text }}>{merged.degree || '—'}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>City</div>
+                        <div style={{ fontSize: 15, color: theme.text }}>{merged.city || '—'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>House in Cité</div>
+                        <div style={{ fontSize: 15, color: theme.text }}>{merged.house || '—'}</div>
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Countries From</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                        {Array.isArray(merged.countriesFrom) && merged.countriesFrom.length > 0 ? (
+                          merged.countriesFrom.map((c, i) => (
+                            <span key={i} style={{ fontSize: 12.5, padding: '4px 10px', borderRadius: 999, border: `1px solid ${theme.border}`, background: '#F9FAFB' }}>{c}</span>
+                          ))
+                        ) : (
+                          <span style={{ fontSize: 15, color: theme.text }}>—</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Short Description</div>
+                      <div style={{ fontSize: 15, color: theme.text }}>{merged.desc || '—'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Bio</div>
+                      <div style={{ fontSize: 15, color: theme.text, whiteSpace: 'pre-wrap' }}>{merged.bio || '—'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Languages</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                        {(Array.isArray(merged.languages) && merged.languages.length > 0) ? (
+                          merged.languages.map((l, i) => (
+                            <span key={i} style={{ fontSize: 12.5, padding: '4px 10px', borderRadius: 999, border: `1px solid ${theme.border}`, background: '#F9FAFB' }}>{l}</span>
+                          ))
+                        ) : (
+                          <span style={{ fontSize: 15, color: theme.text }}>—</span>
+                        )}
+                      </div>
+                    </div>
+                    {merged.languages && merged.languages.length > 0 && (
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Language Proficiency Levels</div>
+                        <div style={{ marginTop: 6 }}>
+                          {merged.languages.map((l, i) => (
+                            <div key={i} style={{ fontSize: 14, color: theme.text, marginBottom: 4 }}>
+                              <b>{l}:</b> {(merged.languageLevels && merged.languageLevels[l]) || 'Not specified'}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Interests</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                        {(Array.isArray(merged.interests) && merged.interests.length > 0) ? (
+                          merged.interests.map((it, i) => (
+                            <span key={i} style={{ fontSize: 12.5, padding: '4px 10px', borderRadius: 999, border: `1px solid ${theme.border}`, background: '#F9FAFB' }}>{it}</span>
+                          ))
+                        ) : (
+                          <span style={{ fontSize: 15, color: theme.text }}>—</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Joined Events</div>
+                      {Array.isArray(joined) && joined.length > 0 ? (
+                        <ul style={{ paddingLeft: 16, marginTop: 6 }}>
+                          {joined.map((ev, i) => (
+                            <li key={i} style={{ fontSize: 14.5, color: theme.text }}>
+                              <b>{String(ev.name || ev.id)}</b>
+                              {ev.date ? ` · ${ev.date}` : ''}{ev.time ? ` at ${ev.time}` : ''}
+                              {ev.location ? ` · ${ev.location}` : ''}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div style={{ fontSize: 15, color: theme.text }}>—</div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
+                    <button style={styles.accentBtn} onClick={() => setSelectedUser(null)}>Close</button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -1241,6 +2129,90 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// --- Invitations subcomponents ---
+function genCode() {
+  const seg = () => Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `LEMI-${seg()}-${seg()}`;
+}
+
+function InviteCreator({ onCreate }) {
+  const [assignedTo, setAssignedTo] = React.useState("");
+  const [lastCode, setLastCode] = React.useState("");
+  const create = () => {
+    const code = genCode();
+    const obj = { code, assignedTo: assignedTo?.trim() || undefined, createdAt: Date.now() };
+    try {
+      const raw = localStorage.getItem('lemi_invites');
+      const list = raw ? JSON.parse(raw) : [];
+      const updated = Array.isArray(list) ? [obj, ...list] : [obj];
+      localStorage.setItem('lemi_invites', JSON.stringify(updated));
+    } catch {}
+    setLastCode(code);
+    setAssignedTo("");
+    onCreate && onCreate(obj);
+  };
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
+        <input
+          type="text"
+          placeholder="Assign to username (optional)"
+          value={assignedTo}
+          onChange={(e) => setAssignedTo(e.target.value)}
+          style={{ padding: 10, border: '1px solid #EEF2F7', borderRadius: 10 }}
+        />
+        <button style={{ background: '#58CC02', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 12px', fontWeight: 900 }} onClick={create}>
+          Generate Invite Code
+        </button>
+      </div>
+      {lastCode && (
+        <div style={{ marginTop: 8, fontSize: 13 }}>
+          New code: <b>{lastCode}</b>
+          <button
+            style={{ marginLeft: 8, border: '1px solid #EEF2F7', background: '#F3F4F6', borderRadius: 8, padding: '2px 8px', cursor: 'pointer' }}
+            onClick={async () => {
+              try { await navigator.clipboard.writeText(lastCode); alert('Copied!'); } catch {}
+            }}
+          >Copy</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InviteList({ invites, onUpdate }) {
+  const revoke = (code) => {
+    const next = invites.filter(i => i.code !== code || i.usedBy);
+    if (next.length === invites.length) {
+      alert('Cannot revoke a used invite.');
+      return;
+    }
+    try { localStorage.setItem('lemi_invites', JSON.stringify(next)); } catch {}
+    onUpdate(next);
+  };
+  const copy = async (code) => { try { await navigator.clipboard.writeText(code); alert('Copied!'); } catch {} };
+  if (!Array.isArray(invites) || invites.length === 0) {
+    return <div style={{ color: '#6B7280', fontSize: 13 }}>No invites yet.</div>;
+  }
+  return (
+    <div style={{ display: 'grid', gap: 8 }}>
+      {invites.map(i => (
+        <div key={i.code} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+          <div><b>{i.code}</b></div>
+          <div style={{ fontSize: 13, color: '#6B7280' }}>Assigned: {i.assignedTo || '—'}</div>
+          <div style={{ fontSize: 13, color: i.usedBy ? '#2e7d32' : '#6B7280' }}>{i.usedBy ? `Used by ${i.usedBy}` : 'Unused'}</div>
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+            <button style={{ border: '1px solid #EEF2F7', background: '#F3F4F6', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontWeight: 700 }} onClick={() => copy(i.code)}>Copy</button>
+            {!i.usedBy && (
+              <button style={{ background: '#EA2B2B', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontWeight: 800 }} onClick={() => revoke(i.code)}>Revoke</button>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -30,7 +30,8 @@ describe("SocialHome", () => {
     );
     expect(screen.getByText(/Hi Admin/i)).toBeInTheDocument();
     expect(screen.getByText(/Admin Event/i)).toBeInTheDocument();
-    expect(screen.getByText(/Crew:/i)).toBeInTheDocument();
+  // Label updated in UI to "The Residents:" with a drink emoji
+  expect(screen.getByText(/The Residents:/i)).toBeInTheDocument();
     expect(screen.getByText(/Mitsu/i)).toBeInTheDocument();
     expect(screen.getByText(/Zine/i)).toBeInTheDocument();
   });
