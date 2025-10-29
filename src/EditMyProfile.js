@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
 
-function EditMyProfile({ userName, onBack, startEditing = false }) {
+function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
   const theme = {
     bg: "#F7F7F5",
     card: "#FFFFFF",
@@ -671,6 +671,34 @@ function EditMyProfile({ userName, onBack, startEditing = false }) {
                 <div style={{ fontSize: 13.5, color: theme.textMuted }}>You haven’t created any invites yet.</div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Sign Out Button - Always visible when not editing */}
+        {!isEditing && (
+          <div style={{ marginTop: 24 }}>
+            <button
+              style={{
+                ...styles.button,
+                background: "#EA2B2B",
+                color: "white",
+                width: "100%",
+                fontWeight: 900,
+                fontSize: 16,
+                padding: "14px 20px",
+                border: "none",
+                borderRadius: 14,
+                cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(234,43,43,0.25)",
+              }}
+              onClick={() => {
+                if (window.confirm("Are you sure you want to sign out?")) {
+                  onSignOut && onSignOut();
+                }
+              }}
+            >
+              🚪 Sign Out
+            </button>
           </div>
         )}
 

@@ -26,6 +26,8 @@ function SocialHome({
   friendRequestsIncoming = [],
   onAcceptFriendRequestFrom,
   onDeclineFriendRequestFrom,
+  addPoints,
+  getUserPoints,
 }) {
   if (showDebug) {
     console.log("[DEBUG] joinedEvents for", userName, joinedEvents);
@@ -38,6 +40,12 @@ function SocialHome({
   const [eventPreview, setEventPreview] = useState(null); // For previewing events before joining
   // View mode: 'my' shows only user's joined events, 'friends' shows only friends' joined events
   const [viewMode, setViewMode] = useState("my");
+  
+  // New state for Frimake-style navigation
+  const [activeTab, setActiveTab] = useState("featured"); // "featured", "joined", "hosted"
+  const [activeBottomTab, setActiveBottomTab] = useState("events"); // "events", "friends", "calendar", "profile"
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // Create event form state
   const [newEvent, setNewEvent] = useState({
@@ -58,8 +66,52 @@ function SocialHome({
   const fadeIn = { animation: "fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1)" };
   const pulse = { animation: "pulse 1.2s infinite" };
 
-  const socialPoints = 120;
+  const socialPoints = getUserPoints ? getUserPoints(userName) : 0;
   const nextLevel = 200;
+
+  // Calendar helper functions
+  const getEventsForDate = (date) => {
+    if (!date) return [];
+    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    return joinedEvents.filter(event => event.date === dateStr);
+  };
+
+  const generateCalendar = (year, month) => {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
+    
+    const calendar = [];
+    let week = [];
+    
+    // Add empty cells for days before the month starts
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      week.push(null);
+    }
+    
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      week.push(day);
+      if (week.length === 7) {
+        calendar.push(week);
+        week = [];
+      }
+    }
+    
+    // Add remaining days to complete the last week
+    if (week.length > 0) {
+      while (week.length < 7) {
+        week.push(null);
+      }
+      calendar.push(week);
+    }
+    
+    return calendar;
+  };
+
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   // Helper functions for display
   const getCategoryEmoji = (category) => {
@@ -384,13 +436,188 @@ function SocialHome({
 
   return (
     <div style={styles.container}>
+      {/* Top Fixed Header - Frimake Style */}
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        background: theme.card,
+        borderBottom: `1px solid ${theme.bg}`,
+        zIndex: 1000,
+        paddingBottom: 0,
+      }}>
+        {/* Main Header Bar */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "12px 16px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <img 
+              src={`${API_URL}/static/assets/logo.png`} 
+              alt="Logo" 
+              style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: "50%" }}
+            />
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: theme.text }}>
+            Lemi
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer" }}>
+              📷
+            </button>
+            <button style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer" }}>
+              ✉️
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Navigation - Frimake Style */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-around",
+          padding: "0 16px 8px",
+          borderBottom: `2px solid ${theme.bg}`,
+        }}>
+          <button
+            onClick={() => setActiveTab("featured")}
+            style={{
+              flex: 1,
+              padding: "12px 8px",
+              background: "none",
+              border: "none",
+              borderBottom: activeTab === "featured" ? `3px solid ${theme.gold}` : "3px solid transparent",
+              fontWeight: activeTab === "featured" ? 900 : 600,
+              fontSize: 15,
+              color: activeTab === "featured" ? theme.text : theme.textMuted,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            Featured
+          </button>
+          <button
+            onClick={() => setActiveTab("joined")}
+            style={{
+              flex: 1,
+              padding: "12px 8px",
+              background: "none",
+              border: "none",
+              borderBottom: activeTab === "joined" ? `3px solid ${theme.gold}` : "3px solid transparent",
+              fontWeight: activeTab === "joined" ? 900 : 600,
+              fontSize: 15,
+              color: activeTab === "joined" ? theme.text : theme.textMuted,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            Joined
+          </button>
+          <button
+            onClick={() => setActiveTab("hosted")}
+            style={{
+              flex: 1,
+              padding: "12px 8px",
+              background: "none",
+              border: "none",
+              borderBottom: activeTab === "hosted" ? `3px solid ${theme.gold}` : "3px solid transparent",
+              fontWeight: activeTab === "hosted" ? 900 : 600,
+              fontSize: 15,
+              color: activeTab === "hosted" ? theme.text : theme.textMuted,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            Hosted
+          </button>
+        </div>
+
+        {/* Filter Buttons Row - Frimake Style */}
+        <div style={{
+          display: "flex",
+          gap: 8,
+          padding: "12px 16px",
+          overflowX: "auto",
+          background: theme.bg,
+        }}>
+          <button style={{
+            padding: "8px 16px",
+            background: "white",
+            border: `1px solid ${theme.bg}`,
+            borderRadius: 999,
+            fontSize: 13,
+            fontWeight: 700,
+            color: theme.text,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}>
+            🔍 Search
+          </button>
+          <button style={{
+            padding: "8px 16px",
+            background: theme.gold,
+            border: "none",
+            borderRadius: 999,
+            fontSize: 13,
+            fontWeight: 700,
+            color: theme.text,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}>
+            📍 Where?
+          </button>
+          <button style={{
+            padding: "8px 16px",
+            background: theme.gold,
+            border: "none",
+            borderRadius: 999,
+            fontSize: 13,
+            fontWeight: 700,
+            color: theme.text,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}>
+            📅 When?
+          </button>
+          <button style={{
+            padding: "8px 16px",
+            background: "white",
+            border: `1px solid ${theme.bg}`,
+            borderRadius: 999,
+            fontSize: 13,
+            fontWeight: 700,
+            color: theme.text,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}>
+            ⚙️ Filters
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content Area - with top padding for fixed header */}
+      <div style={{ paddingTop: 180, paddingBottom: 80 }}>
       <div style={styles.header}>
         <img 
           src={`${API_URL}/static/assets/logo.png`} 
           alt="Lemi Logo" 
-          style={{ width: 40, height: 40, objectFit: 'contain' }}
+          style={{ width: 40, height: 40, objectFit: 'contain', display: 'none' }}
         />
-        <button style={styles.iconButton} onClick={() => onEditProfile && onEditProfile()}>
+        <button style={{...styles.iconButton, display: 'none'}} onClick={() => onEditProfile && onEditProfile()}>
           <FaUserCircle size={40} color={theme.primary} />
         </button>
 
@@ -428,40 +655,19 @@ function SocialHome({
           </div>
         )}
 
-        <span style={styles.points}>⭐ {socialPoints} pts</span>
+        <span style={{...styles.points, display: 'none'}}>⭐ {socialPoints} pts</span>
       </div>
 
-      <div style={styles.greeting}>Hi {userName} 👋</div>
+      <div style={{...styles.greeting, display: 'none'}}>Hi {userName} 👋</div>
 
-      <div style={styles.progressBox}>
+      <div style={{...styles.progressBox, display: 'none'}}>
         <div style={{ ...styles.progressBar, width: `${(socialPoints / nextLevel) * 100}%` }} />
         <span style={styles.progressText}>Level 2 Explorer ({socialPoints}/{nextLevel})</span>
       </div>
 
-      {/* Create Event Action Button */}
-      <button
-        style={{
-          width: "100%",
-          background: `linear-gradient(135deg, ${theme.accent}, #0AA6EB)`,
-          color: "white",
-          border: "none",
-          borderRadius: 14,
-          padding: isMobile ? "12px 16px" : "14px 20px",
-          fontWeight: 900,
-          fontSize: isMobile ? 15 : 16,
-          cursor: "pointer",
-          boxShadow: "0 6px 16px rgba(28,176,246,0.28)",
-          marginBottom: isMobile ? 16 : 22,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-        }}
-        onClick={() => setShowCreateEventModal(true)}
-      >
-        ➕ Create Your Own Event
-      </button>
-
+      {/* Tab Content */}
+      {activeTab === "featured" && (
+        <>
       {/* Featured Events - Created by Admin */}
       {(() => {
         // Filter out events that user has already joined
@@ -668,6 +874,113 @@ function SocialHome({
           </div>
         );
       })()}
+        </>
+      )}
+
+      {/* TAB: My Joined Events */}
+      {activeTab === "joined" && (
+        <>
+          {/* My Joined Events Content */}
+          {joinedEvents.filter(item => !(item.host && item.host.name === userName)).length > 0 ? (
+            <div style={{ padding: "0 16px" }}>
+              <div style={{...styles.title, marginTop: 16}}>📅 My Joined Events</div>
+              {joinedEvents
+                .filter(item => !(item.host && item.host.name === userName))
+                .map((item, idx) => (
+                  <div
+                    key={`joined-${idx}`}
+                    style={styles.eventCard}
+                    className="eventCard"
+                    onClick={() => onJoinedEventClick(item)}
+                  >
+                    <div style={styles.eventName}>
+                      {String(item.name || item.type || item.category || "Event")}
+                    </div>
+                    {item.imageUrl && (
+                      <div style={{
+                        width: "100%",
+                        height: 160,
+                        borderRadius: 12,
+                        backgroundImage: `url(${item.imageUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        marginBottom: 12,
+                      }} />
+                    )}
+                    <div style={styles.eventDetail}>{getLocationDisplay(item.location, item.venue)}</div>
+                    <div style={styles.eventDetail}>📅 {item.date} at {item.time}</div>
+                    {item.category && (
+                      <div style={styles.eventDetail}>
+                        {getCategoryEmoji(item.category)} {item.category}
+                      </div>
+                    )}
+                    {item.crew && item.crew.length > 0 && (
+                      <div style={styles.eventDetail}>
+                        👥 {item.crew.length} {item.crew.length === 1 ? "person" : "people"} attending
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <div style={{ ...styles.empty, margin: "40px 16px" }}>
+              No joined events yet. Explore Featured Events to join!
+            </div>
+          )}
+        </>
+      )}
+
+      {/* TAB: My Hosted Events */}
+      {activeTab === "hosted" && (
+        <>
+          {joinedEvents.filter(item => item.host && item.host.name === userName).length > 0 ? (
+            <div style={{ padding: "0 16px" }}>
+              <div style={{...styles.title, marginTop: 16}}>🎤 My Hosted Events</div>
+              {joinedEvents
+                .filter(item => item.host && item.host.name === userName)
+                .map((item, idx) => (
+                  <div
+                    key={`hosted-${idx}`}
+                    style={{...styles.eventCard, borderLeft: `4px solid ${theme.gold}`}}
+                    className="eventCard"
+                    onClick={() => onJoinedEventClick(item)}
+                  >
+                    <div style={styles.eventName}>
+                      {String(item.name || item.type || item.category || "Event")}
+                    </div>
+                    {item.imageUrl && (
+                      <div style={{
+                        width: "100%",
+                        height: 160,
+                        borderRadius: 12,
+                        backgroundImage: `url(${item.imageUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        marginBottom: 12,
+                      }} />
+                    )}
+                    <div style={styles.eventDetail}>{getLocationDisplay(item.location, item.venue)}</div>
+                    <div style={styles.eventDetail}>📅 {item.date} at {item.time}</div>
+                    {item.category && (
+                      <div style={styles.eventDetail}>
+                        {getCategoryEmoji(item.category)} {item.category}
+                      </div>
+                    )}
+                    {item.crew && item.crew.length > 0 && (
+                      <div style={styles.eventDetail}>
+                        👥 {item.crew.length} {item.crew.length === 1 ? "attendee" : "attendees"}
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <div style={{ ...styles.empty, margin: "40px 16px" }}>
+              You haven't hosted any events yet. Create one using the + button!
+            </div>
+          )}
+        </>
+      )}
 
       {/* Suggested Events from Admin */}
       {suggestedEvents && suggestedEvents.length > 0 && (
@@ -890,9 +1203,9 @@ function SocialHome({
         </div>
       )}
 
-      {viewMode === "my" && (
+      {viewMode === "my" && false && (
         <>
-          {/* Hosted Events Section */}
+          {/* Hosted Events Section - HIDDEN, now shown via tabs */}
           {joinedEvents.filter(item => item.host && item.host.name === userName).length > 0 && (
             <>
               <div style={styles.title}>🎤 My Hosted Events</div>
@@ -1183,15 +1496,6 @@ function SocialHome({
           </div>
         )}
       </div>
-
-      <button
-        style={styles.fab}
-        className="fab"
-        onClick={() => onUserClick && onUserClick("roulette")}
-        title="Try your luck"
-      >
-        🎲
-      </button>
 
       {/* Create Event Modal - Multi-step Wizard */}
       {showCreateEventModal && (
@@ -2031,12 +2335,19 @@ function SocialHome({
                         // Also add to user's joined events
                         onJoinPublicEvent && onJoinPublicEvent(newEventObj);
                         
+                        // Award 3 points for hosting an event
+                        if (addPoints) {
+                          const newPoints = addPoints(userName, 3);
+                          alert(`🎉 Event created successfully!\n\n⭐ +3 points earned! You now have ${newPoints} points!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section`);
+                        } else {
+                          alert("🎉 Event created successfully!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section");
+                        }
+                        
                         // Reset form and close
                         setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "" });
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
-                        alert("🎉 Event created successfully!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section");
                       } catch (err) {
                         alert("Failed to create event. Please try again.");
                       }
@@ -2341,6 +2652,402 @@ function SocialHome({
           </div>
         </div>
       )}
+
+      {/* Calendar Modal */}
+      {showCalendar && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.5)",
+          zIndex: 2000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 20,
+        }} onClick={() => {
+          setShowCalendar(false);
+          setSelectedDate(null);
+        }}>
+          <div style={{
+            background: theme.card,
+            borderRadius: 16,
+            padding: 20,
+            maxWidth: 500,
+            width: "100%",
+            maxHeight: "90vh",
+            overflowY: "auto",
+          }} onClick={(e) => e.stopPropagation()}>
+            
+            {/* Calendar Header */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}>
+              <button
+                onClick={() => {
+                  if (currentMonth === 0) {
+                    setCurrentMonth(11);
+                    setCurrentYear(currentYear - 1);
+                  } else {
+                    setCurrentMonth(currentMonth - 1);
+                  }
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 24,
+                  cursor: "pointer",
+                  color: theme.text,
+                }}
+              >
+                ◀
+              </button>
+              <div style={{
+                fontSize: 20,
+                fontWeight: 900,
+                color: theme.gold,
+              }}>
+                {new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </div>
+              <button
+                onClick={() => {
+                  if (currentMonth === 11) {
+                    setCurrentMonth(0);
+                    setCurrentYear(currentYear + 1);
+                  } else {
+                    setCurrentMonth(currentMonth + 1);
+                  }
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 24,
+                  cursor: "pointer",
+                  color: theme.text,
+                }}
+              >
+                ▶
+              </button>
+            </div>
+
+            {/* Day Labels */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, 1fr)",
+              gap: 8,
+              marginBottom: 12,
+            }}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <div key={day} style={{
+                  textAlign: "center",
+                  fontWeight: 800,
+                  fontSize: 12,
+                  color: theme.textMuted,
+                }}>
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar Grid */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, 1fr)",
+              gap: 8,
+              marginBottom: 20,
+            }}>
+              {generateCalendar(currentYear, currentMonth).flat().map((day, idx) => {
+                if (!day) {
+                  return <div key={`empty-${idx}`} />;
+                }
+                
+                const date = new Date(currentYear, currentMonth, day);
+                const dateStr = date.toISOString().split('T')[0];
+                const eventsOnDay = joinedEvents.filter(event => event.date === dateStr);
+                const hasEvents = eventsOnDay.length > 0;
+                const isToday = new Date().toDateString() === date.toDateString();
+                const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
+                
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedDate(date)}
+                    style={{
+                      padding: "12px 8px",
+                      background: isSelected ? theme.primary : isToday ? theme.gold : hasEvents ? theme.accent : "transparent",
+                      color: isSelected || isToday || hasEvents ? "white" : theme.text,
+                      border: "none",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontWeight: hasEvents || isToday || isSelected ? 900 : 600,
+                      fontSize: 14,
+                      position: "relative",
+                    }}
+                  >
+                    {day}
+                    {hasEvents && !isSelected && (
+                      <div style={{
+                        position: "absolute",
+                        bottom: 2,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        width: 4,
+                        height: 4,
+                        borderRadius: "50%",
+                        background: isToday ? "white" : theme.primary,
+                      }} />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Selected Date Events */}
+            {selectedDate && (
+              <div style={{
+                background: theme.bg,
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 16,
+              }}>
+                <div style={{
+                  fontSize: 16,
+                  fontWeight: 900,
+                  color: theme.text,
+                  marginBottom: 12,
+                }}>
+                  📅 {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </div>
+                {(() => {
+                  const events = getEventsForDate(selectedDate);
+                  if (events.length === 0) {
+                    return (
+                      <div style={{
+                        fontSize: 14,
+                        color: theme.textMuted,
+                        fontStyle: "italic",
+                      }}>
+                        No events on this day
+                      </div>
+                    );
+                  }
+                  return events.map((event, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setShowCalendar(false);
+                        onJoinedEventClick && onJoinedEventClick(event);
+                      }}
+                      style={{
+                        background: "white",
+                        padding: 12,
+                        borderRadius: 8,
+                        marginBottom: 8,
+                        cursor: "pointer",
+                        border: `1px solid ${theme.border}`,
+                      }}
+                    >
+                      <div style={{
+                        fontWeight: 800,
+                        fontSize: 15,
+                        color: theme.text,
+                        marginBottom: 4,
+                      }}>
+                        {event.name}
+                      </div>
+                      <div style={{ fontSize: 13, color: theme.textMuted }}>
+                        ⏰ {event.time}
+                      </div>
+                      {event.venue && (
+                        <div style={{ fontSize: 13, color: theme.textMuted }}>
+                          📍 {event.venue}
+                        </div>
+                      )}
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setShowCalendar(false);
+                setSelectedDate(null);
+              }}
+              style={{
+                width: "100%",
+                padding: 14,
+                background: theme.bg,
+                color: theme.text,
+                border: `2px solid ${theme.border}`,
+                borderRadius: 12,
+                fontWeight: 900,
+                fontSize: 15,
+                cursor: "pointer",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      </div>
+
+      {/* Bottom Navigation Bar - Frimake Style */}
+      <div style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: theme.card,
+        borderTop: `1px solid ${theme.bg}`,
+        display: "flex",
+        justifyContent: "space-around",
+        alignItems: "center",
+        padding: "8px 0 12px",
+        zIndex: 1000,
+        boxShadow: "0 -4px 12px rgba(0,0,0,0.05)",
+      }}>
+        <button
+          onClick={() => {
+            setActiveBottomTab("events");
+            setViewMode("my");
+            setActiveTab("featured");
+          }}
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: activeBottomTab === "events" ? theme.primary : theme.textMuted,
+          }}
+        >
+          <div style={{ fontSize: 24 }}>🏠</div>
+          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "events" ? 700 : 600 }}>
+            Events
+          </div>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveBottomTab("friends");
+            setViewMode("friends");
+          }}
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: activeBottomTab === "friends" ? theme.primary : theme.textMuted,
+          }}
+        >
+          <div style={{ fontSize: 24 }}>👥</div>
+          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "friends" ? 700 : 600 }}>
+            Friends
+          </div>
+        </button>
+
+        <button
+          onClick={() => setShowCreateEventModal(true)}
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+            border: "none",
+            cursor: "pointer",
+            fontSize: 28,
+            color: "white",
+            boxShadow: "0 6px 20px rgba(88,204,2,0.35)",
+            transform: "translateY(-8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          +
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveBottomTab("calendar");
+            setShowCalendar(true);
+          }}
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: activeBottomTab === "calendar" ? theme.primary : theme.textMuted,
+          }}
+        >
+          <div style={{ fontSize: 24 }}>📅</div>
+          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "calendar" ? 700 : 600 }}>
+            Calendar
+          </div>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveBottomTab("profile");
+            onEditProfile && onEditProfile();
+          }}
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: activeBottomTab === "profile" ? theme.primary : theme.textMuted,
+            position: "relative",
+          }}
+        >
+          <div style={{ fontSize: 24 }}>
+            <FaUserCircle size={24} />
+          </div>
+          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "profile" ? 700 : 600 }}>
+            Profile
+          </div>
+          <div style={{
+            position: "absolute",
+            top: -2,
+            right: "calc(50% - 20px)",
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            background: "#FF4458",
+            color: "white",
+            fontSize: 10,
+            fontWeight: 900,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            {socialPoints}
+          </div>
+        </button>
+      </div>
     </div>
   );
 }

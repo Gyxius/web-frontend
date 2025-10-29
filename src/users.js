@@ -8,6 +8,7 @@ const users = [
     desc: "Always down for a dance & deep talk after.",
     languages: ["portuguese", "english"],
     isBot: true,
+    points: 0,
   },
   {
     id: "u2",
@@ -17,6 +18,7 @@ const users = [
     desc: "Chill foodie who loves spontaneous nights.",
     languages: ["italian", "english"],
     isBot: true,
+    points: 0,
   },
   {
     id: "u3",
@@ -26,6 +28,7 @@ const users = [
     desc: "Here for Erasmus — got the playlist 🔥.",
     languages: ["german", "english"],
     isBot: true,
+    points: 0,
   },
   {
     id: "u4",
@@ -37,6 +40,7 @@ const users = [
     city: "Marseille",
     languages: ["french", "spanish", "english"],
     isReal: true,
+    points: 0,
   },
   {
     id: "u5",
@@ -48,6 +52,7 @@ const users = [
     city: "Tunis",
     languages: ["arabic", "french", "english"],
     isReal: true,
+    points: 0,
   },
   {
     id: "admin",
@@ -58,6 +63,7 @@ const users = [
     desc: "System administrator",
     languages: ["english", "french"],
     isReal: true,
+    points: 0,
   },
 ];
 

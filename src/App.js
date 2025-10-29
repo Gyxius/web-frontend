@@ -111,6 +111,93 @@ function App() {
     localStorage.setItem("pendingRequests", JSON.stringify(pendingRequests));
   }, [pendingRequests]);
 
+  // Expose cleanup function to browser console and auto-remove specific event
+  useEffect(() => {
+    window.removeEventByNameAndDate = (eventName, eventDate) => {
+      // Remove from adminEvents
+      const adminEvents = localStorage.getItem("adminEvents");
+      if (adminEvents) {
+        const events = JSON.parse(adminEvents);
+        const filtered = events.filter(e => !(e.name === eventName && e.date === eventDate));
+        localStorage.setItem("adminEvents", JSON.stringify(filtered));
+        console.log(`✅ Removed ${events.length - filtered.length} event(s) from adminEvents`);
+      }
+
+      // Remove from userEvents state
+      setUserEvents(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(username => {
+          updated[username] = updated[username].filter(e => !(e.name === eventName && e.date === eventDate));
+        });
+        return updated;
+      });
+
+      console.log("✅ Event removed! Page will reload.");
+      setTimeout(() => window.location.reload(), 500);
+    };
+
+    // Auto-remove the Language Exchange event
+    const autoCleanup = () => {
+      let needsReload = false;
+
+      // Remove from adminEvents
+      const adminEvents = localStorage.getItem("adminEvents");
+      if (adminEvents) {
+        const events = JSON.parse(adminEvents);
+        const filtered = events.filter(e => !(e.name === "Language Exchange" && e.date === "2025-11-02"));
+        if (filtered.length !== events.length) {
+          localStorage.setItem("adminEvents", JSON.stringify(filtered));
+          console.log("🗑️ Auto-removed Language Exchange event from adminEvents");
+          needsReload = true;
+        }
+      }
+
+      // Remove from all users' joined events
+      Object.keys(localStorage).forEach(key => {
+        if (key === "userEvents") {
+          const userEvents = JSON.parse(localStorage.getItem(key) || "{}");
+          let modified = false;
+          Object.keys(userEvents).forEach(username => {
+            const original = userEvents[username].length;
+            userEvents[username] = userEvents[username].filter(e => !(e.name === "Language Exchange" && e.date === "2025-11-02"));
+            if (userEvents[username].length !== original) {
+              modified = true;
+              console.log(`�️ Removed Language Exchange from ${username}'s events`);
+            }
+          });
+          if (modified) {
+            localStorage.setItem(key, JSON.stringify(userEvents));
+            needsReload = true;
+          }
+        }
+      });
+
+      if (needsReload) {
+        console.log("✅ Cleanup complete! Reloading...");
+        setTimeout(() => window.location.reload(), 500);
+      }
+    };
+
+    autoCleanup();
+
+    console.log("🔧 To remove an event, use: removeEventByNameAndDate('Event Name', 'YYYY-MM-DD')");
+  }, []);
+
+  // Points management functions
+  const getUserPoints = (username) => {
+    const pointsData = localStorage.getItem("userPoints");
+    const points = pointsData ? JSON.parse(pointsData) : {};
+    return points[username] || 0;
+  };
+
+  const addPoints = (username, pointsToAdd) => {
+    const pointsData = localStorage.getItem("userPoints");
+    const points = pointsData ? JSON.parse(pointsData) : {};
+    points[username] = (points[username] || 0) + pointsToAdd;
+    localStorage.setItem("userPoints", JSON.stringify(points));
+    return points[username];
+  };
+
   const handleLogin = (usernameOrObj) => {
     let userObj = usernameOrObj;
     if (typeof usernameOrObj === "string") {
@@ -118,6 +205,14 @@ function App() {
       if (!userObj) userObj = { username: usernameOrObj, name: usernameOrObj };
     }
     setUser(userObj);
+    // Reset navigation states to ensure user lands on homepage
+    setShowEditProfile(false);
+    setShowForm(false);
+    setShowRoulette(false);
+    setShowResult(false);
+    setShowChat(false);
+    setWaitingForAdmin(false);
+    setSelectedProfile(null);
   };
   const handleSignOut = () => {
   setUser(null);
@@ -144,6 +239,7 @@ function App() {
       <EditMyProfile
         userName={user?.username || user?.name}
         onBack={() => { setShowEditProfile(false); setJustRegistered(false); }}
+        onSignOut={handleSignOut}
         startEditing={!!justRegistered}
       />
     );
@@ -253,6 +349,7 @@ function App() {
     mainContent = (
       <UserProfile
         user={selectedProfile}
+        getUserPoints={getUserPoints}
         onBack={() => setSelectedProfile(null)}
         onAddFriend={() => {
           // Send friend request
@@ -345,9 +442,20 @@ function App() {
           setRouletteResult(null);
         }}
         onUserClick={setSelectedProfile}
-        onLeaveEvent={() => {
+        onLeaveEvent={(evToRemove) => {
+          const currentUserKey = user?.username || user?.name;
+          // Remove from user's joined events
+          setUserEvents(prev => {
+            const updated = { ...prev };
+            const list = Array.isArray(updated[currentUserKey]) ? updated[currentUserKey] : [];
+            updated[currentUserKey] = list.filter(ev => String(ev.id || ev.name) !== String(evToRemove?.id || evToRemove?.name));
+            return updated;
+          });
+          // Navigate back to home
           setShowChat(false);
           setRouletteResult(null);
+          // Show confirmation
+          alert(`You have left the event "${evToRemove?.name}"`);
         }}
         onEditEvent={(updatedEvent) => {
           // Update in adminEvents localStorage
@@ -579,6 +687,8 @@ function App() {
           joinedEvents={joinedEvents}
           suggestedEvents={userSuggestedEvents}
           publicEvents={publicEvents}
+          addPoints={addPoints}
+          getUserPoints={getUserPoints}
           onJoinPublicEvent={(event) => {
             const currentUserKey = user?.username || user?.name;
             // Check if already joined
@@ -594,8 +704,10 @@ function App() {
               updated[currentUserKey] = [...list, event];
               return updated;
             });
+            // Award 1 point for joining an event
+            const newPoints = addPoints(currentUserKey, 1);
             // Show success message
-            alert(`🎉 Success! You joined "${event.name}"!\n\n📍 ${event.location}${event.place ? ` - ${event.place}` : ''}\n⏰ ${event.date} at ${event.time}\n\nCheck your "My Joined Events" section below to see it!`);
+            alert(`🎉 Success! You joined "${event.name}"!\n\n📍 ${event.location}${event.place ? ` - ${event.place}` : ''}\n⏰ ${event.date} at ${event.time}\n\n⭐ +1 point earned! You now have ${newPoints} points!\n\nCheck your "My Joined Events" section below to see it!`);
           }}
           onAcceptSuggestion={(idx, event) => {
             const currentUserKey = user?.username || user?.name;
@@ -616,6 +728,8 @@ function App() {
               }
               return updated;
             });
+            // Award 1 point for joining an event
+            addPoints(currentUserKey, 1);
             // Mark pending request as complete (stage 5) and remove it
             setPendingRequests(prev => prev.filter(r => {
               const userKey = typeof r.user === "object" ? (r.user.username || r.user.name) : r.user;

@@ -1,7 +1,7 @@
 import React from "react";
 import users from "./users";
 
-function UserProfile({ user, onBack, onAddFriend, isFriend, hasPendingRequest, incomingRequest, onAcceptFriendRequest, onDeclineFriendRequest, onRequestJoinEvent, joinedEvents, onRemoveFriend }) {
+function UserProfile({ user, getUserPoints, onBack, onAddFriend, isFriend, hasPendingRequest, incomingRequest, onAcceptFriendRequest, onDeclineFriendRequest, onRequestJoinEvent, joinedEvents, onRemoveFriend }) {
   if (!user) return null;
   
   // If user object is incomplete (like from host), look up full user data
@@ -12,6 +12,9 @@ function UserProfile({ user, onBack, onAddFriend, isFriend, hasPendingRequest, i
       fullUser = { ...foundUser, ...user };
     }
   }
+
+  // Get real-time points from localStorage
+  const realPoints = getUserPoints ? getUserPoints(fullUser.name || fullUser.username) : fullUser.points || 0;
   
   return (
     <div style={styles.container}>
@@ -23,7 +26,7 @@ function UserProfile({ user, onBack, onAddFriend, isFriend, hasPendingRequest, i
         <div style={styles.desc}>{fullUser.desc || fullUser.bio}</div>
         <div style={styles.info}><b>Age:</b> {fullUser.age}</div>
         <div style={styles.info}><b>House:</b> {fullUser.house}</div>
-        <div style={styles.info}><b>Points:</b> {fullUser.points}</div>
+        <div style={styles.info}><b>Points:</b> {realPoints}</div>
         <div style={styles.info}><b>Languages:</b> {fullUser.languages?.join ? fullUser.languages.join(", ") : fullUser.languages}</div>
         <div style={styles.info}><b>Interests:</b> {fullUser.interests?.join ? fullUser.interests.join(", ") : fullUser.interests}</div>
         {!isFriend && !hasPendingRequest && !incomingRequest && (
