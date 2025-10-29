@@ -1,20 +1,31 @@
 import React from "react";
+import users from "./users";
 
 function UserProfile({ user, onBack, onAddFriend, isFriend, hasPendingRequest, incomingRequest, onAcceptFriendRequest, onDeclineFriendRequest, onRequestJoinEvent, joinedEvents, onRemoveFriend }) {
   if (!user) return null;
+  
+  // If user object is incomplete (like from host), look up full user data
+  let fullUser = user;
+  if (!user.desc && !user.bio && user.name) {
+    const foundUser = users.find(u => u.name === user.name || u.username === user.name);
+    if (foundUser) {
+      fullUser = { ...foundUser, ...user };
+    }
+  }
+  
   return (
     <div style={styles.container}>
       <button style={styles.backBtn} onClick={onBack}>← Back</button>
       <div style={styles.card}>
-        <div style={styles.emoji}>{user.emoji}</div>
-        <div style={styles.name}>{user.name} ({user.country})</div>
-        <div style={styles.type}>Type: {user.type}</div>
-        <div style={styles.desc}>{user.desc}</div>
-        <div style={styles.info}><b>Age:</b> {user.age}</div>
-        <div style={styles.info}><b>House:</b> {user.house}</div>
-        <div style={styles.info}><b>Points:</b> {user.points}</div>
-        <div style={styles.info}><b>Languages:</b> {user.languages?.join ? user.languages.join(", ") : user.languages}</div>
-        <div style={styles.info}><b>Interests:</b> {user.interests?.join ? user.interests.join(", ") : user.interests}</div>
+        <div style={styles.emoji}>{fullUser.emoji}</div>
+        <div style={styles.name}>{fullUser.name} ({fullUser.country})</div>
+        <div style={styles.type}>Type: {fullUser.type}</div>
+        <div style={styles.desc}>{fullUser.desc || fullUser.bio}</div>
+        <div style={styles.info}><b>Age:</b> {fullUser.age}</div>
+        <div style={styles.info}><b>House:</b> {fullUser.house}</div>
+        <div style={styles.info}><b>Points:</b> {fullUser.points}</div>
+        <div style={styles.info}><b>Languages:</b> {fullUser.languages?.join ? fullUser.languages.join(", ") : fullUser.languages}</div>
+        <div style={styles.info}><b>Interests:</b> {fullUser.interests?.join ? fullUser.interests.join(", ") : fullUser.interests}</div>
         {!isFriend && !hasPendingRequest && !incomingRequest && (
           <button style={styles.friendBtn} onClick={() => onAddFriend && onAddFriend(user)}>
             Request Friend

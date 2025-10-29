@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import users from "./users";
+import LocationPicker from "./LocationPicker";
 import "./SocialHome.animations.css";
 
 function SocialHome({
@@ -41,11 +42,15 @@ function SocialHome({
   const [newEvent, setNewEvent] = useState({
     name: "",
     location: "cite", // "cite" or "paris"
+    venue: "", // Specific venue name (e.g., "Fleurus Bar")
+    address: "", // Full address
+    coordinates: null, // { lat, lng }
     date: "",
     time: "",
     description: "",
     category: "food",
     languages: [], // Array of languages that will be spoken
+    imageUrl: "", // Background image for the event
   });
   const [showAllLanguages, setShowAllLanguages] = useState(false);
 
@@ -67,10 +72,14 @@ function SocialHome({
     return emojiMap[category] || "🎯";
   };
 
-  const getLocationDisplay = (location) => {
-    if (location === "cite") return "🏛️ Cité";
-    if (location === "paris") return "🗼 Paris";
-    return `📍 ${location}`;
+  const getLocationDisplay = (location, venue) => {
+    let displayText = "";
+    if (location === "cite") displayText = "🏛️ Cité";
+    else if (location === "paris") displayText = "🗼 Paris";
+    else displayText = `📍 ${location}`;
+    
+    if (venue) displayText += ` · ${venue}`;
+    return displayText;
   };
 
   const getLanguageFlag = (language) => {
@@ -702,8 +711,20 @@ function SocialHome({
                         {String(ev.name || ev.type || ev.category || "Event")}
                         {formatLanguagesForTitle(ev.languages)}
                       </div>
+                      {ev.imageUrl && (
+                        <div style={{
+                          width: "100%",
+                          height: 160,
+                          borderRadius: 12,
+                          marginTop: 12,
+                          marginBottom: 12,
+                          backgroundImage: `url(${ev.imageUrl})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }} />
+                      )}
                       {ev.location && (
-                        <div style={styles.details}>{getLocationDisplay(ev.location)}</div>
+                        <div style={styles.details}>{getLocationDisplay(ev.location, ev.venue)}</div>
                       )}
                       <div style={styles.details}>⏰ {ev.date ? `${ev.date} at ${ev.time}` : String(ev.time || ev.date || "")}</div>
                       {ev.category && (
@@ -753,10 +774,23 @@ function SocialHome({
                     {String(item.name || item.type || item.category || "Event")}
                     {formatLanguagesForTitle(item.languages)}
                   </div>
+                  {/* Show event image if available */}
+                  {item.imageUrl && (
+                    <div style={{
+                      width: "100%",
+                      height: 160,
+                      borderRadius: 12,
+                      marginTop: 12,
+                      marginBottom: 12,
+                      backgroundImage: `url(${item.imageUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }} />
+                  )}
                   {/* Show full event details like public events */}
                   {item.location && (
                     <div style={styles.details}>
-                      {getLocationDisplay(item.location)}{item.place ? ` · ${item.place}` : ""}
+                      {getLocationDisplay(item.location, item.venue)}{item.place && !item.venue ? ` · ${item.place}` : ""}
                     </div>
                   )}
                   <div style={styles.details}>
@@ -767,31 +801,53 @@ function SocialHome({
                       {getCategoryEmoji(item.category)} {item.category}
                     </div>
                   )}
-                  {item.description && (
-                    <div style={{ ...styles.details, fontStyle: "italic" }}>
-                      {item.description}
+                  {/* Description hidden on homepage - shown only in event detail page */}
+                  {/* Budget hidden in simplified flow */}
+
+                  {/* Show Host Information */}
+                  {item.host && (
+                    <div style={styles.details}>
+                      <div style={{ fontWeight: 800, color: theme.accent, marginBottom: 4, marginTop: 8 }}>
+                        👤 Host:
+                      </div>
+                      <div 
+                        style={{ fontSize: 13, color: theme.textMuted, marginLeft: 8, cursor: "pointer" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUserClick && onUserClick(item.host);
+                        }}
+                      >
+                        {item.host.emoji ? item.host.emoji + " " : ""}
+                        {item.host.name} {item.host.country ? `(${item.host.country})` : ""} 
+                        {item.host.bio ? ` – "${item.host.bio}"` : ""}
+                      </div>
                     </div>
                   )}
-                  {/* Budget hidden in simplified flow */}
 
                   {Array.isArray(item.crew) && item.crew.length > 0 && (
                     <div style={styles.details}>
                       🧃 The Residents:
                       <ul style={{ margin: 0, paddingLeft: 18 }}>
-                        {item.crew.map((member, i) => {
-                          let userInfo =
-                            typeof member === "object" && member !== null
-                              ? member
-                              : users.find((u) => u.name === member || u.username === member);
-                          if (!userInfo) userInfo = { name: member };
-                          return (
-                            <li key={i} style={{ fontSize: 13, color: theme.textMuted }}>
-                              {userInfo.emoji ? userInfo.emoji + " " : ""}
-                              {userInfo.name} {userInfo.country ? `(${userInfo.country})` : ""} – "
-                              {userInfo.desc || "No description."}"
-                            </li>
-                          );
-                        })}
+                        {item.crew
+                          .filter(member => {
+                            // Filter out the host from residents list
+                            const memberName = typeof member === "object" && member !== null ? member.name : member;
+                            return !item.host || memberName !== item.host.name;
+                          })
+                          .map((member, i) => {
+                            let userInfo =
+                              typeof member === "object" && member !== null
+                                ? member
+                                : users.find((u) => u.name === member || u.username === member);
+                            if (!userInfo) userInfo = { name: member };
+                            return (
+                              <li key={i} style={{ fontSize: 13, color: theme.textMuted }}>
+                                {userInfo.emoji ? userInfo.emoji + " " : ""}
+                                {userInfo.name} {userInfo.country ? `(${userInfo.country})` : ""} – "
+                                {userInfo.desc || "No description."}"
+                              </li>
+                            );
+                          })}
                       </ul>
                     </div>
                   )}
@@ -939,14 +995,14 @@ function SocialHome({
         <div style={styles.modalOverlay} onClick={() => {
           setShowCreateEventModal(false);
           setCreateEventStep(1);
-          setNewEvent({ name: "", location: "cite", date: "", time: "", description: "", category: "food", languages: [] });
+          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "" });
           setShowAllLanguages(false);
         }}>
           <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "visible", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
             
             {/* Progress Indicator */}
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 24 }}>
-              {[1, 2, 3, 4, 5, 6, 7].map(step => (
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(step => (
                 <div
                   key={step}
                   style={{
@@ -1015,45 +1071,78 @@ function SocialHome({
                   Where is it? 📍
                 </h3>
                 <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
-                  Choose the location
+                  Choose the area, then add the exact address
                 </p>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 24 }}>
-                  <button
-                    style={{
-                      padding: isMobile ? 20 : 24,
-                      borderRadius: 14,
-                      border: `2px solid ${newEvent.location === "cite" ? theme.primary : theme.border}`,
-                      background: newEvent.location === "cite" ? theme.primary : theme.card,
-                      color: newEvent.location === "cite" ? "white" : theme.text,
-                      fontSize: isMobile ? 16 : 18,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                    }}
-                    onClick={() => setNewEvent({...newEvent, location: "cite"})}
-                  >
-                    <div style={{ fontSize: 36, marginBottom: 8 }}>🏛️</div>
-                    Cité
-                  </button>
-                  <button
-                    style={{
-                      padding: isMobile ? 20 : 24,
-                      borderRadius: 14,
-                      border: `2px solid ${newEvent.location === "paris" ? theme.primary : theme.border}`,
-                      background: newEvent.location === "paris" ? theme.primary : theme.card,
-                      color: newEvent.location === "paris" ? "white" : theme.text,
-                      fontSize: isMobile ? 16 : 18,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                    }}
-                    onClick={() => setNewEvent({...newEvent, location: "paris"})}
-                  >
-                    <div style={{ fontSize: 36, marginBottom: 8 }}>🗼</div>
-                    Paris
-                  </button>
+                
+                {/* Area Category Selection */}
+                <div style={{ marginBottom: 32 }}>
+                  <p style={{ fontSize: isMobile ? 13 : 14, color: theme.textMuted, marginBottom: 12, fontWeight: 600 }}>
+                    📌 Area Category
+                  </p>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16 }}>
+                    <button
+                      style={{
+                        padding: isMobile ? 20 : 24,
+                        borderRadius: 14,
+                        border: `2px solid ${newEvent.location === "cite" ? theme.primary : theme.border}`,
+                        background: newEvent.location === "cite" ? theme.primary : theme.card,
+                        color: newEvent.location === "cite" ? "white" : theme.text,
+                        fontSize: isMobile ? 16 : 18,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                      onClick={() => setNewEvent({...newEvent, location: "cite"})}
+                    >
+                      <div style={{ fontSize: 36, marginBottom: 8 }}>🏛️</div>
+                      Cité Universitaire
+                      <div style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>
+                        Inside Cité campus
+                      </div>
+                    </button>
+                    <button
+                      style={{
+                        padding: isMobile ? 20 : 24,
+                        borderRadius: 14,
+                        border: `2px solid ${newEvent.location === "paris" ? theme.primary : theme.border}`,
+                        background: newEvent.location === "paris" ? theme.primary : theme.card,
+                        color: newEvent.location === "paris" ? "white" : theme.text,
+                        fontSize: isMobile ? 16 : 18,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                      onClick={() => setNewEvent({...newEvent, location: "paris"})}
+                    >
+                      <div style={{ fontSize: 36, marginBottom: 8 }}>🗼</div>
+                      Paris
+                      <div style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>
+                        Anywhere in Paris
+                      </div>
+                    </button>
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: 12 }}>
+
+                {/* Exact Address/Venue - Required */}
+                <div style={{ marginTop: 24 }}>
+                  <p style={{ fontSize: isMobile ? 13 : 14, color: theme.textMuted, marginBottom: 12, fontWeight: 600 }}>
+                    📍 Exact Address <span style={{ color: "#FF4B4B" }}>*</span>
+                  </p>
+                  <LocationPicker
+                    onLocationSelect={(location) => {
+                      setNewEvent({
+                        ...newEvent,
+                        venue: location.name,
+                        address: location.address,
+                        coordinates: { lat: location.lat, lng: location.lng }
+                      });
+                    }}
+                    initialAddress={newEvent.address}
+                    theme={theme}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
                   <button
                     style={{
                       flex: 1,
@@ -1544,22 +1633,192 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
+                    onClick={() => setCreateEventStep(8)}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 8: Image Upload (Optional) */}
+            {createEventStep === 8 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  Add a cover image 🖼️
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Make your event stand out! (optional)
+                </p>
+                
+                {/* Image Preview */}
+                {newEvent.imageUrl && (
+                  <div style={{
+                    width: "100%",
+                    height: 200,
+                    borderRadius: 14,
+                    marginBottom: 16,
+                    backgroundImage: `url(${newEvent.imageUrl})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    border: `2px solid ${theme.border}`,
+                    position: "relative",
+                  }}>
+                    <button
+                      onClick={() => setNewEvent({...newEvent, imageUrl: ''})}
+                      style={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        background: "rgba(0,0,0,0.7)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: 8,
+                        padding: "6px 12px",
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 700,
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+                
+                {/* File Upload */}
+                <div style={{ marginBottom: 16 }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        if (file.size > 2 * 1024 * 1024) {
+                          alert("Image is too large! Please choose an image smaller than 2MB.");
+                          return;
+                        }
+                        
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setNewEvent({...newEvent, imageUrl: reader.result});
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    style={{ 
+                      width: "100%", 
+                      padding: isMobile ? 12 : 14, 
+                      borderRadius: 14, 
+                      border: `2px solid ${theme.border}`, 
+                      fontSize: isMobile ? 14 : 15, 
+                      boxSizing: "border-box",
+                      cursor: "pointer",
+                      background: theme.card,
+                    }}
+                  />
+                  <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 8, marginBottom: 0 }}>
+                    📸 Upload your own image (max 2MB)
+                  </p>
+                </div>
+
+                {/* Or divider */}
+                <div style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 12, 
+                  marginBottom: 16,
+                  color: theme.textMuted,
+                  fontSize: 14,
+                }}>
+                  <div style={{ flex: 1, height: 1, background: theme.border }} />
+                  <span>or</span>
+                  <div style={{ flex: 1, height: 1, background: theme.border }} />
+                </div>
+                
+                {/* URL Input */}
+                <input
+                  type="text"
+                  value={newEvent.imageUrl && !newEvent.imageUrl.startsWith('data:') ? newEvent.imageUrl : ''}
+                  onChange={(e) => setNewEvent({...newEvent, imageUrl: e.target.value})}
+                  placeholder="Paste image URL (e.g., https://example.com/image.jpg)"
+                  style={{ 
+                    width: "100%", 
+                    padding: isMobile ? 14 : 16, 
+                    borderRadius: 14, 
+                    border: `2px solid ${theme.border}`, 
+                    fontSize: isMobile ? 14 : 15, 
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                    marginBottom: 8,
+                  }}
+                />
+                
+                <p style={{ fontSize: 12, color: theme.textMuted, marginBottom: 24, fontStyle: "italic" }}>
+                  � Use an image URL from Unsplash, Pexels, or Imgur
+                </p>
+
+                <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(7)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                      color: "white",
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                    }}
                     onClick={() => {
                       // Save to adminEvents in localStorage so it appears in public events
                       try {
                         const saved = localStorage.getItem("adminEvents");
                         const events = saved ? JSON.parse(saved) : [];
+                        
+                        // Get current user's profile information
+                        const hostInfo = users.find(
+                          (u) => u.name.toLowerCase() === userName.toLowerCase()
+                        );
+                        
                         const newEventObj = {
                           id: Date.now(),
                           name: newEvent.name,
                           location: newEvent.location,
+                          venue: newEvent.venue,
+                          address: newEvent.address,
+                          coordinates: newEvent.coordinates,
                           date: newEvent.date,
                           time: newEvent.time,
                           description: newEvent.description,
                           category: newEvent.category,
                           languages: newEvent.languages,
+                          imageUrl: newEvent.imageUrl,
                           isPublic: true,
                           createdBy: userName,
+                          host: hostInfo ? {
+                            name: hostInfo.name,
+                            emoji: hostInfo.emoji,
+                            country: hostInfo.country,
+                            bio: hostInfo.bio,
+                          } : null,
                           participants: [userName],
                           crew: [userName],
                         };
@@ -1570,7 +1829,7 @@ function SocialHome({
                         onJoinPublicEvent && onJoinPublicEvent(newEventObj);
                         
                         // Reset form and close
-                        setNewEvent({ name: "", location: "cite", date: "", time: "", description: "", category: "food", languages: [] });
+                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "" });
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
@@ -1606,7 +1865,7 @@ function SocialHome({
               onClick={() => {
                 setShowCreateEventModal(false);
                 setCreateEventStep(1);
-                setNewEvent({ name: "", location: "cite", date: "", time: "", description: "", category: "food", languages: [] });
+                setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "" });
                 setShowAllLanguages(false);
               }}
             >

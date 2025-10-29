@@ -9,10 +9,22 @@ function SocialChat({
   onHome,
   onUserClick,
   onLeaveEvent,
+  onEditEvent,
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
   const chatBoxRef = useRef(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editedEvent, setEditedEvent] = useState({
+    name: event?.name || "",
+    location: event?.location || "cite",
+    date: event?.date || "",
+    time: event?.time || "",
+    description: event?.description || "",
+    category: event?.category || "food",
+    languages: event?.languages || [],
+    imageUrl: event?.imageUrl || "",
+  });
 
   useEffect(() => {
     setMessages(initialMessages);
@@ -55,34 +67,151 @@ function SocialChat({
 
   const styles = {
     container: {
-      maxWidth: 480,
-      margin: "32px auto",
+      maxWidth: 680,
+      margin: "0 auto",
       background: theme.bg,
-      padding: 20,
-      borderRadius: theme.radiusLg,
-      boxShadow: theme.shadow,
-  fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
-      border: `1px solid ${theme.border}`,
+      minHeight: "100vh",
+      fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
     },
 
-    // Event recap
-    resultBox: {
-      background: theme.card,
-      padding: 16,
-      borderRadius: theme.radius,
+    // Event header with image placeholder
+    eventHeader: {
+      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+      height: 200,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 48,
+      color: "white",
+      marginBottom: 24,
+    },
+
+    // Main content area
+    contentWrapper: {
+      padding: "0 24px 24px 24px",
+    },
+
+    // Event title and meta
+    eventTitle: {
+      fontSize: 32,
+      fontWeight: 900,
+      color: theme.text,
       marginBottom: 16,
+      lineHeight: 1.2,
+    },
+
+    metaRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 12,
+      fontSize: 16,
+      color: theme.textMuted,
+    },
+
+    metaIcon: {
+      fontSize: 20,
+      width: 24,
+      textAlign: "center",
+    },
+
+    languageBadge: {
+      display: "inline-block",
+      background: theme.track,
+      padding: "6px 12px",
+      borderRadius: 999,
+      fontSize: 14,
+      fontWeight: 600,
+      color: theme.text,
+      marginRight: 8,
+      marginTop: 8,
+    },
+
+    // Sections
+    section: {
+      background: theme.card,
+      padding: 24,
+      borderRadius: theme.radius,
+      marginBottom: 20,
       border: `1px solid ${theme.border}`,
       boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
     },
-    resultTitle: {
+
+    sectionTitle: {
+      fontSize: 18,
       fontWeight: 900,
-      marginTop: 8,
-      marginBottom: 8,
-      color: theme.primary,
-      fontSize: 14,
-      textTransform: "uppercase",
-      letterSpacing: "0.8px",
+      color: theme.text,
+      marginBottom: 16,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
     },
+
+    // Host section
+    hostCard: {
+      display: "flex",
+      alignItems: "center",
+      gap: 16,
+      padding: 16,
+      background: theme.bg,
+      borderRadius: 12,
+      cursor: "pointer",
+      transition: "transform 0.2s, box-shadow 0.2s",
+    },
+
+    hostAvatar: {
+      fontSize: 48,
+      width: 64,
+      height: 64,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: theme.card,
+      borderRadius: "50%",
+      border: `2px solid ${theme.border}`,
+    },
+
+    hostInfo: {
+      flex: 1,
+    },
+
+    hostName: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: theme.text,
+      marginBottom: 4,
+    },
+
+    hostBio: {
+      fontSize: 14,
+      color: theme.textMuted,
+      lineHeight: 1.4,
+    },
+
+    // Attendees
+    attendeesList: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 12,
+    },
+
+    attendeeCard: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "8px 12px",
+      background: theme.bg,
+      borderRadius: 8,
+      cursor: "pointer",
+      transition: "transform 0.2s",
+      fontSize: 14,
+      fontWeight: 600,
+    },
+
+    attendeeAvatar: {
+      fontSize: 24,
+    },
+
     crewItem: { marginBottom: 6, color: theme.textMuted },
     bold: { fontWeight: 800, color: theme.text },
 
@@ -216,97 +345,705 @@ function SocialChat({
       boxShadow: "0 6px 16px rgba(234,43,43,0.20)",
       width: "100%",
     },
+    editBtn: {
+      marginTop: 10,
+      background: `linear-gradient(135deg, ${theme.gold}, #F5C842)`,
+      color: theme.text,
+      border: "none",
+      borderRadius: 12,
+      padding: "10px 16px",
+      fontWeight: 900,
+      cursor: "pointer",
+      boxShadow: "0 6px 16px rgba(255,222,89,0.28)",
+      width: "100%",
+    },
+    // Full screen edit page
+    editScreen: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: theme.bg,
+      zIndex: 1000,
+      overflowY: "auto",
+    },
+    editContainer: {
+      maxWidth: 680,
+      margin: "0 auto",
+      padding: "24px",
+      minHeight: "100vh",
+    },
   };
 
   return (
     <div style={styles.container}>
-      <div style={styles.resultBox}>
-        <div style={styles.resultTitle}>✨ The Event</div>
-        <div><span style={styles.bold}>Event:</span> {event?.name}</div>
-        {event?.location && (
-          <div><span style={styles.bold}>Location:</span> 📍 {event.location}{event.place ? ` · ${event.place}` : ""}</div>
+      {/* Event Header Banner */}
+      <div style={{
+        ...styles.eventHeader,
+        ...(event?.imageUrl && {
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url(${event.imageUrl})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        })
+      }}>
+        {event?.category && !event?.imageUrl && (
+          <>
+            {event.category === "food" && "🍽️"}
+            {event.category === "drinks" && "🍹"}
+            {event.category === "random" && "🎲"}
+            {event.category === "walk" && "🚶"}
+            {event.category === "coffee" && "☕"}
+          </>
         )}
-        <div><span style={styles.bold}>Time:</span> ⏰ {event?.date ? `${event.date} at ${event.time}` : event?.time}</div>
-        {event?.languages && event.languages.length > 0 && (
-          <div><span style={styles.bold}>Languages:</span> 🗣️ {event.languages.join(" ↔ ")}</div>
-        )}
-        {event?.category && (
-          <div><span style={styles.bold}>Category:</span> 🎯 {event.category}</div>
-        )}
-        {event?.description && (
-          <div style={{ marginTop: 8, fontStyle: "italic", color: theme.textMuted }}>
-            {event.description}
-          </div>
-        )}
-  {/* Budget hidden in simplified flow */}
-
-        <div style={styles.resultTitle}>🧃 The Residents</div>
-        {(event?.crew_full || event?.crew || []).map((item, i) => (
-          <div
-            key={i}
-            style={{ ...styles.crewItem, cursor: "pointer" }}
-            onClick={() => onUserClick && onUserClick(item)}
-          >
-            <span style={styles.bold}>
-              {item.emoji} {item.name} ({item.country})
-            </span>{" "}
-            – "{item.desc}"
-          </div>
-        ))}
       </div>
 
-      <div style={styles.chat}>
-        <div style={styles.chatHeader}>💬 Group Chat</div>
+      <div style={styles.contentWrapper}>
+        {/* Event Title */}
+        <h1 style={styles.eventTitle}>{event?.name || "Event"}</h1>
 
-        <div style={styles.chatBox} ref={chatBoxRef}>
-          {messages.map((m, i) => {
-            const mine = m.from === currentUser;
-            return (
-              <div
-                key={i}
-                style={{ ...styles.row, ...(mine ? styles.rowRight : {}) }}
-              >
-                <div
-                  style={{
-                    ...styles.bubble,
-                    ...(mine ? styles.bubbleMe : {}),
-                  }}
-                >
-                  <span
+        {/* Event Meta Information */}
+        <div style={{ marginBottom: 24 }}>
+          {event?.location && (
+            <div style={styles.metaRow}>
+              <span style={styles.metaIcon}>📍</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+                <div style={{ fontWeight: 600 }}>
+                  {event.location === "cite" ? "Cité Internationale" : event.location === "paris" ? "Paris" : event.location}
+                </div>
+                {(event.venue || event.address) && (
+                  <div style={{ fontSize: 14, color: "#8B8B8B" }}>
+                    {event.venue && <div>{event.venue}</div>}
+                    {event.address && <div>{event.address}</div>}
+                  </div>
+                )}
+                
+                {/* Small Map Preview */}
+                {event.coordinates && event.coordinates.lat && event.coordinates.lng && (
+                  <div 
+                    ref={(el) => {
+                      if (el && !el.dataset.mapInitialized && window.L) {
+                        el.dataset.mapInitialized = 'true';
+                        const map = window.L.map(el, {
+                          center: [event.coordinates.lat, event.coordinates.lng],
+                          zoom: 15,
+                          zoomControl: true,
+                          scrollWheelZoom: false,
+                          dragging: true,
+                        });
+                        
+                        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                          attribution: '© OpenStreetMap',
+                          maxZoom: 19
+                        }).addTo(map);
+                        
+                        window.L.marker([event.coordinates.lat, event.coordinates.lng])
+                          .addTo(map)
+                          .bindPopup(event.venue || event.address || 'Event Location');
+                      }
+                    }}
                     style={{
-                      ...styles.bubbleName,
-                      ...(mine ? styles.bubbleNameMe : {}),
+                      width: '100%',
+                      height: '200px',
+                      borderRadius: '12px',
+                      marginTop: '12px',
+                      border: '2px solid #E5E5E5',
+                      overflow: 'hidden'
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+          
+          <div style={styles.metaRow}>
+            <span style={styles.metaIcon}>📅</span>
+            <span>{event?.date ? `${event.date} at ${event.time}` : event?.time}</span>
+          </div>
+        </div>
+
+        {/* Languages Section - Prominent Display */}
+        {event?.languages && event.languages.length > 0 && (
+          <div style={{
+            background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+            padding: "20px 24px",
+            borderRadius: theme.radius,
+            marginBottom: 24,
+            boxShadow: "0 4px 16px rgba(88,204,2,0.25)",
+          }}>
+            <div style={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: "rgba(255,255,255,0.9)",
+              marginBottom: 12,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}>
+              🗣️ Languages
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {event.languages.map((lang, i) => {
+                const flagMap = {
+                  "French": "🇫🇷",
+                  "English": "🇬🇧",
+                  "Spanish": "🇪🇸",
+                  "German": "🇩🇪",
+                  "Italian": "🇮🇹",
+                  "Portuguese": "🇵🇹",
+                  "Chinese": "🇨🇳",
+                  "Japanese": "🇯🇵",
+                  "Korean": "🇰🇷",
+                  "Arabic": "🇸🇦",
+                };
+                const flag = flagMap[lang] || "🗣️";
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      background: "rgba(255,255,255,0.95)",
+                      padding: "10px 16px",
+                      borderRadius: 12,
+                      fontSize: 16,
+                      fontWeight: 700,
+                      color: theme.text,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                     }}
                   >
-                    {mine ? "You" : m.from}
-                  </span>
-                  {m.text}
-                </div>
+                    <span style={{ fontSize: 24 }}>{flag}</span>
+                    <span>{lang}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Event Description */}
+        {event?.description && (
+          <div style={styles.section}>
+            <div style={styles.sectionTitle}>📝 About this event</div>
+            <div style={{ fontSize: 15, color: theme.textMuted, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+              {event.description}
+            </div>
+          </div>
+        )}
+
+        {/* Host Section */}
+        {event?.host && (
+          <div style={styles.section}>
+            <div style={styles.sectionTitle}>👤 Hosted by</div>
+            <div 
+              style={styles.hostCard}
+              onClick={() => onUserClick && onUserClick(event.host)}
+              onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+            >
+              <div style={styles.hostAvatar}>
+                {event.host.emoji}
               </div>
-            );
-          })}
+              <div style={styles.hostInfo}>
+                <div style={styles.hostName}>
+                  {event.host.name} {event.host.country}
+                </div>
+                {event.host.bio && (
+                  <div style={styles.hostBio}>{event.host.bio}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Attendees Section */}
+        {(event?.crew_full || event?.crew || []).filter(item => !event?.host || item.name !== event.host.name).length > 0 && (
+          <div style={styles.section}>
+            <div style={styles.sectionTitle}>
+              🧃 Attendees ({(event?.crew_full || event?.crew || []).filter(item => !event?.host || item.name !== event.host.name).length})
+            </div>
+            <div style={styles.attendeesList}>
+              {(event?.crew_full || event?.crew || [])
+                .filter(item => !event?.host || item.name !== event.host.name)
+                .map((item, i) => (
+                  <div
+                    key={i}
+                    style={styles.attendeeCard}
+                    onClick={() => onUserClick && onUserClick(item)}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                  >
+                    <span style={styles.attendeeAvatar}>{item.emoji}</span>
+                    <span>{item.name}</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* Chat Section */}
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>💬 Group Chat</div>
+          <div style={styles.chatBox} ref={chatBoxRef}>
+            {messages.map((m, i) => {
+              const mine = m.from === currentUser;
+              return (
+                <div
+                  key={i}
+                  style={{ ...styles.row, ...(mine ? styles.rowRight : {}) }}
+                >
+                  <div
+                    style={{
+                      ...styles.bubble,
+                      ...(mine ? styles.bubbleMe : {}),
+                    }}
+                  >
+                    <span
+                      style={{
+                        ...styles.bubbleName,
+                        ...(mine ? styles.bubbleNameMe : {}),
+                      }}
+                    >
+                      {mine ? "You" : m.from}
+                    </span>
+                    {m.text}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={styles.chatInput}>
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type your message…"
+              style={styles.input}
+              onKeyDown={(e) => (e.key === "Enter" ? sendMsg() : null)}
+            />
+            <button style={styles.sendBtn} onClick={sendMsg}>Send</button>
+          </div>
         </div>
 
-        <div style={styles.chatInput}>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message…"
-            style={styles.input}
-            onKeyDown={(e) => (e.key === "Enter" ? sendMsg() : null)}
-          />
-          <button style={styles.sendBtn} onClick={sendMsg}>Send</button>
-        </div>
+      </div> {/* Close contentWrapper */}
+
+      {/* Action Buttons */}
+      <div style={{ 
+        display: "flex", 
+        gap: 12, 
+        padding: "0 20px 32px 20px",
+        flexWrap: "wrap",
+        justifyContent: "center"
+      }}>
+        <button style={styles.backBtn} onClick={onBack}>Back to Results</button>
+        <button style={styles.homeBtn} onClick={onHome}>Go to Homepage</button>
+        {/* Show Edit button only if current user is the host */}
+        {event?.host && event.host.name === currentUser && (
+          <button
+            style={styles.editBtn}
+            onClick={() => {
+              // Load current event data into the form when opening modal
+              setEditedEvent({
+                name: event?.name || "",
+                location: event?.location || "cite",
+                date: event?.date || "",
+                time: event?.time || "",
+                description: event?.description || "",
+                category: event?.category || "food",
+                languages: event?.languages || [],
+                imageUrl: event?.imageUrl || "",
+              });
+              setShowEditModal(true);
+            }}
+          >
+            ✏️ Edit Event
+          </button>
+        )}
+        <button
+          style={styles.leaveBtn}
+          onClick={() => onLeaveEvent && onLeaveEvent(event)}
+        >
+          Leave Event
+        </button>
       </div>
 
-      <button style={styles.backBtn} onClick={onBack}>Back to Results</button>
-      <button style={styles.homeBtn} onClick={onHome}>Go to Homepage</button>
-      <button
-        style={styles.leaveBtn}
-        onClick={() => onLeaveEvent && onLeaveEvent(event)}
-      >
-        Leave Event
-      </button>
+      {/* Edit Event Screen */}
+      {showEditModal && (
+        <div style={styles.editScreen}>
+          <div style={styles.editContainer}>
+            {/* Header with back button */}
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              marginBottom: 32,
+              paddingBottom: 16,
+              borderBottom: `2px solid ${theme.border}`
+            }}>
+              <button
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  fontSize: 24,
+                  cursor: "pointer",
+                  padding: 8,
+                  marginRight: 12,
+                  color: theme.text,
+                }}
+                onClick={() => setShowEditModal(false)}
+              >
+                ← 
+              </button>
+              <h2 style={{ fontSize: 28, fontWeight: 900, margin: 0, color: theme.text }}>
+                ✏️ Edit Event
+              </h2>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                Event Name
+              </label>
+              <input
+                type="text"
+                value={editedEvent.name}
+                onChange={(e) => setEditedEvent({...editedEvent, name: e.target.value})}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 12,
+                  border: `2px solid ${theme.border}`,
+                  fontSize: 16,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                Location
+              </label>
+              <select
+                value={editedEvent.location}
+                onChange={(e) => setEditedEvent({...editedEvent, location: e.target.value})}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 12,
+                  border: `2px solid ${theme.border}`,
+                  fontSize: 16,
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="cite">🏛️ Cité</option>
+                <option value="paris">🗼 Paris</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                Category
+              </label>
+              <select
+                value={editedEvent.category}
+                onChange={(e) => setEditedEvent({...editedEvent, category: e.target.value})}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 12,
+                  border: `2px solid ${theme.border}`,
+                  fontSize: 16,
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="food">🍽️ Food</option>
+                <option value="drinks">🍹 Drinks</option>
+                <option value="random">🎲 Random</option>
+                <option value="walk">🚶 A Walk</option>
+                <option value="coffee">☕ Coffee</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                Date
+              </label>
+              <input
+                type="date"
+                value={editedEvent.date}
+                onChange={(e) => setEditedEvent({...editedEvent, date: e.target.value})}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 12,
+                  border: `2px solid ${theme.border}`,
+                  fontSize: 16,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                Time
+              </label>
+              <input
+                type="time"
+                value={editedEvent.time}
+                onChange={(e) => setEditedEvent({...editedEvent, time: e.target.value})}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 12,
+                  border: `2px solid ${theme.border}`,
+                  fontSize: 16,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                Languages 🗣️
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {[
+                  { value: "French", emoji: "🇫🇷" },
+                  { value: "English", emoji: "🇬🇧" },
+                  { value: "Spanish", emoji: "🇪🇸" },
+                  { value: "German", emoji: "🇩🇪" },
+                  { value: "Italian", emoji: "🇮🇹" },
+                  { value: "Portuguese", emoji: "🇵🇹" },
+                ].map(lang => (
+                  <button
+                    key={lang.value}
+                    type="button"
+                    style={{
+                      padding: 10,
+                      borderRadius: 10,
+                      border: `2px solid ${editedEvent.languages.includes(lang.value) ? theme.primary : theme.border}`,
+                      background: editedEvent.languages.includes(lang.value) ? theme.primary : theme.card,
+                      color: editedEvent.languages.includes(lang.value) ? "white" : theme.text,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      justifyContent: "center",
+                    }}
+                    onClick={() => {
+                      const langs = [...editedEvent.languages];
+                      const idx = langs.indexOf(lang.value);
+                      if (idx > -1) {
+                        langs.splice(idx, 1);
+                      } else {
+                        langs.push(lang.value);
+                      }
+                      setEditedEvent({...editedEvent, languages: langs});
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>{lang.emoji}</span>
+                    <span>{lang.value}</span>
+                    {editedEvent.languages.includes(lang.value) && (
+                      <span style={{ marginLeft: "auto", fontSize: 16 }}>✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                Description
+              </label>
+              <textarea
+                value={editedEvent.description}
+                onChange={(e) => setEditedEvent({...editedEvent, description: e.target.value})}
+                placeholder="Add event details, schedule, what to bring, etc..."
+                style={{
+                  width: "100%",
+                  padding: 16,
+                  borderRadius: 12,
+                  border: `2px solid ${theme.border}`,
+                  fontSize: 16,
+                  minHeight: 200,
+                  resize: "vertical",
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                  lineHeight: 1.6,
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                Event Image
+              </label>
+              
+              {/* File Upload Button */}
+              <div style={{ marginBottom: 12 }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      // Check file size (max 2MB to avoid localStorage limits)
+                      if (file.size > 2 * 1024 * 1024) {
+                        alert("Image is too large! Please choose an image smaller than 2MB.");
+                        return;
+                      }
+                      
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setEditedEvent({...editedEvent, imageUrl: reader.result});
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: 12,
+                    borderRadius: 12,
+                    border: `2px solid ${theme.border}`,
+                    fontSize: 15,
+                    boxSizing: "border-box",
+                    cursor: "pointer",
+                    background: theme.card,
+                  }}
+                />
+                <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6, marginBottom: 0 }}>
+                  📸 Upload your own image (max 2MB)
+                </p>
+              </div>
+
+              {/* Or divider */}
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: 12, 
+                marginBottom: 12,
+                color: theme.textMuted,
+                fontSize: 14,
+              }}>
+                <div style={{ flex: 1, height: 1, background: theme.border }} />
+                <span>or</span>
+                <div style={{ flex: 1, height: 1, background: theme.border }} />
+              </div>
+
+              {/* URL Input */}
+              <input
+                type="text"
+                value={editedEvent.imageUrl && !editedEvent.imageUrl.startsWith('data:') ? editedEvent.imageUrl : ''}
+                onChange={(e) => setEditedEvent({...editedEvent, imageUrl: e.target.value})}
+                placeholder="Paste image URL (e.g., https://example.com/image.jpg)"
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 12,
+                  border: `2px solid ${theme.border}`,
+                  fontSize: 15,
+                  boxSizing: "border-box",
+                }}
+              />
+              <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>
+                🔗 Use an image URL from Unsplash, Pexels, or Imgur
+              </p>
+
+              {/* Image Preview */}
+              {editedEvent.imageUrl && (
+                <div style={{
+                  width: "100%",
+                  height: 180,
+                  borderRadius: 12,
+                  marginTop: 12,
+                  backgroundImage: `url(${editedEvent.imageUrl})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  border: `2px solid ${theme.border}`,
+                  position: "relative",
+                }}>
+                  {/* Remove button */}
+                  <button
+                    onClick={() => setEditedEvent({...editedEvent, imageUrl: ''})}
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      background: "rgba(0,0,0,0.7)",
+                      color: "white",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "6px 12px",
+                      cursor: "pointer",
+                      fontSize: 14,
+                      fontWeight: 700,
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div style={{ 
+              display: "flex", 
+              gap: 12, 
+              marginTop: 32,
+              paddingTop: 24,
+              borderTop: `2px solid ${theme.border}`,
+              position: "sticky",
+              bottom: 0,
+              background: theme.bg,
+              paddingBottom: 24,
+            }}>
+              <button
+                style={{
+                  flex: 1,
+                  padding: 16,
+                  borderRadius: 14,
+                  border: `2px solid ${theme.border}`,
+                  background: theme.card,
+                  color: theme.text,
+                  fontWeight: 900,
+                  fontSize: 17,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                }}
+                onClick={() => setShowEditModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                style={{
+                  flex: 1,
+                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                  color: "white",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: 16,
+                  fontWeight: 900,
+                  fontSize: 17,
+                  cursor: "pointer",
+                  boxShadow: "0 8px 20px rgba(88,204,2,0.35)",
+                }}
+                onClick={() => {
+                  if (onEditEvent) {
+                    const updatedEvent = {
+                      ...event,
+                      ...editedEvent,
+                    };
+                    onEditEvent(updatedEvent);
+                  }
+                  setShowEditModal(false);
+                }}
+              >
+                Save Changes ✨
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

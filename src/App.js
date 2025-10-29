@@ -349,6 +349,48 @@ function App() {
           setShowChat(false);
           setRouletteResult(null);
         }}
+        onEditEvent={(updatedEvent) => {
+          // Update in adminEvents localStorage
+          const saved = localStorage.getItem("adminEvents");
+          if (saved) {
+            const events = JSON.parse(saved);
+            const index = events.findIndex(e => e.id === updatedEvent.id);
+            if (index !== -1) {
+              events[index] = updatedEvent;
+              localStorage.setItem("adminEvents", JSON.stringify(events));
+              
+              // Update the rouletteResult to reflect changes
+              setRouletteResult(updatedEvent);
+              
+              // Also update in userEvents state and localStorage
+              const userKey = user?.username || user?.name;
+              setUserEvents(prev => {
+                const newUserEvents = { ...prev };
+                if (newUserEvents[userKey]) {
+                  const userEventIndex = newUserEvents[userKey].findIndex(e => e.id === updatedEvent.id);
+                  if (userEventIndex !== -1) {
+                    newUserEvents[userKey][userEventIndex] = updatedEvent;
+                  }
+                }
+                return newUserEvents;
+              });
+              
+              // Also update in joinedEvents localStorage
+              const joinedKey = `joinedEvents_${userKey}`;
+              const joinedSaved = localStorage.getItem(joinedKey);
+              if (joinedSaved) {
+                const joinedEvents = JSON.parse(joinedSaved);
+                const joinedIndex = joinedEvents.findIndex(e => e.id === updatedEvent.id);
+                if (joinedIndex !== -1) {
+                  joinedEvents[joinedIndex] = updatedEvent;
+                  localStorage.setItem(joinedKey, JSON.stringify(joinedEvents));
+                }
+              }
+              
+              alert("✨ Event updated successfully!");
+            }
+          }
+        }}
       />
     );
   } else if (showResult && rouletteResult) {

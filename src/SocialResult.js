@@ -7,12 +7,40 @@ function SocialResult({ event, onBack, onChat, onUserClick }) {
       <div style={styles.resultBox}>
         <div style={styles.resultTitle}>✨ The Event</div>
         <div>Event: {event.name}</div>
+        {event.imageUrl && (
+          <div style={{
+            width: "100%",
+            height: 160,
+            borderRadius: 12,
+            marginTop: 12,
+            marginBottom: 12,
+            backgroundImage: `url(${event.imageUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }} />
+        )}
         <div>Time: {event.time || event.date || ""}</div>
         <div>Budget: €{event.budget || event.price || ""}</div>
-        <div>Description: {event.description}</div>
+        <div style={{ whiteSpace: "pre-wrap" }}>Description: {event.description}</div>
+        
+        {event.host && (
+          <>
+            <div style={styles.resultTitle}>👤 Host</div>
+            <div 
+              style={{ ...styles.crewItem, paddingLeft: 20, cursor: "pointer" }}
+              onClick={() => onUserClick && onUserClick(event.host)}
+            >
+              <span style={styles.bold}>
+                {event.host.emoji} {event.host.name} {event.host.country ? `(${event.host.country})` : ""}
+              </span>
+              {event.host.bio && ` – "${event.host.bio}"`}
+            </div>
+          </>
+        )}
+        
         <div style={styles.resultTitle}>🧃 The Residents</div>
         {(event.crew_full || event.residents || []).filter(
-          item => item && item.name
+          item => item && item.name && (!event.host || item.name !== event.host.name)
         ).map((item, idx) => {
           // If missing emoji/country/desc, merge from users.js
           let merged = item;
