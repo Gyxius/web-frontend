@@ -40,18 +40,72 @@ function SocialHome({
   // Create event form state
   const [newEvent, setNewEvent] = useState({
     name: "",
-    location: "",
+    location: "cite", // "cite" or "paris"
     date: "",
     time: "",
     description: "",
-    category: "social",
+    category: "food",
+    languages: [], // Array of languages that will be spoken
   });
+  const [showAllLanguages, setShowAllLanguages] = useState(false);
 
   const fadeIn = { animation: "fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1)" };
   const pulse = { animation: "pulse 1.2s infinite" };
 
   const socialPoints = 120;
   const nextLevel = 200;
+
+  // Helper functions for display
+  const getCategoryEmoji = (category) => {
+    const emojiMap = {
+      food: "🍽️",
+      drinks: "🍹",
+      random: "🎲",
+      walk: "🚶",
+      coffee: "☕",
+    };
+    return emojiMap[category] || "🎯";
+  };
+
+  const getLocationDisplay = (location) => {
+    if (location === "cite") return "🏛️ Cité";
+    if (location === "paris") return "🗼 Paris";
+    return `📍 ${location}`;
+  };
+
+  const getLanguageFlag = (language) => {
+    const flagMap = {
+      "French": "🇫🇷",
+      "English": "🇬🇧",
+      "Spanish": "🇪🇸",
+      "German": "🇩🇪",
+      "Italian": "🇮🇹",
+      "Portuguese": "🇵🇹",
+      "Chinese": "🇨🇳",
+      "Japanese": "🇯🇵",
+      "Korean": "🇰🇷",
+      "Arabic": "🇸🇦",
+    };
+    return flagMap[language] || "🗣️";
+  };
+
+  const formatLanguagesForTitle = (languages) => {
+    if (!languages || languages.length === 0) return "";
+    if (languages.length === 1) {
+      return ` - ${getLanguageFlag(languages[0])} ${languages[0]}`;
+    }
+    // For multiple languages: "🇫🇷 French ↔ English 🇬🇧"
+    return ` - ${languages.map((lang, idx) => {
+      const flag = getLanguageFlag(lang);
+      if (idx === 0) {
+        return `${flag} ${lang}`;
+      } else if (idx === languages.length - 1) {
+        return `${lang} ${flag}`;
+      } else {
+        return lang;
+      }
+    }).join(" ↔ ")}`;
+  };
 
   // 🟢 Duolingo-inspired theme
   const theme = {
@@ -644,8 +698,19 @@ function SocialHome({
                   </div>
                   {fe.events.map((ev, j) => (
                     <div key={j} style={{ ...styles.eventCard, cursor: "default" }}>
-                      <div style={styles.eventName}>{String(ev.name || ev.type || ev.category || "Event")}</div>
-                      <div style={styles.details}>⏰ {String(ev.time || ev.date || "")}</div>
+                      <div style={styles.eventName}>
+                        {String(ev.name || ev.type || ev.category || "Event")}
+                        {formatLanguagesForTitle(ev.languages)}
+                      </div>
+                      {ev.location && (
+                        <div style={styles.details}>{getLocationDisplay(ev.location)}</div>
+                      )}
+                      <div style={styles.details}>⏰ {ev.date ? `${ev.date} at ${ev.time}` : String(ev.time || ev.date || "")}</div>
+                      {ev.category && (
+                        <div style={styles.details}>
+                          {getCategoryEmoji(ev.category)} {ev.category}
+                        </div>
+                      )}
                       {/* Budget hidden in simplified flow */}
                       <button
                         style={{ ...styles.joinButton, padding: "10px 12px", alignSelf: "flex-start", marginTop: 10 }}
@@ -686,24 +751,20 @@ function SocialHome({
                 >
                   <div style={styles.eventName}>
                     {String(item.name || item.type || item.category || "Event")}
+                    {formatLanguagesForTitle(item.languages)}
                   </div>
                   {/* Show full event details like public events */}
                   {item.location && (
                     <div style={styles.details}>
-                      📍 {item.location}{item.place ? ` · ${item.place}` : ""}
+                      {getLocationDisplay(item.location)}{item.place ? ` · ${item.place}` : ""}
                     </div>
                   )}
                   <div style={styles.details}>
                     ⏰ {item.date ? `${item.date} at ${item.time}` : String(item.time || item.date)}
                   </div>
-                  {item.languages && item.languages.length > 0 && (
-                    <div style={styles.details}>
-                      🗣️ {item.languages.join(" ↔ ")}
-                    </div>
-                  )}
                   {item.category && (
                     <div style={styles.details}>
-                      🎯 {item.category}
+                      {getCategoryEmoji(item.category)} {item.category}
                     </div>
                   )}
                   {item.description && (
@@ -878,13 +939,14 @@ function SocialHome({
         <div style={styles.modalOverlay} onClick={() => {
           setShowCreateEventModal(false);
           setCreateEventStep(1);
-          setNewEvent({ name: "", location: "", date: "", time: "", description: "", category: "social" });
+          setNewEvent({ name: "", location: "cite", date: "", time: "", description: "", category: "food", languages: [] });
+          setShowAllLanguages(false);
         }}>
           <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "visible", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
             
             {/* Progress Indicator */}
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 24 }}>
-              {[1, 2, 3, 4, 5, 6].map(step => (
+              {[1, 2, 3, 4, 5, 6, 7].map(step => (
                 <div
                   key={step}
                   style={{
@@ -946,43 +1008,50 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 2: Category */}
+            {/* Step 2: Location (Cité or Paris) */}
             {createEventStep === 2 && (
               <div style={{ textAlign: "center", ...fadeIn }}>
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
-                  What type of event? 🎯
+                  Where is it? 📍
                 </h3>
                 <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
-                  Pick a category
+                  Choose the location
                 </p>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 24 }}>
-                  {[
-                    { value: "social", label: "Social Hangout", emoji: "👥" },
-                    { value: "food", label: "Food & Drinks", emoji: "🍽️" },
-                    { value: "sports", label: "Sports & Fitness", emoji: "⚽" },
-                    { value: "culture", label: "Culture & Arts", emoji: "🎨" },
-                    { value: "study", label: "Study Group", emoji: "📚" },
-                    { value: "other", label: "Other", emoji: "✨" },
-                  ].map(cat => (
-                    <button
-                      key={cat.value}
-                      style={{
-                        padding: isMobile ? 16 : 18,
-                        borderRadius: 14,
-                        border: `2px solid ${newEvent.category === cat.value ? theme.primary : theme.border}`,
-                        background: newEvent.category === cat.value ? theme.primary : theme.card,
-                        color: newEvent.category === cat.value ? "white" : theme.text,
-                        fontSize: isMobile ? 15 : 16,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                      onClick={() => setNewEvent({...newEvent, category: cat.value})}
-                    >
-                      <div style={{ fontSize: 28, marginBottom: 6 }}>{cat.emoji}</div>
-                      {cat.label}
-                    </button>
-                  ))}
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 24 }}>
+                  <button
+                    style={{
+                      padding: isMobile ? 20 : 24,
+                      borderRadius: 14,
+                      border: `2px solid ${newEvent.location === "cite" ? theme.primary : theme.border}`,
+                      background: newEvent.location === "cite" ? theme.primary : theme.card,
+                      color: newEvent.location === "cite" ? "white" : theme.text,
+                      fontSize: isMobile ? 16 : 18,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    onClick={() => setNewEvent({...newEvent, location: "cite"})}
+                  >
+                    <div style={{ fontSize: 36, marginBottom: 8 }}>🏛️</div>
+                    Cité
+                  </button>
+                  <button
+                    style={{
+                      padding: isMobile ? 20 : 24,
+                      borderRadius: 14,
+                      border: `2px solid ${newEvent.location === "paris" ? theme.primary : theme.border}`,
+                      background: newEvent.location === "paris" ? theme.primary : theme.card,
+                      color: newEvent.location === "paris" ? "white" : theme.text,
+                      fontSize: isMobile ? 16 : 18,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    onClick={() => setNewEvent({...newEvent, location: "paris"})}
+                  >
+                    <div style={{ fontSize: 36, marginBottom: 8 }}>🗼</div>
+                    Paris
+                  </button>
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
                   <button
@@ -1022,33 +1091,47 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 3: Location */}
+            {/* Step 3: Category */}
             {createEventStep === 3 && (
               <div style={{ textAlign: "center", ...fadeIn }}>
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
-                  Where will it happen? 📍
+                  Coffee here ☕
                 </h3>
                 <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
-                  Location or venue
+                  Pick a category
                 </p>
-                <input
-                  type="text"
-                  value={newEvent.location}
-                  onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
-                  placeholder="e.g., Cité Café, Luxembourg Gardens"
-                  style={{ 
-                    width: "100%", 
-                    padding: isMobile ? 14 : 16, 
-                    borderRadius: 14, 
-                    border: `2px solid ${theme.border}`, 
-                    fontSize: isMobile ? 16 : 18, 
-                    boxSizing: "border-box",
-                    textAlign: "center",
-                    fontWeight: 600,
-                  }}
-                  autoFocus
-                />
-                <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 24 }}>
+                  {[
+                    { value: "food", label: "Food", emoji: "🍽️" },
+                    { value: "drinks", label: "Drinks", emoji: "🍹" },
+                    { value: "random", label: "Random", emoji: "🎲" },
+                    { value: "walk", label: "A Walk", emoji: "🚶" },
+                    { value: "coffee", label: "Coffee", emoji: "☕" },
+                  ].map(cat => (
+                    <button
+                      key={cat.value}
+                      style={{
+                        padding: isMobile ? 16 : 18,
+                        borderRadius: 14,
+                        border: `2px solid ${newEvent.category === cat.value ? theme.primary : theme.border}`,
+                        background: newEvent.category === cat.value ? theme.primary : theme.card,
+                        color: newEvent.category === cat.value ? "white" : theme.text,
+                        fontSize: isMobile ? 15 : 16,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                      }}
+                      onClick={() => setNewEvent({...newEvent, category: cat.value})}
+                    >
+                      <div style={{ fontSize: 28 }}>{cat.emoji}</div>
+                      <span>{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 12 }}>
                   <button
                     style={{
                       flex: 1,
@@ -1068,18 +1151,17 @@ function SocialHome({
                   <button
                     style={{
                       flex: 1,
-                      background: newEvent.location.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
-                      color: newEvent.location.trim() ? "white" : theme.textMuted,
+                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                      color: "white",
                       border: "none",
                       borderRadius: 14,
                       padding: isMobile ? "14px" : "16px",
                       fontWeight: 900,
                       fontSize: isMobile ? 16 : 18,
-                      cursor: newEvent.location.trim() ? "pointer" : "not-allowed",
-                      boxShadow: newEvent.location.trim() ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => newEvent.location.trim() && setCreateEventStep(4)}
-                    disabled={!newEvent.location.trim()}
+                    onClick={() => setCreateEventStep(4)}
                   >
                     Next →
                   </button>
@@ -1215,8 +1297,199 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 6: Description (Optional) */}
+            {/* Step 6: Languages */}
             {createEventStep === 6 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  What languages? 🗣️
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 24 }}>
+                  Select all languages that will be spoken
+                </p>
+                
+                {!showAllLanguages ? (
+                  <>
+                    <p style={{ fontSize: isMobile ? 13 : 14, color: theme.textMuted, marginBottom: 16, fontWeight: 600 }}>
+                      Common options
+                    </p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 16 }}>
+                      {[
+                        { value: "French", emoji: "🇫🇷" },
+                        { value: "English", emoji: "🇬🇧" },
+                        { value: "Spanish", emoji: "🇪🇸" },
+                      ].map(lang => (
+                        <button
+                          key={lang.value}
+                          style={{
+                            padding: isMobile ? 16 : 18,
+                            borderRadius: 14,
+                            border: `2px solid ${newEvent.languages.includes(lang.value) ? theme.primary : theme.border}`,
+                            background: newEvent.languages.includes(lang.value) ? theme.primary : theme.card,
+                            color: newEvent.languages.includes(lang.value) ? "white" : theme.text,
+                            fontSize: isMobile ? 15 : 16,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                          }}
+                          onClick={() => {
+                            const langs = [...newEvent.languages];
+                            const idx = langs.indexOf(lang.value);
+                            if (idx > -1) {
+                              langs.splice(idx, 1);
+                            } else {
+                              langs.push(lang.value);
+                            }
+                            setNewEvent({...newEvent, languages: langs});
+                          }}
+                        >
+                          <div style={{ fontSize: 28 }}>{lang.emoji}</div>
+                          <span>{lang.value}</span>
+                          {newEvent.languages.includes(lang.value) && (
+                            <span style={{ marginLeft: "auto", fontSize: 20 }}>✓</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      style={{
+                        width: "100%",
+                        padding: isMobile ? "12px" : "14px",
+                        borderRadius: 12,
+                        border: `2px solid ${theme.border}`,
+                        background: "transparent",
+                        color: theme.accent,
+                        fontSize: isMobile ? 14 : 15,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        marginBottom: 16,
+                      }}
+                      onClick={() => setShowAllLanguages(true)}
+                    >
+                      or browse all
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 16, maxHeight: 240, overflowY: "auto" }}>
+                      {[
+                        { value: "French", emoji: "🇫🇷" },
+                        { value: "English", emoji: "🇬🇧" },
+                        { value: "Spanish", emoji: "🇪🇸" },
+                        { value: "German", emoji: "🇩🇪" },
+                        { value: "Italian", emoji: "🇮🇹" },
+                        { value: "Portuguese", emoji: "🇵🇹" },
+                        { value: "Chinese", emoji: "🇨🇳" },
+                        { value: "Japanese", emoji: "🇯🇵" },
+                        { value: "Korean", emoji: "🇰🇷" },
+                        { value: "Arabic", emoji: "🇸🇦" },
+                      ].map(lang => (
+                        <button
+                          key={lang.value}
+                          style={{
+                            padding: isMobile ? 14 : 16,
+                            borderRadius: 12,
+                            border: `2px solid ${newEvent.languages.includes(lang.value) ? theme.primary : theme.border}`,
+                            background: newEvent.languages.includes(lang.value) ? theme.primary : theme.card,
+                            color: newEvent.languages.includes(lang.value) ? "white" : theme.text,
+                            fontSize: isMobile ? 14 : 15,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                          }}
+                          onClick={() => {
+                            const langs = [...newEvent.languages];
+                            const idx = langs.indexOf(lang.value);
+                            if (idx > -1) {
+                              langs.splice(idx, 1);
+                            } else {
+                              langs.push(lang.value);
+                            }
+                            setNewEvent({...newEvent, languages: langs});
+                          }}
+                        >
+                          <div style={{ fontSize: 24 }}>{lang.emoji}</div>
+                          <span>{lang.value}</span>
+                          {newEvent.languages.includes(lang.value) && (
+                            <span style={{ marginLeft: "auto", fontSize: 18 }}>✓</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {newEvent.languages.length > 0 && (
+                  <div style={{ 
+                    marginBottom: 16, 
+                    padding: 12, 
+                    background: theme.card, 
+                    borderRadius: 12, 
+                    border: `2px solid ${theme.primary}`,
+                  }}>
+                    <p style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8, fontWeight: 600 }}>
+                      Selected languages:
+                    </p>
+                    <p style={{ fontSize: isMobile ? 15 : 16, color: theme.text, fontWeight: 700 }}>
+                      {newEvent.languages.join(" ↔ ")}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      setCreateEventStep(5);
+                      setShowAllLanguages(false);
+                    }}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: newEvent.languages.length > 0 ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
+                      color: newEvent.languages.length > 0 ? "white" : theme.textMuted,
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: newEvent.languages.length > 0 ? "pointer" : "not-allowed",
+                      boxShadow: newEvent.languages.length > 0 ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                    }}
+                    onClick={() => {
+                      if (newEvent.languages.length > 0) {
+                        setCreateEventStep(7);
+                        setShowAllLanguages(false);
+                      }
+                    }}
+                    disabled={newEvent.languages.length === 0}
+                  >
+                    {showAllLanguages ? "Confirm ✓" : "Next →"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 7: Description (Optional) */}
+            {createEventStep === 7 && (
               <div style={{ textAlign: "center", ...fadeIn }}>
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Tell us more! 💬
@@ -1254,7 +1527,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(5)}
+                    onClick={() => setCreateEventStep(6)}
                   >
                     ← Back
                   </button>
@@ -1284,6 +1557,7 @@ function SocialHome({
                           time: newEvent.time,
                           description: newEvent.description,
                           category: newEvent.category,
+                          languages: newEvent.languages,
                           isPublic: true,
                           createdBy: userName,
                           participants: [userName],
@@ -1296,9 +1570,10 @@ function SocialHome({
                         onJoinPublicEvent && onJoinPublicEvent(newEventObj);
                         
                         // Reset form and close
-                        setNewEvent({ name: "", location: "", date: "", time: "", description: "", category: "social" });
+                        setNewEvent({ name: "", location: "cite", date: "", time: "", description: "", category: "food", languages: [] });
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
+                        setShowAllLanguages(false);
                         alert("🎉 Event created successfully! It will appear in public events.");
                       } catch (err) {
                         alert("Failed to create event. Please try again.");
@@ -1331,7 +1606,8 @@ function SocialHome({
               onClick={() => {
                 setShowCreateEventModal(false);
                 setCreateEventStep(1);
-                setNewEvent({ name: "", location: "", date: "", time: "", description: "", category: "social" });
+                setNewEvent({ name: "", location: "cite", date: "", time: "", description: "", category: "food", languages: [] });
+                setShowAllLanguages(false);
               }}
             >
               ×
