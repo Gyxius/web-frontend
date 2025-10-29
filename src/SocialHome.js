@@ -461,7 +461,7 @@ function SocialHome({
         ➕ Create Your Own Event
       </button>
 
-      {/* Public Events - Open to Everyone */}
+      {/* Featured Events - Created by Admin */}
       {(() => {
         // Filter out events that user has already joined
         const availablePublicEvents = publicEvents.filter(event => 
@@ -474,9 +474,9 @@ function SocialHome({
         
         return (
         <div style={styles.highlightCard}>
-          <div style={styles.highlightTitle}>🌍 Public Events</div>
+          <div style={styles.highlightTitle}>⭐ Featured Events</div>
           <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-            Open events you can join right now!
+            Curated events you can join right now!
           </div>
           {availablePublicEvents.slice(0, 3).map((event, idx) => {
             return (
@@ -522,7 +522,7 @@ function SocialHome({
           })}
           {availablePublicEvents.length > 3 && (
             <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8 }}>
-              +{availablePublicEvents.length - 3} more public event{availablePublicEvents.length - 3 !== 1 ? "s" : ""} available
+              +{availablePublicEvents.length - 3} more featured event{availablePublicEvents.length - 3 !== 1 ? "s" : ""} available
             </div>
           )}
         </div>
@@ -752,23 +752,86 @@ function SocialHome({
 
       {viewMode === "my" && (
         <>
+          {/* Hosted Events Section */}
+          {joinedEvents.filter(item => item.host && item.host.name === userName).length > 0 && (
+            <>
+              <div style={styles.title}>🎤 My Hosted Events</div>
+              <div>
+                {joinedEvents
+                  .filter(item => item.host && item.host.name === userName)
+                  .map((item, idx) => (
+                    <div
+                      key={`hosted-${idx}`}
+                      style={{...styles.eventCard, borderLeft: `4px solid ${theme.gold}`}}
+                      className="eventCard"
+                      onClick={() => onJoinedEventClick(item)}
+                    >
+                      <div style={styles.eventName}>
+                        {String(item.name || item.type || item.category || "Event")}
+                        {formatLanguagesForTitle(item.languages)}
+                      </div>
+                      {item.imageUrl && (
+                        <div style={{
+                          width: "100%",
+                          height: 160,
+                          borderRadius: 12,
+                          marginTop: 12,
+                          marginBottom: 12,
+                          backgroundImage: `url(${item.imageUrl})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }} />
+                      )}
+                      {item.location && (
+                        <div style={styles.details}>
+                          {getLocationDisplay(item.location, item.venue)}{item.place && !item.venue ? ` · ${item.place}` : ""}
+                        </div>
+                      )}
+                      <div style={styles.details}>
+                        ⏰ {item.date ? `${item.date} at ${item.time}` : String(item.time || item.date)}
+                      </div>
+                      {item.category && (
+                        <div style={styles.details}>
+                          {getCategoryEmoji(item.category)} {item.category}
+                        </div>
+                      )}
+                      {Array.isArray(item.crew) && (() => {
+                        const attendeeCount = item.crew.filter(member => {
+                          const memberName = typeof member === "object" && member !== null ? member.name : member;
+                          return memberName !== userName;
+                        }).length;
+                        return attendeeCount > 0 && (
+                          <div style={styles.details}>
+                            👥 {attendeeCount} attendee{attendeeCount !== 1 ? 's' : ''}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  ))}
+              </div>
+            </>
+          )}
+
+          {/* Joined Events Section */}
           <div style={styles.title}>🎟️ My Joined Events</div>
-          {joinedEvents.length === 0 ? (
+          {joinedEvents.filter(item => !item.host || item.host.name !== userName).length === 0 ? (
             <div style={styles.empty}>You haven’t joined any events yet.</div>
           ) : (
             <div>
-              {joinedEvents.map((item, idx) => (
-                <div
-                  key={idx}
-                  style={styles.eventCard}
-                  className="eventCard"
-                  onClick={() => {
-                    console.log(
-                      `[ACTIVITY] user "${userName}": clicked on joined event "${item.name || item.type || item.category || "Event"}"`,
-                      item
-                    );
-                    onJoinedEventClick(item);
-                  }}
+              {joinedEvents
+                .filter(item => !item.host || item.host.name !== userName)
+                .map((item, idx) => (
+                  <div
+                    key={idx}
+                    style={styles.eventCard}
+                    className="eventCard"
+                    onClick={() => {
+                      console.log(
+                        `[ACTIVITY] user "${userName}": clicked on joined event "${item.name || item.type || item.category || "Event"}"`,
+                        item
+                      );
+                      onJoinedEventClick(item);
+                    }}
                 >
                   <div style={styles.eventName}>
                     {String(item.name || item.type || item.category || "Event")}
@@ -1788,7 +1851,7 @@ function SocialHome({
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
                     onClick={() => {
-                      // Save to adminEvents in localStorage so it appears in public events
+                      // Save to adminEvents in localStorage so it appears in featured events
                       try {
                         const saved = localStorage.getItem("adminEvents");
                         const events = saved ? JSON.parse(saved) : [];
@@ -1833,7 +1896,7 @@ function SocialHome({
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
-                        alert("🎉 Event created successfully! It will appear in public events.");
+                        alert("🎉 Event created successfully! It will appear in Featured Events.");
                       } catch (err) {
                         alert("Failed to create event. Please try again.");
                       }
