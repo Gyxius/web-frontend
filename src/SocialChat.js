@@ -10,9 +10,13 @@ function SocialChat({
   onUserClick,
   onLeaveEvent,
   onEditEvent,
+  onDeleteEvent,
+  allUsers = [],
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
+  const [showManageHostsModal, setShowManageHostsModal] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const chatBoxRef = useRef(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editedEvent, setEditedEvent] = useState({
@@ -96,8 +100,9 @@ function SocialChat({
       fontSize: 32,
       fontWeight: 900,
       color: theme.text,
-      marginBottom: 16,
+      marginBottom: 0,
       lineHeight: 1.2,
+      flex: 1,
     },
 
     metaRow: {
@@ -399,8 +404,164 @@ function SocialChat({
       </div>
 
       <div style={styles.contentWrapper}>
-        {/* Event Title */}
-        <h1 style={styles.eventTitle}>{event?.name || "Event"}</h1>
+        {/* Event Title with Edit Button */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+          <h1 style={styles.eventTitle}>{event?.name || "Event"}</h1>
+          
+          {/* Edit/Options Button - Only for host */}
+          {event?.host && event.host.name === currentUser && (
+            <div style={{ position: "relative" }}>
+              <button
+                style={{
+                  background: "white",
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: 12,
+                  width: 44,
+                  height: 44,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  fontSize: 18,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  transition: "all 0.2s",
+                }}
+                onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.05)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                }}
+              >
+                ⚙️
+              </button>
+              
+              {/* Dropdown Menu */}
+              {showOptionsMenu && (
+                <>
+                  {/* Backdrop to close menu */}
+                  <div
+                    style={{
+                      position: "fixed",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 999,
+                    }}
+                    onClick={() => setShowOptionsMenu(false)}
+                  />
+                  
+                  {/* Menu */}
+                  <div style={{
+                    position: "absolute",
+                    top: 52,
+                    right: 0,
+                    background: "white",
+                    borderRadius: 12,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+                    zIndex: 1000,
+                    minWidth: 200,
+                    overflow: "hidden",
+                    border: `1px solid ${theme.border}`,
+                  }}>
+                    <button
+                      style={{
+                        width: "100%",
+                        padding: "14px 20px",
+                        border: "none",
+                        background: "white",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: theme.text,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        borderBottom: `1px solid ${theme.border}`,
+                      }}
+                      onClick={() => {
+                        setEditedEvent({
+                          name: event?.name || "",
+                          location: event?.location || "cite",
+                          date: event?.date || "",
+                          time: event?.time || "",
+                          description: event?.description || "",
+                          category: event?.category || "food",
+                          languages: event?.languages || [],
+                          imageUrl: event?.imageUrl || "",
+                        });
+                        setShowEditModal(true);
+                        setShowOptionsMenu(false);
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                    >
+                      <span>✏️</span> Edit Event
+                    </button>
+                    
+                    <button
+                      style={{
+                        width: "100%",
+                        padding: "14px 20px",
+                        border: "none",
+                        background: "white",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: theme.text,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        borderBottom: `1px solid ${theme.border}`,
+                      }}
+                      onClick={() => {
+                        setShowManageHostsModal(true);
+                        setShowOptionsMenu(false);
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                    >
+                      <span>👥</span> Manage Co-Hosts
+                    </button>
+                    
+                    <button
+                      style={{
+                        width: "100%",
+                        padding: "14px 20px",
+                        border: "none",
+                        background: "white",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: "#FF4B4B",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                      }}
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
+                          onDeleteEvent && onDeleteEvent(event);
+                          setShowOptionsMenu(false);
+                        }
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#FFF5F5"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                    >
+                      <span>🗑️</span> Delete Event
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Event Meta Information */}
         <div style={{ marginBottom: 24 }}>
@@ -556,6 +717,36 @@ function SocialChat({
           </div>
         )}
 
+        {/* Co-Hosts Section */}
+        {event?.coHosts && event.coHosts.length > 0 && (
+          <div style={styles.section}>
+            <div style={styles.sectionTitle}>👥 Co-Hosts ({event.coHosts.length})</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {event.coHosts.map((coHost, i) => (
+                <div
+                  key={i}
+                  style={styles.hostCard}
+                  onClick={() => onUserClick && onUserClick(coHost)}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  <div style={styles.hostAvatar}>
+                    {coHost.emoji}
+                  </div>
+                  <div style={styles.hostInfo}>
+                    <div style={styles.hostName}>
+                      {coHost.name} {coHost.country}
+                    </div>
+                    {coHost.bio && (
+                      <div style={styles.hostBio}>{coHost.bio}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Attendees Section */}
         {(event?.crew_full || event?.crew || []).filter(item => !event?.host || item.name !== event.host.name).length > 0 && (
           <div style={styles.section}>
@@ -635,30 +826,7 @@ function SocialChat({
         flexWrap: "wrap",
         justifyContent: "center"
       }}>
-        <button style={styles.backBtn} onClick={onBack}>Back to Results</button>
         <button style={styles.homeBtn} onClick={onHome}>Go to Homepage</button>
-        {/* Show Edit button only if current user is the host */}
-        {event?.host && event.host.name === currentUser && (
-          <button
-            style={styles.editBtn}
-            onClick={() => {
-              // Load current event data into the form when opening modal
-              setEditedEvent({
-                name: event?.name || "",
-                location: event?.location || "cite",
-                date: event?.date || "",
-                time: event?.time || "",
-                description: event?.description || "",
-                category: event?.category || "food",
-                languages: event?.languages || [],
-                imageUrl: event?.imageUrl || "",
-              });
-              setShowEditModal(true);
-            }}
-          >
-            ✏️ Edit Event
-          </button>
-        )}
         <button
           style={styles.leaveBtn}
           onClick={() => onLeaveEvent && onLeaveEvent(event)}
@@ -1041,6 +1209,208 @@ function SocialChat({
                 Save Changes ✨
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Co-Hosts Modal */}
+      {showManageHostsModal && (
+        <div style={styles.editScreen}>
+          <div style={styles.editContainer}>
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              marginBottom: 32,
+              paddingBottom: 16,
+              borderBottom: `2px solid ${theme.border}`
+            }}>
+              <button
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  fontSize: 24,
+                  cursor: "pointer",
+                  color: theme.text,
+                  marginRight: 16,
+                }}
+                onClick={() => setShowManageHostsModal(false)}
+              >
+                ←
+              </button>
+              <h2 style={{ fontSize: 24, fontWeight: 900, color: theme.text, margin: 0 }}>
+                👥 Manage Co-Hosts
+              </h2>
+            </div>
+
+            {/* Current Co-Hosts */}
+            <div style={{ marginBottom: 32 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: theme.text, marginBottom: 16 }}>
+                Current Co-Hosts
+              </h3>
+              {event?.coHosts && event.coHosts.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {event.coHosts.map((coHost, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: 16,
+                        background: theme.card,
+                        borderRadius: 12,
+                        border: `2px solid ${theme.border}`,
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <span style={{ fontSize: 24 }}>{coHost.emoji || "👤"}</span>
+                        <div>
+                          <div style={{ fontWeight: 700, color: theme.text }}>
+                            {coHost.name} {coHost.country && `${coHost.country}`}
+                          </div>
+                          {coHost.bio && (
+                            <div style={{ fontSize: 14, color: theme.textMuted }}>
+                              {coHost.bio}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        style={{
+                          background: "#FF4B4B",
+                          color: "white",
+                          border: "none",
+                          borderRadius: 8,
+                          padding: "8px 16px",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          fontSize: 14,
+                        }}
+                        onClick={() => {
+                          if (window.confirm(`Remove ${coHost.name} as co-host?`)) {
+                            const updatedCoHosts = event.coHosts.filter((_, i) => i !== idx);
+                            const updatedEvent = {
+                              ...event,
+                              coHosts: updatedCoHosts,
+                            };
+                            onEditEvent && onEditEvent(updatedEvent);
+                          }
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ 
+                  padding: 24, 
+                  textAlign: "center", 
+                  color: theme.textMuted,
+                  background: theme.card,
+                  borderRadius: 12,
+                  border: `2px dashed ${theme.border}`,
+                }}>
+                  No co-hosts yet. Add participants as co-hosts below.
+                </div>
+              )}
+            </div>
+
+            {/* Add Co-Hosts from Participants */}
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: theme.text, marginBottom: 16 }}>
+                Add Co-Host from Participants
+              </h3>
+              {(event?.crew_full || event?.crew || event?.participants || []).length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {(event?.crew_full || event?.crew || event?.participants || [])
+                    .filter(p => 
+                      p.name !== currentUser && 
+                      p.name !== event?.host?.name &&
+                      !event.coHosts?.some(ch => ch.name === p.name)
+                    )
+                    .map((participant, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: 16,
+                          background: theme.card,
+                          borderRadius: 12,
+                          border: `2px solid ${theme.border}`,
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <span style={{ fontSize: 24 }}>{participant.emoji || "👤"}</span>
+                          <div>
+                            <div style={{ fontWeight: 700, color: theme.text }}>
+                              {participant.name} {participant.country && `${participant.country}`}
+                            </div>
+                            {participant.bio && (
+                              <div style={{ fontSize: 14, color: theme.textMuted }}>
+                                {participant.bio}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          style={{
+                            background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                            color: "white",
+                            border: "none",
+                            borderRadius: 8,
+                            padding: "8px 16px",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            fontSize: 14,
+                          }}
+                          onClick={() => {
+                            const updatedCoHosts = [...(event.coHosts || []), participant];
+                            const updatedEvent = {
+                              ...event,
+                              coHosts: updatedCoHosts,
+                            };
+                            onEditEvent && onEditEvent(updatedEvent);
+                          }}
+                        >
+                          Add as Co-Host
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div style={{ 
+                  padding: 24, 
+                  textAlign: "center", 
+                  color: theme.textMuted,
+                  background: theme.card,
+                  borderRadius: 12,
+                  border: `2px dashed ${theme.border}`,
+                }}>
+                  No participants available to add as co-hosts.
+                </div>
+              )}
+            </div>
+
+            <button
+              style={{
+                marginTop: 32,
+                width: "100%",
+                background: theme.card,
+                color: theme.text,
+                border: `2px solid ${theme.border}`,
+                borderRadius: 14,
+                padding: 16,
+                fontWeight: 900,
+                fontSize: 17,
+                cursor: "pointer",
+              }}
+              onClick={() => setShowManageHostsModal(false)}
+            >
+              Done
+            </button>
           </div>
         </div>
       )}

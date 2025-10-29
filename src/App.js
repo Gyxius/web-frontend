@@ -391,6 +391,39 @@ function App() {
             }
           }
         }}
+        onDeleteEvent={(eventToDelete) => {
+          // Remove from adminEvents localStorage
+          const saved = localStorage.getItem("adminEvents");
+          if (saved) {
+            const events = JSON.parse(saved);
+            const filteredEvents = events.filter(e => e.id !== eventToDelete.id);
+            localStorage.setItem("adminEvents", JSON.stringify(filteredEvents));
+          }
+          
+          // Remove from all users' joined events
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith("joinedEvents_")) {
+              const joinedEvents = JSON.parse(localStorage.getItem(key) || "[]");
+              const filtered = joinedEvents.filter(e => e.id !== eventToDelete.id);
+              localStorage.setItem(key, JSON.stringify(filtered));
+            }
+          });
+          
+          // Remove from userEvents state
+          setUserEvents(prev => {
+            const newUserEvents = { ...prev };
+            Object.keys(newUserEvents).forEach(key => {
+              newUserEvents[key] = newUserEvents[key].filter(e => e.id !== eventToDelete.id);
+            });
+            return newUserEvents;
+          });
+          
+          // Navigate back to home
+          setShowChat(false);
+          setRouletteResult(null);
+          alert("🗑️ Event deleted successfully!");
+        }}
+        allUsers={users}
       />
     );
   } else if (showResult && rouletteResult) {
