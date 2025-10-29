@@ -299,12 +299,13 @@ function SocialHome({
       border: "1px solid #EEF2F7",
     },
   };
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <img 
-          src="http://localhost:8000/static/assets/logo.png" 
+          src={`${API_URL}/static/assets/logo.png`} 
           alt="Lemi Logo" 
           style={{ width: 40, height: 40, objectFit: 'contain' }}
         />

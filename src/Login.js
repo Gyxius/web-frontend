@@ -111,6 +111,7 @@ function Login({ onLogin, onRegistered }) {
       fontSize: 18,
     },
   };
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -228,7 +229,7 @@ function Login({ onLogin, onRegistered }) {
       <div style={styles.card}>
         <div style={styles.brand}>
           <img 
-            src="http://localhost:8000/static/assets/logo.png" 
+            src={`${API_URL}/static/assets/logo.png`} 
             alt="Lemi Logo" 
             style={{ width: 60, height: 60, objectFit: 'contain' }}
           />

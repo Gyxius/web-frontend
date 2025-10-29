@@ -619,12 +619,13 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     if (keys.length === 0) return true;
     return !keys.some(isRealUserKey);
   };
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   return (
     <div style={styles.container}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 18 }}>
         <img 
-          src="http://localhost:8000/static/assets/logo.png" 
+          src={`${API_URL}/static/assets/logo.png`} 
           alt="Lemi Logo" 
           style={{ width: 50, height: 50, objectFit: 'contain' }}
         />
