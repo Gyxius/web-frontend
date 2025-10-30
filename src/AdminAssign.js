@@ -631,25 +631,6 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
 
   const visibleUsers = allUsersCombined.filter(u => !removedBotSet.has((u.username || u.name || '').toLowerCase()));
 
-  const getEventParticipantKeys = (ev) => {
-    const keys = new Set();
-    if (Array.isArray(ev?.participants)) {
-      ev.participants.forEach(u => keys.add(typeof u === 'object' ? (u.username || u.name) : u));
-    }
-    if (Array.isArray(ev?.crew)) {
-      ev.crew.forEach(u => keys.add(typeof u === 'object' ? (u.username || u.name) : u));
-    }
-    Object.entries(userEvents || {}).forEach(([userKey, list]) => {
-      if (Array.isArray(list) && list.find(e2 => String(e2.id) === String(ev.id))) {
-        keys.add(userKey);
-      }
-    });
-    return Array.from(keys).filter(Boolean);
-  };
-  const canRemoveEvent = (ev) => {
-    // Admin can remove any event
-    return true;
-  };
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   return (
