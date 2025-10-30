@@ -118,7 +118,7 @@ function Login({ onLogin, onRegistered }) {
       fontSize: 18,
     },
   };
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+  const API_URL = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -168,7 +168,7 @@ function Login({ onLogin, onRegistered }) {
     setLoading(true);
     setError("");
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const apiUrl = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
       const endpoint = isRegistering ? "/register" : "/login";
       const response = await fetch(`${apiUrl}${endpoint}`, {
         method: "POST",

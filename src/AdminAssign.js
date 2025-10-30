@@ -614,7 +614,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
 
   const visibleUsers = allUsersCombined.filter(u => !removedBotSet.has((u.username || u.name || '').toLowerCase()));
 
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+  const API_URL = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
 
   return (
     <div style={styles.container}>

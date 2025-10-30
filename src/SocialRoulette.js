@@ -9,7 +9,7 @@ function SocialRoulette({ onResult }) {
 
   const fetchEvents = async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const apiUrl = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
       const res = await fetch(`${apiUrl}/events`);
       if (!res.ok) throw new Error("Bad response");
       return await res.json();
@@ -21,7 +21,7 @@ function SocialRoulette({ onResult }) {
 
   const fetchUsers = async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const apiUrl = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
       const res = await fetch(`${apiUrl}/users`);
       if (!res.ok) throw new Error("Bad response");
       return await res.json();

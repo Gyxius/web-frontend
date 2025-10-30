@@ -452,7 +452,7 @@ function SocialHome({
       border: "1px solid #EEF2F7",
     },
   };
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+  const API_URL = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
 
   return (
     <div style={styles.container}>
