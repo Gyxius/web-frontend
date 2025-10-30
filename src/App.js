@@ -25,18 +25,15 @@ function App() {
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
   const [suggestedEvents, setSuggestedEvents] = useState({});
   const [publicEvents, setPublicEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
   
   // Load data from API when user logs in
   useEffect(() => {
     if (!user) {
-      setLoading(false);
       return;
     }
 
     const loadUserData = async () => {
       try {
-        setLoading(true);
         const username = user?.username || user?.name;
 
         // Load all public events
@@ -51,10 +48,8 @@ function App() {
         const friendsList = await api.getFriends(username);
         setFriends({ [username]: friendsList });
 
-        setLoading(false);
       } catch (error) {
         console.error("Failed to load data from API:", error);
-        setLoading(false);
       }
     };
 
