@@ -1,27 +1,19 @@
 import React, { useState, useEffect } from "react";
-import PendingRequestDetails from "./PendingRequestDetails";
 import Login from "./Login";
 import SocialHome from "./SocialHome";
-import SocialForm from "./SocialForm";
 import SocialRoulette from "./SocialRoulette";
 import AdminAssign from "./AdminAssign";
 import UserProfile from "./UserProfile";
 import EditMyProfile from "./EditMyProfile";
 import SocialChat from "./SocialChat";
 import SocialResult from "./SocialResult";
-import WaitingForAdmin from "./WaitingForAdmin";
 import users from "./users";
-import allEvents from "./events";
 
 function App() {
   const [user, setUser] = useState(null);
-  const [showForm, setShowForm] = useState(false);
   const [showRoulette, setShowRoulette] = useState(false);
   const [rouletteResult, setRouletteResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
-  const [waitingForAdmin, setWaitingForAdmin] = useState(false);
-  const [showPendingDetails, setShowPendingDetails] = useState(false);
-  const [editingPendingIdx, setEditingPendingIdx] = useState(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [justRegistered, setJustRegistered] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -43,11 +35,6 @@ function App() {
     const saved = localStorage.getItem("pendingFriendRequests");
     return saved ? JSON.parse(saved) : [];
   });
-  const [pendingRequests, setPendingRequests] = useState(() => {
-    const saved = localStorage.getItem("pendingRequests");
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [selectedPendingRequestIdx, setSelectedPendingRequestIdx] = useState(null);
   
   // Suggested events - events assigned by admin but not yet accepted by user
   const [suggestedEvents, setSuggestedEvents] = useState(() => {
@@ -156,9 +143,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem("pendingFriendRequests", JSON.stringify(pendingFriendRequests));
   }, [pendingFriendRequests]);
-  useEffect(() => {
-    localStorage.setItem("pendingRequests", JSON.stringify(pendingRequests));
-  }, [pendingRequests]);
 
   // Expose cleanup function to browser console and auto-remove specific event
   useEffect(() => {
@@ -256,11 +240,9 @@ function App() {
     setUser(userObj);
     // Reset navigation states to ensure user lands on homepage
     setShowEditProfile(false);
-    setShowForm(false);
     setShowRoulette(false);
     setShowResult(false);
     setShowChat(false);
-    setWaitingForAdmin(false);
     setSelectedProfile(null);
   };
   const handleSignOut = () => {
@@ -268,7 +250,6 @@ function App() {
   setShowRoulette(false);
   setShowResult(false);
   setShowChat(false);
-  setWaitingForAdmin(false);
   setSelectedProfile(null);
   };
 
@@ -296,7 +277,6 @@ function App() {
     mainContent = (
       <>
         <AdminAssign
-          pendingRequests={pendingRequests}
           userEvents={userEvents}
           onRemoveJoinedEvent={(userKey, idx) => {
             setUserEvents(prev => {
@@ -306,75 +286,6 @@ function App() {
               }
               return updated;
             });
-          }}
-          onAssignEvent={(reqIdx, eventId, eventObj) => {
-            if (!eventId || eventId === "") return; // guard against empty/falsy eventId
-            const req = pendingRequests[reqIdx];
-            if (!req) return;
-            const userKey = typeof req.user === "object" ? (req.user.username || req.user.name) : req.user;
-            // Use passed event object if available, otherwise try to find in allEvents
-            const ev = eventObj || allEvents.find(e => String(e.id) === String(eventId));
-            if (!ev) return;
-            
-            // Calculate match score and details
-            const userRequest = req.event || {};
-            const matchDetails = {
-              location: userRequest.location && ev.location ? 
-                String(ev.location).toLowerCase() === String(userRequest.location).toLowerCase() : null,
-              category: userRequest.category && ev.category ? 
-                ev.category === userRequest.category : null,
-              timePreference: userRequest.timePreference ? 
-                true : null, // Can't match timePreference perfectly, just acknowledge it exists
-              language: userRequest.language && ev.languages ? 
-                ev.languages.includes(userRequest.language) : null,
-            };
-            const matchCount = Object.values(matchDetails).filter(v => v === true).length;
-            const totalCriteria = Object.values(matchDetails).filter(v => v !== null).length;
-            const matchPercentage = totalCriteria > 0 ? Math.round((matchCount / totalCriteria) * 100) : 100;
-            
-            // Add event to suggested events with match info
-            const eventWithMatch = {
-              ...ev,
-              matchDetails,
-              matchPercentage,
-              userRequest, // Include original request for reference
-            };
-            
-            setSuggestedEvents(prev => {
-              const updated = { ...prev };
-              const list = updated[userKey] || [];
-              if (!list.find(x => String(x.id || x.name) === String(ev.id))) {
-                updated[userKey] = [...list, eventWithMatch];
-              }
-              return updated;
-            });
-            // Update pending request to stage 3 with assigned event id
-            setPendingRequests(prev => prev.map((r, i) => {
-              if (i !== reqIdx) return r;
-              const now = Date.now();
-              const nextHistory = Array.isArray(r.history) ? [...r.history, { stage: 3, ts: now }] : [{ stage: 3, ts: now }];
-              return { ...r, stage: 3, assignedEventId: ev.id, history: nextHistory };
-            }));
-            // Check crew size for stage 4 (simple heuristic: at least 4 users joined)
-            setTimeout(() => {
-              const participants = Object.values(userEvents).reduce((acc, events) => acc + (Array.isArray(events) && events.find(e2 => String(e2.id) === String(ev.id)) ? 1 : 0), 0) + 1; // +1 for newly assigned
-              if (participants >= 4) {
-                setPendingRequests(prev => prev.map((r, i) => {
-                  if (i !== reqIdx) return r;
-                  const now2 = Date.now();
-                  const nextHistory2 = Array.isArray(r.history) ? [...r.history, { stage: 4, ts: now2 }] : [{ stage: 4, ts: now2 }];
-                  return { ...r, stage: 4, history: nextHistory2 };
-                }));
-              }
-            }, 0);
-          }}
-          onAddPendingRequests={(batch, mode) => {
-            if (mode === 'clear') {
-              setPendingRequests([]);
-              return;
-            }
-            if (!Array.isArray(batch) || batch.length === 0) return;
-            setPendingRequests(prev => [...prev, ...batch]);
           }}
         />
         <button
@@ -606,108 +517,6 @@ function App() {
         setShowRoulette(false);
       }} />
     );
-  } else if (showPendingDetails) {
-    const req = selectedPendingRequestIdx !== null ? pendingRequests[selectedPendingRequestIdx] : null;
-    mainContent = (
-      <PendingRequestDetails
-        request={req}
-        onBack={() => {
-          setShowPendingDetails(false);
-          setSelectedPendingRequestIdx(null);
-        }}
-        onEdit={() => {
-          if (selectedPendingRequestIdx === null) return;
-          setEditingPendingIdx(selectedPendingRequestIdx);
-          setShowPendingDetails(false);
-          setShowForm(true);
-        }}
-        onCancel={() => {
-          if (selectedPendingRequestIdx === null) return;
-          setPendingRequests(prev => prev.filter((_, i) => i !== selectedPendingRequestIdx));
-          setShowPendingDetails(false);
-          setSelectedPendingRequestIdx(null);
-        }}
-      />
-    );
-  } else if (waitingForAdmin) {
-    const currentUserKey = user?.username || user?.name;
-    // If a specific request is selected, use it; otherwise find by current user
-    let req;
-    if (selectedPendingRequestIdx !== null && pendingRequests[selectedPendingRequestIdx]) {
-      req = pendingRequests[selectedPendingRequestIdx];
-    } else {
-      req = pendingRequests.find(r => (typeof r.user === 'object' ? (r.user.username || r.user.name) : r.user) === currentUserKey);
-    }
-    // Look for assigned event in suggested events or allEvents
-    let assignedEvent = null;
-    if (req?.assignedEventId) {
-      const suggestedList = userSuggestedEvents || [];
-      assignedEvent = suggestedList.find(e => String(e.id) === String(req.assignedEventId)) || 
-                      allEvents.find(e => String(e.id) === String(req.assignedEventId)) || 
-                      null;
-    }
-    mainContent = (
-      <WaitingForAdmin
-        onHome={() => {
-          setWaitingForAdmin(false);
-          setSelectedPendingRequestIdx(null);
-        }}
-        request={req}
-        assignedEvent={assignedEvent}
-        onGoChat={() => {
-          if (!assignedEvent) return;
-          // mark complete by removing the pending request
-          setPendingRequests(prev => prev.filter((_, i) => i !== selectedPendingRequestIdx));
-          setWaitingForAdmin(false);
-          setSelectedPendingRequestIdx(null);
-          setRouletteResult(assignedEvent);
-          setShowChat(true);
-        }}
-      />
-    );
-  } else if (showForm) {
-    const editingInit = editingPendingIdx !== null ? (pendingRequests[editingPendingIdx]?.event || null) : null;
-    mainContent = (
-      <SocialForm
-        currentUserKey={user?.username || user?.name}
-        initialValues={editingInit}
-        editing={editingPendingIdx !== null}
-        onConfirm={(payload) => {
-          const now = Date.now();
-          if (editingPendingIdx !== null) {
-            // Update existing pending request
-            setPendingRequests(prev => prev.map((r, i) => {
-              if (i === editingPendingIdx) {
-                return {
-                  ...r,
-                  event: payload,
-                  stage: 2,
-                  assignedEventId: null,
-                  history: Array.isArray(r.history) ? [...r.history, { stage: 2, ts: now }] : [{ stage: 2, ts: now }],
-                };
-              }
-              return r;
-            }));
-            setEditingPendingIdx(null);
-            setShowForm(false);
-            setWaitingForAdmin(true);
-          } else {
-            // Create new request
-            const requester = user?.username || user?.name;
-            setPendingRequests((prev) => [
-              ...prev,
-              { user: requester, event: payload, stage: 2, createdAt: now, history: [{ stage: 1, ts: now }, { stage: 2, ts: now }] },
-            ]);
-            setShowForm(false);
-            setWaitingForAdmin(true);
-          }
-        }}
-        onHome={() => {
-          setEditingPendingIdx(null);
-          setShowForm(false);
-        }}
-      />
-    );
   } else {
     mainContent = (
       <>
@@ -731,7 +540,6 @@ function App() {
         </button>
         <SocialHome
           userName={user?.username || user?.name}
-          onJoinEvent={() => setShowForm(true)}
           onEditProfile={() => setShowEditProfile(true)}
           joinedEvents={joinedEvents}
           suggestedEvents={userSuggestedEvents}
@@ -779,11 +587,6 @@ function App() {
             });
             // Award 1 point for joining an event
             addPoints(currentUserKey, 1);
-            // Mark pending request as complete (stage 5) and remove it
-            setPendingRequests(prev => prev.filter(r => {
-              const userKey = typeof r.user === "object" ? (r.user.username || r.user.name) : r.user;
-              return userKey !== currentUserKey || String(r.assignedEventId) !== String(event.id);
-            }));
           }}
           onDeclineSuggestion={(idx, event) => {
             const currentUserKey = user?.username || user?.name;
@@ -795,21 +598,6 @@ function App() {
               }
               return updated;
             });
-            // Revert pending request back to stage 2 (waiting for admin)
-            setPendingRequests(prev => prev.map(r => {
-              const userKey = typeof r.user === "object" ? (r.user.username || r.user.name) : r.user;
-              if (userKey === currentUserKey && String(r.assignedEventId) === String(event.id)) {
-                return { ...r, stage: 2, assignedEventId: null };
-              }
-              return r;
-            }));
-          }}
-          pendingRequests={pendingRequests.filter(r => r.user === (user?.username || user?.name) && r.event)}
-          onCancelPendingRequest={idx => setPendingRequests(prev => prev.filter((_, i) => i !== idx))}
-          onOpenPendingRequest={(idx) => {
-            setSelectedPendingRequestIdx(idx);
-            setShowPendingDetails(true);
-            setWaitingForAdmin(false);
           }}
           onJoinedEventClick={event => {
             setRouletteResult(event);
@@ -830,13 +618,6 @@ function App() {
             friend: fr,
             events: userEvents[fr?.username || fr?.name] || []
           })).filter(fe => Array.isArray(fe.events) && fe.events.length > 0)}
-          onRequestJoinEvent={(friend, event) => {
-            const requester = user?.username || user?.name;
-            setPendingRequests(prev => [
-              ...prev,
-              { user: requester, event, targetFriend: friend?.name || friend?.username, createdAt: Date.now() }
-            ]);
-          }}
           friendRequestsIncoming={pendingFriendRequests.filter(r => r.to === (user?.username || user?.name))}
           onAcceptFriendRequestFrom={(fromKey) => {
             const currentUserKey = user?.username || user?.name;

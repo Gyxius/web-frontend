@@ -17,9 +17,6 @@ function SocialHome({
   onJoinedEventClick,
   onUserClick,
   onLeaveEvent,
-  pendingRequests = [],
-  onCancelPendingRequest,
-  onOpenPendingRequest,
   showDebug,
   friendEvents = [],
   onRequestJoinEvent,
@@ -33,7 +30,6 @@ function SocialHome({
     console.log("[DEBUG] joinedEvents for", userName, joinedEvents);
   }
 
-  const [selectedPending, setSelectedPending] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [createEventStep, setCreateEventStep] = useState(1);
@@ -48,7 +44,7 @@ function SocialHome({
   const [selectedDate, setSelectedDate] = useState(null);
   const [showExplore, setShowExplore] = useState(false);
   const [exploreSearchQuery, setExploreSearchQuery] = useState("");
-  const [exploreTimeFilter, setExploreTimeFilter] = useState("today"); // "today", "tomorrow", "weekend"
+  const [exploreTimeFilter, setExploreTimeFilter] = useState("upcoming"); // "upcoming", "today", "tomorrow", "weekend"
   const [exploreLocationFilter, setExploreLocationFilter] = useState("all"); // "all", "Cité", "Paris"
   const [exploreCategoryFilter, setExploreCategoryFilter] = useState("all"); // "all", "food", "drinks", etc.
   const [showSearchModal, setShowSearchModal] = useState(false);
@@ -79,10 +75,25 @@ function SocialHome({
   const nextLevel = 200;
 
   // Calendar helper functions
+  // Helper function to get date string in local timezone (YYYY-MM-DD)
+  const getLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const getEventsForDate = (date) => {
     if (!date) return [];
-    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-    return joinedEvents.filter(event => event.date === dateStr);
+    const dateStr = getLocalDateString(date); // YYYY-MM-DD format in local timezone
+    return joinedEvents.filter(event => {
+      if (!event.date) return false;
+      // Normalize event date to YYYY-MM-DD format for comparison
+      const eventDateStr = event.date.includes('T') 
+        ? event.date.split('T')[0] 
+        : event.date;
+      return eventDateStr === dateStr;
+    });
   };
 
   const generateCalendar = (year, month) => {
@@ -502,8 +513,25 @@ function SocialHome({
           borderBottom: `2px solid ${theme.bg}`,
         }}>
           {showExplore ? (
-            // Explore tabs: Today, Tomorrow, Weekend
+            // Explore tabs: Upcoming, Today, Tomorrow, Weekend
             <>
+              <button
+                onClick={() => setExploreTimeFilter("upcoming")}
+                style={{
+                  flex: 1,
+                  padding: "12px 8px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: exploreTimeFilter === "upcoming" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  fontWeight: exploreTimeFilter === "upcoming" ? 900 : 600,
+                  fontSize: 15,
+                  color: exploreTimeFilter === "upcoming" ? theme.text : theme.textMuted,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                Upcoming
+              </button>
               <button
                 onClick={() => setExploreTimeFilter("today")}
                 style={{
@@ -675,7 +703,7 @@ function SocialHome({
               alignItems: "center",
               gap: 6,
             }}>
-              📅 {exploreTimeFilter === "today" ? "Today" : exploreTimeFilter === "tomorrow" ? "Tomorrow" : "Weekend"}
+              📅 {exploreTimeFilter === "upcoming" ? "Upcoming" : exploreTimeFilter === "today" ? "Today" : exploreTimeFilter === "tomorrow" ? "Tomorrow" : "Weekend"}
             </button>
             <button 
               onClick={() => setShowFiltersModal(true)}
@@ -758,18 +786,27 @@ function SocialHome({
       {/* EXPLORE SCREEN CONTENT */}
       {showExplore && (
         <>
-          {/* Tab Content Based on exploreTimeFilter */}
+          {/* Community Events - User-created events */}
           {(() => {
-            // Get today's date
+            // Get today's date for filtering
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            const dayAfterTomorrow = new Date(today);
-            dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
             
-            // Filter events based on all active filters
-            const filteredEvents = publicEvents.filter((event) => {
+            // Filter for user-created events only (those with capacity = 6)
+            const communityEvents = publicEvents.filter((event) => {
+              // Must be a user event (has capacity of 6)
+              const isUserEvent = event.capacity === 6 || (event.host || event.createdBy);
+              if (!isUserEvent) return false;
+              
+              // Skip if this is the current user's event
+              const eventCreator = event.host?.name || event.createdBy;
+              if (eventCreator && (eventCreator === userName || eventCreator.toLowerCase() === userName.toLowerCase())) return false;
+              
+              // Skip if already joined
+              if (joinedEvents.some(je => String(je.id) === String(event.id))) return false;
+              
               // Search filter
               if (exploreSearchQuery && !event.name.toLowerCase().includes(exploreSearchQuery.toLowerCase())) {
                 return false;
@@ -786,7 +823,7 @@ function SocialHome({
               }
               
               // Time filter (When? - from tabs)
-              if (event.date) {
+              if (exploreTimeFilter !== "upcoming" && event.date) {
                 const eventDate = new Date(event.date);
                 eventDate.setHours(0, 0, 0, 0);
                 
@@ -809,68 +846,146 @@ function SocialHome({
               
               return true;
             });
+            
+            // Sort by date (soonest first) for upcoming view
+            let sortedEvents = [...communityEvents];
+            if (exploreTimeFilter === "upcoming") {
+              sortedEvents = sortedEvents.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateA - dateB; // Ascending order (soonest first)
+              });
+            }
 
-            const availableEvents = filteredEvents.filter(ev => 
-              !joinedEvents.some(je => String(je.id) === String(ev.id))
-            );
-
-            if (availableEvents.length === 0) {
+            if (sortedEvents.length === 0) {
               return (
-                <div style={{ ...styles.empty, margin: "40px 16px" }}>
-                  No events found for this time period.
+                <div style={styles.highlightCard}>
+                  <div style={styles.highlightTitle}>🎤 Community Events</div>
+                  <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+                    Events hosted by community members
+                  </div>
+                  <div style={{ ...styles.empty, margin: "20px 0 20px 0" }}>
+                    No community events found for this time period.
+                  </div>
                 </div>
               );
             }
 
             return (
-              <div style={{ padding: "0 16px" }}>
-                <div style={{...styles.title, marginTop: 16}}>
-                  ✨ {exploreTimeFilter === "today" ? "Today's Events" : exploreTimeFilter === "tomorrow" ? "Tomorrow's Events" : "Weekend Events"}
+              <div style={styles.highlightCard}>
+                <div style={styles.highlightTitle}>🎤 Community Events</div>
+                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+                  Events hosted by community members
                 </div>
-                {availableEvents.map((event, idx) => (
-                  <div
-                    key={idx}
-                    style={styles.eventCard}
-                    className="eventCard"
-                    onClick={() => {
-                      setEventPreview(event);
-                    }}
+                {sortedEvents.map((event, idx) => (
+                  <div key={idx} style={{ 
+                    background: theme.bg, 
+                    padding: 14, 
+                    borderRadius: 12, 
+                    marginBottom: 10,
+                    border: `1px solid ${theme.track}`,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setEventPreview(event)}
                   >
-                    <div style={styles.eventName}>{event.name}</div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
+                        {event.name}
+                        {event.languages && event.languages.length > 0 && (
+                          <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
+                            {" - "}
+                            {event.languages.map((lang, i) => {
+                              const flag = getLanguageFlag(lang);
+                              return <span key={i}>{flag} {lang}{i < event.languages.length - 1 ? " ↔ " : ""}</span>;
+                            })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Host Info */}
+                    {(() => {
+                      if (event.host) {
+                        return (
+                          <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                            👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
+                              {event.host.emoji} {event.host.name} {event.host.country}
+                            </span>
+                          </div>
+                        );
+                      } else if (event.createdBy) {
+                        // Fallback for older events without host object
+                        const hostUser = users.find(u => u.name === event.createdBy || u.username === event.createdBy);
+                        if (hostUser) {
+                          return (
+                            <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                              👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
+                                {hostUser.emoji} {hostUser.name} {hostUser.country}
+                              </span>
+                            </div>
+                          );
+                        }
+                      }
+                      return null;
+                    })()}
+                    
                     {event.imageUrl && (
                       <div style={{
                         width: "100%",
-                        height: 160,
+                        height: 140,
                         borderRadius: 12,
+                        marginBottom: 10,
                         backgroundImage: `url(${event.imageUrl})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
-                        marginBottom: 12,
                       }} />
                     )}
-                    <div style={styles.eventDetail}>📍 {event.venue || event.location}</div>
-                    <div style={styles.eventDetail}>📅 {event.date} at {event.time}</div>
+                    
+                    {event.location && (
+                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                        📍 {event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location}
+                        {event.venue && ` · ${event.venue}`}
+                      </div>
+                    )}
+                    
+                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                      ⏰ {event.date}
+                    </div>
+                    
                     {event.category && (
-                      <div style={styles.eventDetail}>
+                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
                         🎯 {event.category}
                       </div>
                     )}
-                    <div style={styles.eventDetail}>
-                      👥 {event.capacity ? `${event.crew ? event.crew.length : 0}/${event.capacity} spots filled` : `${event.crew ? event.crew.length : 0} ${(event.crew ? event.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+                    
+                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
+                      👥 {(() => {
+                        const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                        return event.capacity 
+                          ? `${attendeeCount}/${event.capacity} spots filled` 
+                          : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                      })()}
                     </div>
+                    
                     <button
                       style={{
                         ...styles.joinButton,
                         padding: "10px 16px",
                         fontSize: 14,
                         width: "100%",
-                        marginTop: 12,
-                        opacity: (event.capacity && event.crew && event.crew.length >= event.capacity) ? 0.5 : 1,
-                        cursor: (event.capacity && event.crew && event.crew.length >= event.capacity) ? "not-allowed" : "pointer",
+                        opacity: (() => {
+                          const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                          return (event.capacity && attendeeCount >= event.capacity) ? 0.5 : 1;
+                        })(),
+                        cursor: (() => {
+                          const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                          return (event.capacity && attendeeCount >= event.capacity) ? "not-allowed" : "pointer";
+                        })(),
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (event.capacity && event.crew && event.crew.length >= event.capacity) {
+                        const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                        if (event.capacity && attendeeCount >= event.capacity) {
                           alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
                           return;
                         }
@@ -892,231 +1007,141 @@ function SocialHome({
         <>
       {/* Featured Events - Created by Admin */}
       {(() => {
-        // Filter out events that user has already joined
-        const availablePublicEvents = publicEvents.filter(event => 
-          !joinedEvents.some(je => String(je.id) === String(event.id))
-        );
+        // Filter for admin events only (capacity null or type "custom") and exclude joined events
+        const availablePublicEvents = publicEvents.filter(event => {
+          // Must be an admin event (no capacity limit)
+          const isAdminEvent = event.capacity === null || event.type === "custom";
+          if (!isAdminEvent) return false;
+          
+          // Must not be already joined
+          return !joinedEvents.some(je => String(je.id) === String(event.id));
+        });
         
         if (!availablePublicEvents || availablePublicEvents.length === 0) {
-          return null; // Don't show section if no events available
+          return (
+            <div style={styles.highlightCard}>
+              <div style={styles.highlightTitle}>⭐ Featured Events</div>
+              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+                Events created by admins
+              </div>
+              <div style={{ ...styles.empty, margin: "20px 0 20px 0" }}>
+                There are no featured events yet.
+              </div>
+            </div>
+          );
         }
         
         return (
-        <div style={{ padding: "0 16px" }}>
-          <div style={{...styles.title, marginTop: 16}}>⭐ Featured Events</div>
-          {availablePublicEvents.slice(0, 3).map((event, idx) => {
-            return (
+        <div style={styles.highlightCard}>
+          <div style={styles.highlightTitle}>⭐ Featured Events</div>
+          <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+            Events created by admins
+          </div>
+          {availablePublicEvents.slice(0, 5).map((event, idx) => (
             <div key={idx} style={{ 
-              ...styles.eventCard,
-              borderLeft: `4px solid ${theme.primary}`,
+              background: theme.bg, 
+              padding: 14, 
+              borderRadius: 12, 
+              marginBottom: 10,
+              border: `1px solid ${theme.track}`,
               cursor: "pointer",
             }}
-            className="eventCard"
             onClick={() => setEventPreview(event)}
             >
-              <div style={styles.eventName}>
-                {event.name}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
+                  {event.name}
+                  {event.languages && event.languages.length > 0 && (
+                    <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
+                      {" - "}
+                      {event.languages.map((lang, i) => {
+                        const flag = getLanguageFlag(lang);
+                        return <span key={i}>{flag} {lang}{i < event.languages.length - 1 ? " ↔ " : ""}</span>;
+                      })}
+                    </span>
+                  )}
+                </div>
               </div>
+              
               {event.imageUrl && (
                 <div style={{
                   width: "100%",
-                  height: 160,
+                  height: 140,
                   borderRadius: 12,
+                  marginBottom: 10,
                   backgroundImage: `url(${event.imageUrl})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
-                  marginBottom: 12,
                 }} />
               )}
-              <div style={styles.eventDetail}>
-                {getLocationDisplay(event.location, event.venue)}
-              </div>
-              <div style={styles.eventDetail}>
-                📅 {event.date} at {event.time}
-              </div>
-              {event.category && (
-                <div style={styles.eventDetail}>
-                  {getCategoryEmoji(event.category)} {event.category}
+              
+              {event.location && (
+                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                  📍 {event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location}
+                  {event.venue && ` · ${event.venue}`}
                 </div>
               )}
-              <div style={styles.eventDetail}>
-                👥 {event.capacity ? `${event.crew ? event.crew.length : 0}/${event.capacity} spots filled` : `${event.crew ? event.crew.length : 0} ${(event.crew ? event.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+              
+              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                ⏰ {event.date || event.time}
               </div>
+              
+              {event.category && (
+                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                  🎯 {event.category}
+                </div>
+              )}
+              
+              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
+                👥 {(() => {
+                  const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                  return event.capacity 
+                    ? `${attendeeCount}/${event.capacity} spots filled` 
+                    : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                })()}
+              </div>
+              
               <button
                 style={{
                   ...styles.joinButton,
                   padding: "10px 16px",
                   fontSize: 14,
                   width: "100%",
-                  marginTop: 12,
-                  opacity: (event.capacity && event.crew && event.crew.length >= event.capacity) ? 0.5 : 1,
-                  cursor: (event.capacity && event.crew && event.crew.length >= event.capacity) ? "not-allowed" : "pointer",
+                  opacity: (() => {
+                    const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                    return (event.capacity && attendeeCount >= event.capacity) ? 0.5 : 1;
+                  })(),
+                  cursor: (() => {
+                    const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                    return (event.capacity && attendeeCount >= event.capacity) ? "not-allowed" : "pointer";
+                  })(),
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (event.capacity && event.crew && event.crew.length >= event.capacity) {
+                  const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                  if (event.capacity && attendeeCount >= event.capacity) {
                     alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
                     return;
                   }
                   onJoinPublicEvent && onJoinPublicEvent(event);
                 }}
               >
-                {(event.capacity && event.crew && event.crew.length >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event"}
+                {(() => {
+                  const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                  return (event.capacity && attendeeCount >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event";
+                })()}
               </button>
             </div>
-            );
-          })}
-          {availablePublicEvents.length > 3 && (
-            <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8, marginBottom: 16 }}>
-              +{availablePublicEvents.length - 3} more featured event{availablePublicEvents.length - 3 !== 1 ? "s" : ""} available
+          ))}
+          {availablePublicEvents.length > 5 && (
+            <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8 }}>
+              +{availablePublicEvents.length - 5} more featured event{availablePublicEvents.length - 5 !== 1 ? "s" : ""} available
             </div>
           )}
         </div>
         );
       })()}
 
-      {/* All Hosted Events - Events created by users */}
-      {(() => {
-        // Get all public events hosted by other users (show all, even if user has joined)
-        const hostedEventsByOthers = publicEvents.filter(event => {
-          // Check if event has host info or createdBy info
-          const eventCreator = event.host?.name || event.createdBy;
-          if (!eventCreator) return false;
-          
-          // Skip if this is the current user's event
-          if (eventCreator === userName || eventCreator.toLowerCase() === userName.toLowerCase()) return false;
-          
-          // Skip if already joined (user should see it in "My Joined Events")
-          if (joinedEvents.some(je => String(je.id) === String(event.id))) return false;
-          
-          return true;
-        });
-        
-        if (hostedEventsByOthers.length === 0) {
-          return null;
-        }
-        
-        return (
-          <div style={styles.highlightCard}>
-            <div style={styles.highlightTitle}>🎤 Community Events</div>
-            <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-              Events hosted by community members
-            </div>
-            {hostedEventsByOthers.slice(0, 5).map((event, idx) => (
-              <div key={idx} style={{ 
-                background: theme.bg, 
-                padding: 14, 
-                borderRadius: 12, 
-                marginBottom: 10,
-                border: `1px solid ${theme.track}`,
-                cursor: "pointer",
-              }}
-              onClick={() => setEventPreview(event)}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                  <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
-                    {event.name}
-                    {event.languages && event.languages.length > 0 && (
-                      <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
-                        {" - "}
-                        {event.languages.map((lang, i) => {
-                          const flag = getLanguageFlag(lang);
-                          return <span key={i}>{flag} {lang}{i < event.languages.length - 1 ? " ↔ " : ""}</span>;
-                        })}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Host Info */}
-                {(() => {
-                  if (event.host) {
-                    return (
-                      <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
-                        👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
-                          {event.host.emoji} {event.host.name} {event.host.country}
-                        </span>
-                      </div>
-                    );
-                  } else if (event.createdBy) {
-                    // Fallback for older events without host object
-                    const hostUser = users.find(u => u.name === event.createdBy || u.username === event.createdBy);
-                    if (hostUser) {
-                      return (
-                        <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
-                          👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
-                            {hostUser.emoji} {hostUser.name} {hostUser.country}
-                          </span>
-                        </div>
-                      );
-                    }
-                  }
-                  return null;
-                })()}
-                
-                {event.imageUrl && (
-                  <div style={{
-                    width: "100%",
-                    height: 140,
-                    borderRadius: 12,
-                    marginBottom: 10,
-                    backgroundImage: `url(${event.imageUrl})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }} />
-                )}
-                
-                {event.location && (
-                  <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                    📍 {event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location}
-                    {event.venue && ` · ${event.venue}`}
-                  </div>
-                )}
-                
-                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                  ⏰ {event.date || event.time}
-                </div>
-                
-                {event.category && (
-                  <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                    🎯 {event.category}
-                  </div>
-                )}
-                
-                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
-                  👥 {event.capacity ? `${event.crew ? event.crew.length : 0}/${event.capacity} spots filled` : `${event.crew ? event.crew.length : 0} ${(event.crew ? event.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
-                </div>
-                
-                <button
-                  style={{
-                    ...styles.joinButton,
-                    padding: "10px 16px",
-                    fontSize: 14,
-                    width: "100%",
-                    opacity: (event.capacity && event.crew && event.crew.length >= event.capacity) ? 0.5 : 1,
-                    cursor: (event.capacity && event.crew && event.crew.length >= event.capacity) ? "not-allowed" : "pointer",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (event.capacity && event.crew && event.crew.length >= event.capacity) {
-                      alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
-                      return;
-                    }
-                    onJoinPublicEvent && onJoinPublicEvent(event);
-                  }}
-                >
-                  {(event.capacity && event.crew && event.crew.length >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event"}
-                </button>
-              </div>
-            ))}
-            {hostedEventsByOthers.length > 5 && (
-              <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8 }}>
-                +{hostedEventsByOthers.length - 5} more community event{hostedEventsByOthers.length - 5 !== 1 ? "s" : ""} available
-              </div>
-            )}
-          </div>
-        );
-      })()}
         </>
       )}
 
@@ -1125,47 +1150,116 @@ function SocialHome({
         <>
           {/* My Joined Events Content */}
           {joinedEvents.filter(item => !(item.host && item.host.name === userName)).length > 0 ? (
-            <div style={{ padding: "0 16px" }}>
-              <div style={{...styles.title, marginTop: 16}}>📅 My Joined Events</div>
+            <div style={styles.highlightCard}>
+              <div style={styles.highlightTitle}>📅 My Joined Events</div>
+              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+                Events you have joined
+              </div>
               {joinedEvents
                 .filter(item => !(item.host && item.host.name === userName))
                 .map((item, idx) => (
                   <div
                     key={`joined-${idx}`}
-                    style={styles.eventCard}
-                    className="eventCard"
+                    style={{ 
+                      background: theme.bg, 
+                      padding: 14, 
+                      borderRadius: 12, 
+                      marginBottom: 10,
+                      border: `1px solid ${theme.track}`,
+                      cursor: "pointer",
+                    }}
                     onClick={() => onJoinedEventClick(item)}
                   >
-                    <div style={styles.eventName}>
-                      {String(item.name || item.type || item.category || "Event")}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
+                        {String(item.name || item.type || item.category || "Event")}
+                        {item.languages && item.languages.length > 0 && (
+                          <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
+                            {" - "}
+                            {item.languages.map((lang, i) => {
+                              const flag = getLanguageFlag(lang);
+                              return <span key={i}>{flag} {lang}{i < item.languages.length - 1 ? " ↔ " : ""}</span>;
+                            })}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    
+                    {/* Host Info */}
+                    {(() => {
+                      if (item.host) {
+                        return (
+                          <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                            👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
+                              {item.host.emoji} {item.host.name} {item.host.country}
+                            </span>
+                          </div>
+                        );
+                      } else if (item.createdBy) {
+                        // Fallback for older events without host object
+                        const hostUser = users.find(u => u.name === item.createdBy || u.username === item.createdBy);
+                        if (hostUser) {
+                          return (
+                            <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                              👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
+                                {hostUser.emoji} {hostUser.name} {hostUser.country}
+                              </span>
+                            </div>
+                          );
+                        }
+                      }
+                      return null;
+                    })()}
+                    
                     {item.imageUrl && (
                       <div style={{
                         width: "100%",
-                        height: 160,
+                        height: 140,
                         borderRadius: 12,
+                        marginBottom: 10,
                         backgroundImage: `url(${item.imageUrl})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
-                        marginBottom: 12,
                       }} />
                     )}
-                    <div style={styles.eventDetail}>{getLocationDisplay(item.location, item.venue)}</div>
-                    <div style={styles.eventDetail}>📅 {item.date} at {item.time}</div>
-                    {item.category && (
-                      <div style={styles.eventDetail}>
-                        {getCategoryEmoji(item.category)} {item.category}
+                    
+                    {item.location && (
+                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                        📍 {item.location === "cite" ? "Cité" : item.location === "paris" ? "Paris" : item.location}
+                        {item.venue && ` · ${item.venue}`}
                       </div>
                     )}
-                    <div style={styles.eventDetail}>
-                      👥 {item.capacity ? `${item.crew ? item.crew.length : 0}/${item.capacity} spots filled` : `${item.crew ? item.crew.length : 0} ${(item.crew ? item.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+                    
+                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                      ⏰ {item.date}
+                    </div>
+                    
+                    {item.category && (
+                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                        🎯 {item.category}
+                      </div>
+                    )}
+                    
+                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
+                      👥 {(() => {
+                        const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
+                        return item.capacity 
+                          ? `${attendeeCount}/${item.capacity} spots filled` 
+                          : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                      })()}
                     </div>
                   </div>
                 ))}
             </div>
           ) : (
-            <div style={{ ...styles.empty, margin: "40px 16px" }}>
-              No joined events yet. Explore Featured Events to join!
+            <div style={styles.highlightCard}>
+              <div style={styles.highlightTitle}>📅 My Joined Events</div>
+              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+                Events you have joined
+              </div>
+              <div style={{ ...styles.empty, margin: "20px 0 20px 0" }}>
+                No joined events yet. Explore Featured Events to join!
+              </div>
             </div>
           )}
         </>
@@ -1175,47 +1269,104 @@ function SocialHome({
       {activeTab === "hosted" && !showExplore && (
         <>
           {joinedEvents.filter(item => item.host && item.host.name === userName).length > 0 ? (
-            <div style={{ padding: "0 16px" }}>
-              <div style={{...styles.title, marginTop: 16}}>🎤 My Hosted Events</div>
+            <div style={styles.highlightCard}>
+              <div style={styles.highlightTitle}>🎤 My Hosted Events</div>
+              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+                Events you are hosting
+              </div>
               {joinedEvents
                 .filter(item => item.host && item.host.name === userName)
                 .map((item, idx) => (
                   <div
                     key={`hosted-${idx}`}
-                    style={{...styles.eventCard, borderLeft: `4px solid ${theme.gold}`}}
-                    className="eventCard"
+                    style={{ 
+                      background: theme.bg, 
+                      padding: 14, 
+                      borderRadius: 12, 
+                      marginBottom: 10,
+                      border: `1px solid ${theme.track}`,
+                      cursor: "pointer",
+                    }}
                     onClick={() => onJoinedEventClick(item)}
                   >
-                    <div style={styles.eventName}>
-                      {String(item.name || item.type || item.category || "Event")}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
+                        {String(item.name || item.type || item.category || "Event")}
+                        {item.languages && item.languages.length > 0 && (
+                          <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
+                            {" - "}
+                            {item.languages.map((lang, i) => {
+                              const flag = getLanguageFlag(lang);
+                              return <span key={i}>{flag} {lang}{i < item.languages.length - 1 ? " ↔ " : ""}</span>;
+                            })}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    
+                    {/* Host Info */}
+                    {(() => {
+                      if (item.host) {
+                        return (
+                          <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                            👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
+                              {item.host.emoji} {item.host.name} {item.host.country}
+                            </span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    
                     {item.imageUrl && (
                       <div style={{
                         width: "100%",
-                        height: 160,
+                        height: 140,
                         borderRadius: 12,
+                        marginBottom: 10,
                         backgroundImage: `url(${item.imageUrl})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
-                        marginBottom: 12,
                       }} />
                     )}
-                    <div style={styles.eventDetail}>{getLocationDisplay(item.location, item.venue)}</div>
-                    <div style={styles.eventDetail}>📅 {item.date} at {item.time}</div>
-                    {item.category && (
-                      <div style={styles.eventDetail}>
-                        {getCategoryEmoji(item.category)} {item.category}
+                    
+                    {item.location && (
+                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                        📍 {item.location === "cite" ? "Cité" : item.location === "paris" ? "Paris" : item.location}
+                        {item.venue && ` · ${item.venue}`}
                       </div>
                     )}
-                    <div style={styles.eventDetail}>
-                      👥 {item.capacity ? `${item.crew ? item.crew.length : 0}/${item.capacity} spots filled` : `${item.crew ? item.crew.length : 0} ${(item.crew ? item.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+                    
+                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                      ⏰ {item.date}
+                    </div>
+                    
+                    {item.category && (
+                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                        🎯 {item.category}
+                      </div>
+                    )}
+                    
+                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
+                      👥 {(() => {
+                        const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
+                        return item.capacity 
+                          ? `${attendeeCount}/${item.capacity} spots filled` 
+                          : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                      })()}
                     </div>
                   </div>
                 ))}
             </div>
           ) : (
-            <div style={{ ...styles.empty, margin: "40px 16px" }}>
-              You haven't hosted any events yet. Create one using the + button!
+            <div style={styles.highlightCard}>
+              <div style={styles.highlightTitle}>🎤 My Hosted Events</div>
+              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+                Events you are hosting
+              </div>
+              <div style={{ ...styles.empty, margin: "20px 0 20px 0" }}>
+                You haven't hosted any events yet. Create one using the + button!
+              </div>
             </div>
           )}
         </>
@@ -1488,7 +1639,12 @@ function SocialHome({
                         </div>
                       )}
                       <div style={styles.details}>
-                        👥 {item.capacity ? `${item.crew ? item.crew.length : 0}/${item.capacity} spots filled` : `${item.crew ? item.crew.length : 0} ${(item.crew ? item.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+                        👥 {(() => {
+                          const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
+                          return item.capacity 
+                            ? `${attendeeCount}/${item.capacity} spots filled` 
+                            : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                        })()}
                       </div>
                     </div>
                   ))}
@@ -1614,102 +1770,6 @@ function SocialHome({
           )}
         </>
       )}
-
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>Pending Requests</div>
-        {(() => {
-          const entries = Array.isArray(pendingRequests)
-            ? pendingRequests.map((req, idx) => ({ req, idx }))
-            : [];
-          const pendingOnly = entries.filter(x => !x.req.stage || x.req.stage < 3);
-          if (pendingOnly.length === 0) {
-            return <div style={styles.empty}>No pending requests.</div>;
-          }
-          return (
-            <ul style={{ padding: 0 }}>
-              {pendingOnly.map(({ req, idx }) => (
-                <li 
-                  key={idx} 
-                  style={{ ...styles.pendingCard, cursor: 'pointer' }}
-                  onClick={() => {
-                    if (onOpenPendingRequest) {
-                      onOpenPendingRequest(idx); // pass original index
-                    }
-                  }}
-                >
-                  <span style={styles.pendingTextWrap}>
-                    {(() => {
-                      const ev = req.event || {};
-                      const title = ev.name || ev.category || ev.place || ev.location || "Request";
-                      const parts = [];
-                      if (ev.place && ev.place !== title) parts.push(ev.place);
-                      if (ev.location && ev.location !== title && ev.location !== ev.place) parts.push(ev.location);
-                      // Preferences from SocialForm
-                      if (ev.timePreference) parts.push(ev.timePreference.replace(/-/g, ' '));
-                      if (ev.timeOfDay) parts.push(ev.timeOfDay);
-                      if (ev.language) parts.push(`lang: ${ev.language}`);
-                      // Calendar details if present
-                      if (ev.date) parts.push(ev.time ? `${ev.date} at ${ev.time}` : ev.date);
-                      if (ev.details) parts.push(ev.details);
-                      return (
-                        <>
-                          <strong style={{ color: '#1F2937' }}>{title}</strong>
-                          {parts.length > 0 && (
-                            <span className="pending-sub" style={{ color: '#6B7280' }}>
-                              {parts.join(' · ')}
-                            </span>
-                          )}
-                          {(() => {
-                            const ts = req.createdAt || (Array.isArray(req.history) && req.history.length > 0 ? req.history[0].ts : null);
-                            if (!ts) return null;
-                            const d = new Date(ts);
-                            const when = d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-                            return (
-                              <span style={styles.meta}>Requested on {when}</span>
-                            );
-                          })()}
-                        </>
-                      );
-                    })()}
-                  </span>
-                  <button
-                    style={styles.cancelButton}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onCancelPendingRequest(idx);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </li>
-              ))}
-            </ul>
-          );
-        })()}
-
-        {selectedPending && (
-          <div style={styles.modalOverlay} onClick={() => setSelectedPending(null)}>
-            <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-              <h3 style={{ fontWeight: 900, marginBottom: 10 }}>Pending Request Details</h3>
-              <pre
-                style={{
-                  fontSize: 14,
-                  background: "#F9FAFB",
-                  padding: 12,
-                  borderRadius: 12,
-                  maxHeight: 300,
-                  overflow: "auto",
-                }}
-              >
-                {JSON.stringify(selectedPending, null, 2)}
-              </pre>
-              <button style={styles.cancelButton} onClick={() => setSelectedPending(null)}>
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Create Event Modal - Multi-step Wizard */}
       {showCreateEventModal && (
@@ -2787,44 +2847,53 @@ function SocialHome({
             )}
 
             {/* Participants */}
-            {eventPreview.crew && eventPreview.crew.length > 0 && (
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
-                  👥 PARTICIPANTS ({eventPreview.crew.length})
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {eventPreview.crew.slice(0, 10).map((member, i) => {
-                    const userInfo = typeof member === "object" && member !== null
-                      ? member
-                      : users.find((u) => u.name === member || u.username === member) || { name: member };
-                    return (
-                      <div key={i} style={{
+            {(() => {
+              const allParticipants = [
+                ...(eventPreview.crew || []),
+                ...(eventPreview.participants || [])
+              ];
+              
+              if (allParticipants.length === 0) return null;
+              
+              return (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
+                    👥 PARTICIPANTS ({allParticipants.length})
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {allParticipants.slice(0, 10).map((member, i) => {
+                      const userInfo = typeof member === "object" && member !== null
+                        ? member
+                        : users.find((u) => u.name === member || u.username === member) || { name: member };
+                      return (
+                        <div key={i} style={{
+                          background: theme.bg,
+                          padding: "6px 12px",
+                          borderRadius: 999,
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: theme.text,
+                        }}>
+                          {userInfo.emoji} {userInfo.name}
+                        </div>
+                      );
+                    })}
+                    {allParticipants.length > 10 && (
+                      <div style={{
                         background: theme.bg,
                         padding: "6px 12px",
                         borderRadius: 999,
                         fontSize: 14,
                         fontWeight: 600,
-                        color: theme.text,
+                        color: theme.textMuted,
                       }}>
-                        {userInfo.emoji} {userInfo.name}
+                        +{allParticipants.length - 10} more
                       </div>
-                    );
-                  })}
-                  {eventPreview.crew.length > 10 && (
-                    <div style={{
-                      background: theme.bg,
-                      padding: "6px 12px",
-                      borderRadius: 999,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: theme.textMuted,
-                    }}>
-                      +{eventPreview.crew.length - 10} more
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Action Buttons */}
             <div style={{ display: "flex", gap: 12 }}>
@@ -2982,8 +3051,15 @@ function SocialHome({
                 }
                 
                 const date = new Date(currentYear, currentMonth, day);
-                const dateStr = date.toISOString().split('T')[0];
-                const eventsOnDay = joinedEvents.filter(event => event.date === dateStr);
+                const dateStr = getLocalDateString(date); // Use local timezone
+                const eventsOnDay = joinedEvents.filter(event => {
+                  if (!event.date) return false;
+                  // Normalize event date to YYYY-MM-DD format for comparison
+                  const eventDateStr = event.date.includes('T') 
+                    ? event.date.split('T')[0] 
+                    : event.date;
+                  return eventDateStr === dateStr;
+                });
                 const hasEvents = eventsOnDay.length > 0;
                 const isToday = new Date().toDateString() === date.toDateString();
                 const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
@@ -3365,6 +3441,24 @@ function SocialHome({
               📅 Filter by Date
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+              <button
+                onClick={() => {
+                  setExploreTimeFilter("upcoming");
+                  setShowWhenModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreTimeFilter === "upcoming" ? theme.gold : theme.border}`,
+                  background: exploreTimeFilter === "upcoming" ? theme.gold : theme.card,
+                  color: theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                📅 Upcoming
+              </button>
               <button
                 onClick={() => {
                   setExploreTimeFilter("today");
