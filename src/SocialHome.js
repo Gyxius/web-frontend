@@ -3,6 +3,7 @@ import { FaUserCircle } from "react-icons/fa";
 import users from "./users";
 import LocationPicker from "./LocationPicker";
 import "./SocialHome.animations.css";
+import { createEvent } from "./api";
 
 function SocialHome({
   userName = "Guest",
@@ -2568,19 +2569,10 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => {
-                      // Save to adminEvents in localStorage so it appears in featured events
+                    onClick={async () => {
+                      // Create event via API
                       try {
-                        const saved = localStorage.getItem("adminEvents");
-                        const events = saved ? JSON.parse(saved) : [];
-                        
-                        // Get current user's profile information
-                        const hostInfo = users.find(
-                          (u) => u.name.toLowerCase() === userName.toLowerCase()
-                        );
-                        
-                        const newEventObj = {
-                          id: Date.now(),
+                        const eventData = {
                           name: newEvent.name,
                           location: newEvent.location,
                           venue: newEvent.venue,
@@ -2588,27 +2580,24 @@ function SocialHome({
                           coordinates: newEvent.coordinates,
                           date: newEvent.date,
                           time: newEvent.time,
-                          description: newEvent.description,
+                          description: newEvent.description || "",
                           category: newEvent.category,
                           languages: newEvent.languages,
-                          imageUrl: newEvent.imageUrl,
-                          isPublic: true,
-                          createdBy: userName,
-                          capacity: 6, // Max 6 people (1 host + 5 guests)
-                          host: hostInfo ? {
-                            name: hostInfo.name,
-                            emoji: hostInfo.emoji,
-                            country: hostInfo.country,
-                            bio: hostInfo.bio,
-                          } : null,
-                          participants: [userName],
-                          crew: [userName],
+                          image_url: newEvent.imageUrl || "",
+                          is_public: true,
+                          event_type: "in-person",
+                          capacity: 10,
+                          created_by: userName,
                         };
-                        events.push(newEventObj);
-                        localStorage.setItem("adminEvents", JSON.stringify(events));
                         
-                        // Also add to user's joined events
-                        onJoinPublicEvent && onJoinPublicEvent(newEventObj);
+                        // Call the API to create the event
+                        await createEvent(eventData);
+                        
+                        // Refresh events list
+                        if (onJoinPublicEvent) {
+                          // Trigger a refresh of the events
+                          window.location.reload();
+                        }
                         
                         // Award 3 points for hosting an event
                         if (addPoints) {
@@ -2624,6 +2613,7 @@ function SocialHome({
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
                       } catch (err) {
+                        console.error("Failed to create event:", err);
                         alert("Failed to create event. Please try again.");
                       }
                     }}
