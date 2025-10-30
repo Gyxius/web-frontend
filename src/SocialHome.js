@@ -2589,7 +2589,7 @@ function SocialHome({
                           image_url: newEvent.imageUrl || "",
                           is_public: true,
                           event_type: "in-person",
-                          capacity: 10,
+                          capacity: 6,
                           created_by: userName,
                         };
                         
