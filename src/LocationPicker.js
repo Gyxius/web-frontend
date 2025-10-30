@@ -199,7 +199,7 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme }) {
         </div>
       )}
       
-      {/* Map Display */}
+      {/* Map Display - Hidden */}
       {coordinates && (
         <>
           <div
@@ -210,6 +210,7 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme }) {
               borderRadius: 12,
               border: `2px solid ${theme?.border || "#EEF2F7"}`,
               marginBottom: 8,
+              display: "none", // Hide the map canvas
             }}
           />
           <p style={{ 

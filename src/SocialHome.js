@@ -43,9 +43,18 @@ function SocialHome({
   
   // New state for Frimake-style navigation
   const [activeTab, setActiveTab] = useState("featured"); // "featured", "joined", "hosted"
-  const [activeBottomTab, setActiveBottomTab] = useState("events"); // "events", "friends", "calendar", "profile"
+  const [activeBottomTab, setActiveBottomTab] = useState("events"); // "events", "explore", "calendar", "profile"
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [showExplore, setShowExplore] = useState(false);
+  const [exploreSearchQuery, setExploreSearchQuery] = useState("");
+  const [exploreTimeFilter, setExploreTimeFilter] = useState("today"); // "today", "tomorrow", "weekend"
+  const [exploreLocationFilter, setExploreLocationFilter] = useState("all"); // "all", "Cité", "Paris"
+  const [exploreCategoryFilter, setExploreCategoryFilter] = useState("all"); // "all", "food", "drinks", etc.
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showWhereModal, setShowWhereModal] = useState(false);
+  const [showWhenModal, setShowWhenModal] = useState(false);
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
 
   // Create event form state
   const [newEvent, setNewEvent] = useState({
@@ -465,148 +474,229 @@ function SocialHome({
             Lemi
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer" }}>
-              📷
-            </button>
-            <button style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer" }}>
-              ✉️
+            <button 
+              onClick={() => {
+                setActiveBottomTab("profile");
+                onEditProfile && onEditProfile();
+              }}
+              style={{ 
+                background: "none", 
+                border: "none", 
+                fontSize: 22, 
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                color: theme.primary,
+              }}
+            >
+              <FaUserCircle size={28} />
             </button>
           </div>
         </div>
 
-        {/* Tab Navigation - Frimake Style */}
+        {/* Tab Navigation - Frimake Style or Explore Tabs */}
         <div style={{
           display: "flex",
           justifyContent: "space-around",
           padding: "0 16px 8px",
           borderBottom: `2px solid ${theme.bg}`,
         }}>
-          <button
-            onClick={() => setActiveTab("featured")}
-            style={{
-              flex: 1,
-              padding: "12px 8px",
-              background: "none",
-              border: "none",
-              borderBottom: activeTab === "featured" ? `3px solid ${theme.gold}` : "3px solid transparent",
-              fontWeight: activeTab === "featured" ? 900 : 600,
-              fontSize: 15,
-              color: activeTab === "featured" ? theme.text : theme.textMuted,
-              cursor: "pointer",
-              transition: "all 0.2s",
-            }}
-          >
-            Featured
-          </button>
-          <button
-            onClick={() => setActiveTab("joined")}
-            style={{
-              flex: 1,
-              padding: "12px 8px",
-              background: "none",
-              border: "none",
-              borderBottom: activeTab === "joined" ? `3px solid ${theme.gold}` : "3px solid transparent",
-              fontWeight: activeTab === "joined" ? 900 : 600,
-              fontSize: 15,
-              color: activeTab === "joined" ? theme.text : theme.textMuted,
-              cursor: "pointer",
-              transition: "all 0.2s",
-            }}
-          >
-            Joined
-          </button>
-          <button
-            onClick={() => setActiveTab("hosted")}
-            style={{
-              flex: 1,
-              padding: "12px 8px",
-              background: "none",
-              border: "none",
-              borderBottom: activeTab === "hosted" ? `3px solid ${theme.gold}` : "3px solid transparent",
-              fontWeight: activeTab === "hosted" ? 900 : 600,
-              fontSize: 15,
-              color: activeTab === "hosted" ? theme.text : theme.textMuted,
-              cursor: "pointer",
-              transition: "all 0.2s",
-            }}
-          >
-            Hosted
-          </button>
+          {showExplore ? (
+            // Explore tabs: Today, Tomorrow, Weekend
+            <>
+              <button
+                onClick={() => setExploreTimeFilter("today")}
+                style={{
+                  flex: 1,
+                  padding: "12px 8px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: exploreTimeFilter === "today" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  fontWeight: exploreTimeFilter === "today" ? 900 : 600,
+                  fontSize: 15,
+                  color: exploreTimeFilter === "today" ? theme.text : theme.textMuted,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                Today
+              </button>
+              <button
+                onClick={() => setExploreTimeFilter("tomorrow")}
+                style={{
+                  flex: 1,
+                  padding: "12px 8px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: exploreTimeFilter === "tomorrow" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  fontWeight: exploreTimeFilter === "tomorrow" ? 900 : 600,
+                  fontSize: 15,
+                  color: exploreTimeFilter === "tomorrow" ? theme.text : theme.textMuted,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                Tomorrow
+              </button>
+              <button
+                onClick={() => setExploreTimeFilter("weekend")}
+                style={{
+                  flex: 1,
+                  padding: "12px 8px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: exploreTimeFilter === "weekend" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  fontWeight: exploreTimeFilter === "weekend" ? 900 : 600,
+                  fontSize: 15,
+                  color: exploreTimeFilter === "weekend" ? theme.text : theme.textMuted,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                Weekend
+              </button>
+            </>
+          ) : (
+            // Regular tabs: Featured, Joined, Hosted
+            <>
+              <button
+                onClick={() => setActiveTab("featured")}
+                style={{
+                  flex: 1,
+                  padding: "12px 8px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: activeTab === "featured" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  fontWeight: activeTab === "featured" ? 900 : 600,
+                  fontSize: 15,
+                  color: activeTab === "featured" ? theme.text : theme.textMuted,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                Featured
+              </button>
+              <button
+                onClick={() => setActiveTab("joined")}
+                style={{
+                  flex: 1,
+                  padding: "12px 8px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: activeTab === "joined" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  fontWeight: activeTab === "joined" ? 900 : 600,
+                  fontSize: 15,
+                  color: activeTab === "joined" ? theme.text : theme.textMuted,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                Joined
+              </button>
+              <button
+                onClick={() => setActiveTab("hosted")}
+                style={{
+                  flex: 1,
+                  padding: "12px 8px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: activeTab === "hosted" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  fontWeight: activeTab === "hosted" ? 900 : 600,
+                  fontSize: 15,
+                  color: activeTab === "hosted" ? theme.text : theme.textMuted,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                Hosted
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Filter Buttons Row - Frimake Style */}
-        <div style={{
-          display: "flex",
-          gap: 8,
-          padding: "12px 16px",
-          overflowX: "auto",
-          background: theme.bg,
-        }}>
-          <button style={{
-            padding: "8px 16px",
-            background: "white",
-            border: `1px solid ${theme.bg}`,
-            borderRadius: 999,
-            fontSize: 13,
-            fontWeight: 700,
-            color: theme.text,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
+        {/* Filter Buttons Row - Only show in Explore mode */}
+        {showExplore && (
+          <div style={{
             display: "flex",
-            alignItems: "center",
-            gap: 6,
+            gap: 8,
+            padding: "12px 16px",
+            overflowX: "auto",
+            background: theme.bg,
           }}>
-            🔍 Search
-          </button>
-          <button style={{
-            padding: "8px 16px",
-            background: theme.gold,
-            border: "none",
-            borderRadius: 999,
-            fontSize: 13,
-            fontWeight: 700,
-            color: theme.text,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}>
-            📍 Where?
-          </button>
-          <button style={{
-            padding: "8px 16px",
-            background: theme.gold,
-            border: "none",
-            borderRadius: 999,
-            fontSize: 13,
-            fontWeight: 700,
-            color: theme.text,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}>
-            📅 When?
-          </button>
-          <button style={{
-            padding: "8px 16px",
-            background: "white",
-            border: `1px solid ${theme.bg}`,
-            borderRadius: 999,
-            fontSize: 13,
-            fontWeight: 700,
-            color: theme.text,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}>
-            ⚙️ Filters
-          </button>
-        </div>
+            <button 
+              onClick={() => setShowSearchModal(true)}
+              style={{
+              padding: "8px 16px",
+              background: exploreSearchQuery ? theme.gold : "white",
+              border: `1px solid ${theme.bg}`,
+              borderRadius: 999,
+              fontSize: 13,
+              fontWeight: 700,
+              color: theme.text,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}>
+              🔍 Search
+            </button>
+            <button 
+              onClick={() => setShowWhereModal(true)}
+              style={{
+              padding: "8px 16px",
+              background: exploreLocationFilter !== "all" ? theme.gold : "white",
+              border: `1px solid ${theme.bg}`,
+              borderRadius: 999,
+              fontSize: 13,
+              fontWeight: 700,
+              color: theme.text,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}>
+              📍 {exploreLocationFilter !== "all" ? exploreLocationFilter : "Where?"}
+            </button>
+            <button 
+              onClick={() => setShowWhenModal(true)}
+              style={{
+              padding: "8px 16px",
+              background: theme.gold,
+              border: "none",
+              borderRadius: 999,
+              fontSize: 13,
+              fontWeight: 700,
+              color: theme.text,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}>
+              📅 {exploreTimeFilter === "today" ? "Today" : exploreTimeFilter === "tomorrow" ? "Tomorrow" : "Weekend"}
+            </button>
+            <button 
+              onClick={() => setShowFiltersModal(true)}
+              style={{
+              padding: "8px 16px",
+              background: exploreCategoryFilter !== "all" ? theme.gold : "white",
+              border: `1px solid ${theme.bg}`,
+              borderRadius: 999,
+              fontSize: 13,
+              fontWeight: 700,
+              color: theme.text,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}>
+              ⚙️ {exploreCategoryFilter !== "all" ? exploreCategoryFilter : "Filters"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main Content Area - with top padding for fixed header */}
@@ -665,8 +755,140 @@ function SocialHome({
         <span style={styles.progressText}>Level 2 Explorer ({socialPoints}/{nextLevel})</span>
       </div>
 
+      {/* EXPLORE SCREEN CONTENT */}
+      {showExplore && (
+        <>
+          {/* Tab Content Based on exploreTimeFilter */}
+          {(() => {
+            // Get today's date
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayAfterTomorrow = new Date(today);
+            dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+            
+            // Filter events based on all active filters
+            const filteredEvents = publicEvents.filter((event) => {
+              // Search filter
+              if (exploreSearchQuery && !event.name.toLowerCase().includes(exploreSearchQuery.toLowerCase())) {
+                return false;
+              }
+              
+              // Location filter (Where?)
+              if (exploreLocationFilter !== "all" && event.location !== exploreLocationFilter) {
+                return false;
+              }
+              
+              // Category filter (Filters)
+              if (exploreCategoryFilter !== "all" && event.category !== exploreCategoryFilter) {
+                return false;
+              }
+              
+              // Time filter (When? - from tabs)
+              if (event.date) {
+                const eventDate = new Date(event.date);
+                eventDate.setHours(0, 0, 0, 0);
+                
+                if (exploreTimeFilter === "today") {
+                  if (eventDate.getTime() !== today.getTime()) {
+                    return false;
+                  }
+                } else if (exploreTimeFilter === "tomorrow") {
+                  if (eventDate.getTime() !== tomorrow.getTime()) {
+                    return false;
+                  }
+                } else if (exploreTimeFilter === "weekend") {
+                  // Weekend is Saturday (6) and Sunday (0)
+                  const dayOfWeek = eventDate.getDay();
+                  if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    return false;
+                  }
+                }
+              }
+              
+              return true;
+            });
+
+            const availableEvents = filteredEvents.filter(ev => 
+              !joinedEvents.some(je => String(je.id) === String(ev.id))
+            );
+
+            if (availableEvents.length === 0) {
+              return (
+                <div style={{ ...styles.empty, margin: "40px 16px" }}>
+                  No events found for this time period.
+                </div>
+              );
+            }
+
+            return (
+              <div style={{ padding: "0 16px" }}>
+                <div style={{...styles.title, marginTop: 16}}>
+                  ✨ {exploreTimeFilter === "today" ? "Today's Events" : exploreTimeFilter === "tomorrow" ? "Tomorrow's Events" : "Weekend Events"}
+                </div>
+                {availableEvents.map((event, idx) => (
+                  <div
+                    key={idx}
+                    style={styles.eventCard}
+                    className="eventCard"
+                    onClick={() => {
+                      setEventPreview(event);
+                    }}
+                  >
+                    <div style={styles.eventName}>{event.name}</div>
+                    {event.imageUrl && (
+                      <div style={{
+                        width: "100%",
+                        height: 160,
+                        borderRadius: 12,
+                        backgroundImage: `url(${event.imageUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        marginBottom: 12,
+                      }} />
+                    )}
+                    <div style={styles.eventDetail}>📍 {event.venue || event.location}</div>
+                    <div style={styles.eventDetail}>📅 {event.date} at {event.time}</div>
+                    {event.category && (
+                      <div style={styles.eventDetail}>
+                        🎯 {event.category}
+                      </div>
+                    )}
+                    <div style={styles.eventDetail}>
+                      👥 {event.capacity ? `${event.crew ? event.crew.length : 0}/${event.capacity} spots filled` : `${event.crew ? event.crew.length : 0} ${(event.crew ? event.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+                    </div>
+                    <button
+                      style={{
+                        ...styles.joinButton,
+                        padding: "10px 16px",
+                        fontSize: 14,
+                        width: "100%",
+                        marginTop: 12,
+                        opacity: (event.capacity && event.crew && event.crew.length >= event.capacity) ? 0.5 : 1,
+                        cursor: (event.capacity && event.crew && event.crew.length >= event.capacity) ? "not-allowed" : "pointer",
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (event.capacity && event.crew && event.crew.length >= event.capacity) {
+                          alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
+                          return;
+                        }
+                        onJoinPublicEvent && onJoinPublicEvent(event);
+                      }}
+                    >
+                      {(event.capacity && event.crew && event.crew.length >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </>
+      )}
+
       {/* Tab Content */}
-      {activeTab === "featured" && (
+      {activeTab === "featured" && !showExplore && (
         <>
       {/* Featured Events - Created by Admin */}
       {(() => {
@@ -680,61 +902,72 @@ function SocialHome({
         }
         
         return (
-        <div style={styles.highlightCard}>
-          <div style={styles.highlightTitle}>⭐ Featured Events</div>
-          <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-            Curated events you can join right now!
-          </div>
+        <div style={{ padding: "0 16px" }}>
+          <div style={{...styles.title, marginTop: 16}}>⭐ Featured Events</div>
           {availablePublicEvents.slice(0, 3).map((event, idx) => {
             return (
             <div key={idx} style={{ 
-              background: theme.bg, 
-              padding: 14, 
-              borderRadius: 12, 
-              marginBottom: 10,
-              border: `1px solid ${theme.track}`,
+              ...styles.eventCard,
+              borderLeft: `4px solid ${theme.primary}`,
               cursor: "pointer",
             }}
+            className="eventCard"
             onClick={() => setEventPreview(event)}
             >
-              <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, marginBottom: 6 }}>
+              <div style={styles.eventName}>
                 {event.name}
               </div>
-              <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
-                📍 {event.location} {event.place ? `· ${event.place}` : ""}
-              </div>
-              <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
-                ⏰ {event.date} at {event.time}
-              </div>
-              {event.languages && event.languages.length > 0 && (
-                <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
-                  🗣️ {event.languages.join(" ↔ ")}
-                </div>
+              {event.imageUrl && (
+                <div style={{
+                  width: "100%",
+                  height: 160,
+                  borderRadius: 12,
+                  backgroundImage: `url(${event.imageUrl})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  marginBottom: 12,
+                }} />
               )}
+              <div style={styles.eventDetail}>
+                {getLocationDisplay(event.location, event.venue)}
+              </div>
+              <div style={styles.eventDetail}>
+                📅 {event.date} at {event.time}
+              </div>
               {event.category && (
-                <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 10 }}>
-                  🎯 {event.category}
+                <div style={styles.eventDetail}>
+                  {getCategoryEmoji(event.category)} {event.category}
                 </div>
               )}
+              <div style={styles.eventDetail}>
+                👥 {event.capacity ? `${event.crew ? event.crew.length : 0}/${event.capacity} spots filled` : `${event.crew ? event.crew.length : 0} ${(event.crew ? event.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+              </div>
               <button
                 style={{
                   ...styles.joinButton,
                   padding: "10px 16px",
                   fontSize: 14,
                   width: "100%",
+                  marginTop: 12,
+                  opacity: (event.capacity && event.crew && event.crew.length >= event.capacity) ? 0.5 : 1,
+                  cursor: (event.capacity && event.crew && event.crew.length >= event.capacity) ? "not-allowed" : "pointer",
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (event.capacity && event.crew && event.crew.length >= event.capacity) {
+                    alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
+                    return;
+                  }
                   onJoinPublicEvent && onJoinPublicEvent(event);
                 }}
               >
-                🎉 Join Event
+                {(event.capacity && event.crew && event.crew.length >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event"}
               </button>
             </div>
             );
           })}
           {availablePublicEvents.length > 3 && (
-            <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8 }}>
+            <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8, marginBottom: 16 }}>
               +{availablePublicEvents.length - 3} more featured event{availablePublicEvents.length - 3 !== 1 ? "s" : ""} available
             </div>
           )}
@@ -845,10 +1078,14 @@ function SocialHome({
                 </div>
                 
                 {event.category && (
-                  <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
+                  <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
                     🎯 {event.category}
                   </div>
                 )}
+                
+                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
+                  👥 {event.capacity ? `${event.crew ? event.crew.length : 0}/${event.capacity} spots filled` : `${event.crew ? event.crew.length : 0} ${(event.crew ? event.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+                </div>
                 
                 <button
                   style={{
@@ -856,13 +1093,19 @@ function SocialHome({
                     padding: "10px 16px",
                     fontSize: 14,
                     width: "100%",
+                    opacity: (event.capacity && event.crew && event.crew.length >= event.capacity) ? 0.5 : 1,
+                    cursor: (event.capacity && event.crew && event.crew.length >= event.capacity) ? "not-allowed" : "pointer",
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (event.capacity && event.crew && event.crew.length >= event.capacity) {
+                      alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
+                      return;
+                    }
                     onJoinPublicEvent && onJoinPublicEvent(event);
                   }}
                 >
-                  🎉 Join Event
+                  {(event.capacity && event.crew && event.crew.length >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event"}
                 </button>
               </div>
             ))}
@@ -878,7 +1121,7 @@ function SocialHome({
       )}
 
       {/* TAB: My Joined Events */}
-      {activeTab === "joined" && (
+      {activeTab === "joined" && !showExplore && (
         <>
           {/* My Joined Events Content */}
           {joinedEvents.filter(item => !(item.host && item.host.name === userName)).length > 0 ? (
@@ -914,11 +1157,9 @@ function SocialHome({
                         {getCategoryEmoji(item.category)} {item.category}
                       </div>
                     )}
-                    {item.crew && item.crew.length > 0 && (
-                      <div style={styles.eventDetail}>
-                        👥 {item.crew.length} {item.crew.length === 1 ? "person" : "people"} attending
-                      </div>
-                    )}
+                    <div style={styles.eventDetail}>
+                      👥 {item.capacity ? `${item.crew ? item.crew.length : 0}/${item.capacity} spots filled` : `${item.crew ? item.crew.length : 0} ${(item.crew ? item.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+                    </div>
                   </div>
                 ))}
             </div>
@@ -931,7 +1172,7 @@ function SocialHome({
       )}
 
       {/* TAB: My Hosted Events */}
-      {activeTab === "hosted" && (
+      {activeTab === "hosted" && !showExplore && (
         <>
           {joinedEvents.filter(item => item.host && item.host.name === userName).length > 0 ? (
             <div style={{ padding: "0 16px" }}>
@@ -966,11 +1207,9 @@ function SocialHome({
                         {getCategoryEmoji(item.category)} {item.category}
                       </div>
                     )}
-                    {item.crew && item.crew.length > 0 && (
-                      <div style={styles.eventDetail}>
-                        👥 {item.crew.length} {item.crew.length === 1 ? "attendee" : "attendees"}
-                      </div>
-                    )}
+                    <div style={styles.eventDetail}>
+                      👥 {item.capacity ? `${item.crew ? item.crew.length : 0}/${item.capacity} spots filled` : `${item.crew ? item.crew.length : 0} ${(item.crew ? item.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+                    </div>
                   </div>
                 ))}
             </div>
@@ -1248,17 +1487,9 @@ function SocialHome({
                           {getCategoryEmoji(item.category)} {item.category}
                         </div>
                       )}
-                      {Array.isArray(item.crew) && (() => {
-                        const attendeeCount = item.crew.filter(member => {
-                          const memberName = typeof member === "object" && member !== null ? member.name : member;
-                          return memberName !== userName;
-                        }).length;
-                        return attendeeCount > 0 && (
-                          <div style={styles.details}>
-                            👥 {attendeeCount} attendee{attendeeCount !== 1 ? 's' : ''}
-                          </div>
-                        );
-                      })()}
+                      <div style={styles.details}>
+                        👥 {item.capacity ? `${item.crew ? item.crew.length : 0}/${item.capacity} spots filled` : `${item.crew ? item.crew.length : 0} ${(item.crew ? item.crew.length : 0) === 1 ? "attendee" : "attendees"}`}
+                      </div>
                     </div>
                   ))}
               </div>
@@ -1383,23 +1614,6 @@ function SocialHome({
           )}
         </>
       )}
-
-      <div style={styles.joinButtonRow}>
-        <button style={styles.joinButton} className="joinButton" onClick={onJoinEvent}>
-          ➕ Join a New Event
-        </button>
-        <button
-          style={{
-            ...styles.joinButton,
-            background: `linear-gradient(135deg, ${theme.accent}, #0AA6EB)`,
-            boxShadow: "0 6px 16px rgba(28,176,246,0.28)",
-          }}
-          className="joinButton"
-          onClick={() => setViewMode((m) => (m === "my" ? "friends" : "my"))}
-        >
-          {viewMode === "my" ? "👥 Friends’ Events" : "🎟️ My Events"}
-        </button>
-      </div>
 
       <div style={styles.section}>
         <div style={styles.sectionTitle}>Pending Requests</div>
@@ -2320,6 +2534,7 @@ function SocialHome({
                           imageUrl: newEvent.imageUrl,
                           isPublic: true,
                           createdBy: userName,
+                          capacity: 6, // Max 6 people (1 host + 5 guests)
                           host: hostInfo ? {
                             name: hostInfo.name,
                             emoji: hostInfo.emoji,
@@ -2919,6 +3134,7 @@ function SocialHome({
             setActiveBottomTab("events");
             setViewMode("my");
             setActiveTab("featured");
+            setShowExplore(false);
           }}
           style={{
             flex: 1,
@@ -2934,14 +3150,14 @@ function SocialHome({
         >
           <div style={{ fontSize: 24 }}>🏠</div>
           <div style={{ fontSize: 11, fontWeight: activeBottomTab === "events" ? 700 : 600 }}>
-            Events
+            Home
           </div>
         </button>
 
         <button
           onClick={() => {
-            setActiveBottomTab("friends");
-            setViewMode("friends");
+            setActiveBottomTab("explore");
+            setShowExplore(true);
           }}
           style={{
             flex: 1,
@@ -2952,12 +3168,12 @@ function SocialHome({
             background: "none",
             border: "none",
             cursor: "pointer",
-            color: activeBottomTab === "friends" ? theme.primary : theme.textMuted,
+            color: activeBottomTab === "explore" ? theme.primary : theme.textMuted,
           }}
         >
-          <div style={{ fontSize: 24 }}>👥</div>
-          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "friends" ? 700 : 600 }}>
-            Friends
+          <div style={{ fontSize: 24 }}>🔄</div>
+          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "explore" ? 700 : 600 }}>
+            Explore
           </div>
         </button>
 
@@ -3007,8 +3223,10 @@ function SocialHome({
 
         <button
           onClick={() => {
-            setActiveBottomTab("profile");
-            onEditProfile && onEditProfile();
+            setActiveBottomTab("friends");
+            setViewMode("friends");
+            setActiveTab("featured");
+            setShowExplore(false);
           }}
           style={{
             flex: 1,
@@ -3019,35 +3237,313 @@ function SocialHome({
             background: "none",
             border: "none",
             cursor: "pointer",
-            color: activeBottomTab === "profile" ? theme.primary : theme.textMuted,
-            position: "relative",
+            color: activeBottomTab === "friends" ? theme.primary : theme.textMuted,
           }}
         >
-          <div style={{ fontSize: 24 }}>
-            <FaUserCircle size={24} />
-          </div>
-          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "profile" ? 700 : 600 }}>
-            Profile
-          </div>
-          <div style={{
-            position: "absolute",
-            top: -2,
-            right: "calc(50% - 20px)",
-            width: 18,
-            height: 18,
-            borderRadius: "50%",
-            background: "#FF4458",
-            color: "white",
-            fontSize: 10,
-            fontWeight: 900,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-            {socialPoints}
+          <div style={{ fontSize: 24 }}>👥</div>
+          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "friends" ? 700 : 600 }}>
+            Friends
           </div>
         </button>
       </div>
+
+      {/* Search Modal */}
+      {showSearchModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowSearchModal(false)}>
+          <div style={{...styles.modal, maxWidth: 400}} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: 20, fontWeight: 900, marginBottom: 16, color: theme.text }}>
+              🔍 Search Events
+            </h3>
+            <input
+              type="text"
+              placeholder="Search by event name..."
+              value={exploreSearchQuery}
+              onChange={(e) => setExploreSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: 12,
+                border: `1px solid ${theme.border}`,
+                fontSize: 14,
+                marginBottom: 16,
+                outline: "none",
+              }}
+            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <button 
+                style={{...styles.primaryBtn, flex: 1}}
+                onClick={() => setShowSearchModal(false)}
+              >
+                Apply
+              </button>
+              <button 
+                style={{...styles.cancelButton, flex: 1}}
+                onClick={() => {
+                  setExploreSearchQuery("");
+                  setShowSearchModal(false);
+                }}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Where Modal */}
+      {showWhereModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowWhereModal(false)}>
+          <div style={{...styles.modal, maxWidth: 400}} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: 20, fontWeight: 900, marginBottom: 16, color: theme.text }}>
+              📍 Filter by Location
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+              <button
+                onClick={() => {
+                  setExploreLocationFilter("all");
+                  setShowWhereModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreLocationFilter === "all" ? theme.primary : theme.border}`,
+                  background: exploreLocationFilter === "all" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreLocationFilter === "all" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                🌍 All Locations
+              </button>
+              <button
+                onClick={() => {
+                  setExploreLocationFilter("Cité");
+                  setShowWhereModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreLocationFilter === "Cité" ? theme.primary : theme.border}`,
+                  background: exploreLocationFilter === "Cité" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreLocationFilter === "Cité" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                🏠 Cité
+              </button>
+              <button
+                onClick={() => {
+                  setExploreLocationFilter("Paris");
+                  setShowWhereModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreLocationFilter === "Paris" ? theme.primary : theme.border}`,
+                  background: exploreLocationFilter === "Paris" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreLocationFilter === "Paris" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                🗼 Paris
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* When Modal */}
+      {showWhenModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowWhenModal(false)}>
+          <div style={{...styles.modal, maxWidth: 400}} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: 20, fontWeight: 900, marginBottom: 16, color: theme.text }}>
+              📅 Filter by Date
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+              <button
+                onClick={() => {
+                  setExploreTimeFilter("today");
+                  setShowWhenModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreTimeFilter === "today" ? theme.gold : theme.border}`,
+                  background: exploreTimeFilter === "today" ? theme.gold : theme.card,
+                  color: theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                📅 Today
+              </button>
+              <button
+                onClick={() => {
+                  setExploreTimeFilter("tomorrow");
+                  setShowWhenModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreTimeFilter === "tomorrow" ? theme.gold : theme.border}`,
+                  background: exploreTimeFilter === "tomorrow" ? theme.gold : theme.card,
+                  color: theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                📅 Tomorrow
+              </button>
+              <button
+                onClick={() => {
+                  setExploreTimeFilter("weekend");
+                  setShowWhenModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreTimeFilter === "weekend" ? theme.gold : theme.border}`,
+                  background: exploreTimeFilter === "weekend" ? theme.gold : theme.card,
+                  color: theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                📅 Weekend
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filters Modal (Category) */}
+      {showFiltersModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowFiltersModal(false)}>
+          <div style={{...styles.modal, maxWidth: 400}} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: 20, fontWeight: 900, marginBottom: 16, color: theme.text }}>
+              ⚙️ Filter by Category
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+              <button
+                onClick={() => {
+                  setExploreCategoryFilter("all");
+                  setShowFiltersModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreCategoryFilter === "all" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "all" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "all" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                🌟 All Categories
+              </button>
+              <button
+                onClick={() => {
+                  setExploreCategoryFilter("food");
+                  setShowFiltersModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreCategoryFilter === "food" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "food" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "food" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                🍽️ Food
+              </button>
+              <button
+                onClick={() => {
+                  setExploreCategoryFilter("drinks");
+                  setShowFiltersModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreCategoryFilter === "drinks" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "drinks" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "drinks" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                🍹 Drinks
+              </button>
+              <button
+                onClick={() => {
+                  setExploreCategoryFilter("sports");
+                  setShowFiltersModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreCategoryFilter === "sports" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "sports" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "sports" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                ⚽ Sports
+              </button>
+              <button
+                onClick={() => {
+                  setExploreCategoryFilter("culture");
+                  setShowFiltersModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreCategoryFilter === "culture" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "culture" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "culture" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                🎭 Culture
+              </button>
+              <button
+                onClick={() => {
+                  setExploreCategoryFilter("party");
+                  setShowFiltersModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreCategoryFilter === "party" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "party" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "party" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                🎉 Party
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

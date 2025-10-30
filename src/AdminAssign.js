@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import users from "./users";
+import LocationPicker from "./LocationPicker";
 
 // Default places for event creation
 const defaultPlaces = {
@@ -119,7 +120,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   const [createEventForm, setCreateEventForm] = useState({
     name: "",
     location: "Cité",
-    place: "",
+    venue: "",
+    address: "",
+    coordinates: null,
     date: "",
     time: "",
     category: "food",
@@ -1140,7 +1143,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                     fontWeight: 900,
                     cursor: "pointer",
                   }}
-                  onClick={() => setCreateEventForm({ ...createEventForm, location: "Cité", place: "" })}
+                  onClick={() => setCreateEventForm({ ...createEventForm, location: "Cité" })}
                 >
                   🏠 Cité
                 </button>
@@ -1156,35 +1159,30 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                     fontWeight: 900,
                     cursor: "pointer",
                   }}
-                  onClick={() => setCreateEventForm({ ...createEventForm, location: "Paris", place: "" })}
+                  onClick={() => setCreateEventForm({ ...createEventForm, location: "Paris" })}
                 >
                   🗼 Paris
                 </button>
               </div>
             </div>
 
+            {/* Exact Address/Venue - Required */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Choose a Place</label>
-              <select
-                value={createEventForm.place}
-                onChange={(e) => setCreateEventForm({ ...createEventForm, place: e.target.value })}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: `1px solid ${theme.border}`,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  outline: "none",
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
+                📍 Exact Address <span style={{ color: "#FF4B4B" }}>*</span>
+              </label>
+              <LocationPicker
+                onLocationSelect={(location) => {
+                  setCreateEventForm({
+                    ...createEventForm,
+                    venue: location.name,
+                    address: location.address,
+                    coordinates: { lat: location.lat, lng: location.lng }
+                  });
                 }}
-              >
-                <option value="">-- Select a place --</option>
-                {places[createEventForm.location].map((place) => (
-                  <option key={place.id} value={place.name}>
-                    {place.name} - {place.description}
-                  </option>
-                ))}
-              </select>
+                initialAddress={createEventForm.address}
+                theme={theme}
+              />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
@@ -1400,8 +1398,12 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 fontSize: 15,
               }}
               onClick={() => {
-                if (!createEventForm.name || !createEventForm.place || !createEventForm.date || !createEventForm.time) {
-                  alert("Please fill in all required fields: Event Name, Place, Date, and Time");
+                if (!createEventForm.name || !createEventForm.date || !createEventForm.time) {
+                  alert("Please fill in all required fields: Event Name, Date, and Time");
+                  return;
+                }
+                if (!createEventForm.address || !createEventForm.coordinates) {
+                  alert("Please provide an exact address using the location picker");
                   return;
                 }
                 // Language selection is required for private events, optional for public events
@@ -1409,14 +1411,16 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   alert("Please select at least 2 languages for the language exchange (required for private events)");
                   return;
                 }
-                logAdminActivity(`Created new event: ${createEventForm.name} at ${createEventForm.place}`);
+                logAdminActivity(`Created new event: ${createEventForm.name} at ${createEventForm.address}`);
                 
                 // Create new event object
                 const newEvent = {
                   id: Date.now(), // Simple unique ID
                   name: createEventForm.name,
                   location: createEventForm.location,
-                  place: createEventForm.place,
+                  venue: createEventForm.venue,
+                  address: createEventForm.address,
+                  coordinates: createEventForm.coordinates,
                   date: createEventForm.date,
                   time: createEventForm.time,
                   category: createEventForm.category,
@@ -1424,6 +1428,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   description: createEventForm.description,
                   isPublic: createEventForm.isPublic,
                   type: "custom", // Mark as admin-created
+                  capacity: null, // No capacity limit for admin events
+                  crew: [], // Admin events start with no crew
+                  participants: [], // Admin events start with no participants
                 };
                 
                 // Add event to the events array
@@ -1433,13 +1440,15 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   ? `Languages: ${createEventForm.languages.join(" ↔ ")}` 
                   : "Languages: None specified";
                 
-                alert(`Event "${createEventForm.name}" created successfully!\n\nVisibility: ${createEventForm.isPublic ? "🌍 Public" : "🔒 Private"}\nLocation: ${createEventForm.location}\nPlace: ${createEventForm.place}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\n${languagesText}`);
+                alert(`Event "${createEventForm.name}" created successfully!\n\nVisibility: ${createEventForm.isPublic ? "🌍 Public" : "🔒 Private"}\nLocation: ${createEventForm.location}\nVenue: ${createEventForm.venue}\nAddress: ${createEventForm.address}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\n${languagesText}`);
                 
                 // Reset form
                 setCreateEventForm({
                   name: "",
                   location: "Cité",
-                  place: "",
+                  venue: "",
+                  address: "",
+                  coordinates: null,
                   date: "",
                   time: "",
                   category: "food",

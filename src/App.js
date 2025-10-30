@@ -67,7 +67,29 @@ function App() {
     const syncPublicEvents = () => {
       const saved = localStorage.getItem("adminEvents");
       if (saved) {
-        const allEvents = JSON.parse(saved);
+        let allEvents = JSON.parse(saved);
+        
+        // Migration: Add capacity to events that don't have it
+        let needsUpdate = false;
+        allEvents = allEvents.map(event => {
+          if (event.capacity === undefined) {
+            needsUpdate = true;
+            // Admin events (type: "custom") have no capacity limit
+            // User-created events (has host or createdBy) have capacity of 6
+            const isAdminEvent = event.type === "custom" || (!event.host && !event.createdBy);
+            return {
+              ...event,
+              capacity: isAdminEvent ? null : 6
+            };
+          }
+          return event;
+        });
+        
+        // Save back to localStorage if we added capacity fields
+        if (needsUpdate) {
+          localStorage.setItem("adminEvents", JSON.stringify(allEvents));
+        }
+        
         // Filter to only show public events
         setPublicEvents(allEvents.filter(event => event.isPublic !== false));
       }
@@ -87,6 +109,33 @@ function App() {
 
   const joinedEvents = user ? userEvents[user?.username || user?.name] || [] : [];
   const userSuggestedEvents = user ? suggestedEvents[user?.username || user?.name] || [] : [];
+
+  // Migration: Add capacity to userEvents that don't have it
+  useEffect(() => {
+    let needsUpdate = false;
+    const migratedUserEvents = { ...userEvents };
+    
+    Object.keys(migratedUserEvents).forEach(username => {
+      migratedUserEvents[username] = migratedUserEvents[username].map(event => {
+        if (event.capacity === undefined) {
+          needsUpdate = true;
+          // Admin events (type: "custom") have no capacity limit
+          // User-created events (has host or createdBy) have capacity of 6
+          const isAdminEvent = event.type === "custom" || (!event.host && !event.createdBy);
+          return {
+            ...event,
+            capacity: isAdminEvent ? null : 6
+          };
+        }
+        return event;
+      });
+    });
+    
+    if (needsUpdate) {
+      setUserEvents(migratedUserEvents);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount - migration only
 
   useEffect(() => {
     localStorage.setItem("userEvents", JSON.stringify(userEvents));
