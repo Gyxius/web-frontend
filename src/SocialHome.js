@@ -2596,12 +2596,6 @@ function SocialHome({
                         // Call the API to create the event
                         await createEvent(eventData);
                         
-                        // Refresh events list
-                        if (onJoinPublicEvent) {
-                          // Trigger a refresh of the events
-                          window.location.reload();
-                        }
-                        
                         // Award 3 points for hosting an event
                         if (addPoints) {
                           const newPoints = addPoints(userName, 3);
