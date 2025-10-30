@@ -1,6 +1,6 @@
 // API utility functions for communicating with FastAPI backend
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8003";
+const API_URL = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
 
 // ===== EVENT ENDPOINTS =====
 
