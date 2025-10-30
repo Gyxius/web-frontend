@@ -1944,17 +1944,20 @@ function SocialHome({
                   <button
                     style={{
                       flex: 1,
-                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                      background: (newEvent.venue && newEvent.address) 
+                        ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` 
+                        : theme.border,
                       color: "white",
                       border: "none",
                       borderRadius: 14,
                       padding: isMobile ? "14px" : "16px",
                       fontWeight: 900,
                       fontSize: isMobile ? 16 : 18,
-                      cursor: "pointer",
-                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                      cursor: (newEvent.venue && newEvent.address) ? "pointer" : "not-allowed",
+                      boxShadow: (newEvent.venue && newEvent.address) ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                      opacity: (newEvent.venue && newEvent.address) ? 1 : 0.5,
                     }}
-                    onClick={() => setCreateEventStep(3)}
+                    onClick={() => (newEvent.venue && newEvent.address) && setCreateEventStep(3)}
                   >
                     Next →
                   </button>
