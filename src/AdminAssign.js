@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import users from "./users";
 import LocationPicker from "./LocationPicker";
+import * as api from "./api";
 
 // Default places for event creation
 const defaultPlaces = {
@@ -43,11 +44,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     localStorage.setItem("adminPlaces", JSON.stringify(places));
   }, [places]);
   
-  // Manage events list with state - load from localStorage
-  const [events, setEvents] = useState(() => {
-    const saved = localStorage.getItem("adminEvents");
-    return saved ? JSON.parse(saved) : [];
-  });
+  // Manage events list with state - load from API
+  const [events, setEvents] = useState([]);
 
   // Proposed events (auto-generated, not published yet)
   const [proposals, setProposals] = useState(() => {
@@ -60,33 +58,18 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   const [editProposalIdx, setEditProposalIdx] = useState(null);
   const [editProposal, setEditProposal] = useState(null);
   
-  // One-time migration: Update existing events without isPublic field to be private
+  // Load events from API on mount
   useEffect(() => {
-    const migrated = localStorage.getItem("eventsMigrated");
-    if (!migrated) {
-      setEvents(prev => {
-        const updated = prev.map(event => {
-          // If event doesn't have isPublic field yet, check if it's one of the original two events
-          if (event.isPublic === undefined) {
-            // Make "Test" and "Afternoon in Cité" private
-            if (event.name === "Test" || event.name === "Afternoon in Cité") {
-              return { ...event, isPublic: false };
-            }
-            // Other events default to public
-            return { ...event, isPublic: true };
-          }
-          return event;
-        });
-        localStorage.setItem("eventsMigrated", "true");
-        return updated;
-      });
-    }
+    const loadEvents = async () => {
+      try {
+        const allEvents = await api.getAllEvents();
+        setEvents(allEvents);
+      } catch (error) {
+        console.error("Failed to load events:", error);
+      }
+    };
+    loadEvents();
   }, []);
-  
-  // Save events to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem("adminEvents", JSON.stringify(events));
-  }, [events]);
   
   const [selectedIdx, setSelectedIdx] = useState(null);
   // Only keep one selectedEvent state for event modal
@@ -1378,7 +1361,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 padding: "12px",
                 fontSize: 15,
               }}
-              onClick={() => {
+              onClick={async () => {
                 if (!createEventForm.name || !createEventForm.date || !createEventForm.time) {
                   alert("Please fill in all required fields: Event Name, Date, and Time");
                   return;
@@ -1396,7 +1379,6 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 
                 // Create new event object
                 const newEvent = {
-                  id: Date.now(), // Simple unique ID
                   name: createEventForm.name,
                   location: createEventForm.location,
                   venue: createEventForm.venue,
@@ -1407,15 +1389,23 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   category: createEventForm.category,
                   languages: createEventForm.languages,
                   description: createEventForm.description,
-                  isPublic: createEventForm.isPublic,
-                  type: "custom", // Mark as admin-created
+                  is_public: createEventForm.isPublic,
+                  event_type: "custom", // Mark as admin-created
                   capacity: null, // No capacity limit for admin events
-                  crew: [], // Admin events start with no crew
-                  participants: [], // Admin events start with no participants
+                  created_by: "admin"
                 };
                 
-                // Add event to the events array
-                setEvents(prev => [...prev, newEvent]);
+                // Create event via API
+                try {
+                  await api.createEvent(newEvent);
+                  // Refresh events list
+                  const allEvents = await api.getAllEvents();
+                  setEvents(allEvents);
+                } catch (error) {
+                  console.error("Failed to create event:", error);
+                  alert("Failed to create event. Please try again.");
+                  return;
+                }
                 
                 const languagesText = createEventForm.languages.length > 0 
                   ? `Languages: ${createEventForm.languages.join(" ↔ ")}` 

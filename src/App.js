@@ -8,6 +8,7 @@ import EditMyProfile from "./EditMyProfile";
 import SocialChat from "./SocialChat";
 import SocialResult from "./SocialResult";
 import users from "./users";
+import * as api from "./api";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -17,204 +18,67 @@ function App() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [justRegistered, setJustRegistered] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [userEvents, setUserEvents] = useState(() => {
-    // Load joined events from localStorage
-    const saved = localStorage.getItem("userEvents");
-    return saved ? JSON.parse(saved) : {};
-  });
-  const [chatHistory, setChatHistory] = useState(() => {
-    const saved = localStorage.getItem("chatHistory");
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [userEvents, setUserEvents] = useState({});
+  const [chatHistory, setChatHistory] = useState({});
   const [selectedProfile, setSelectedProfile] = useState(null);
-  const [friends, setFriends] = useState(() => {
-    const saved = localStorage.getItem("friends");
-    return saved ? JSON.parse(saved) : {};
-  });
-  const [pendingFriendRequests, setPendingFriendRequests] = useState(() => {
-    const saved = localStorage.getItem("pendingFriendRequests");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [friends, setFriends] = useState({});
+  const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
+  const [suggestedEvents, setSuggestedEvents] = useState({});
+  const [publicEvents, setPublicEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  // Suggested events - events assigned by admin but not yet accepted by user
-  const [suggestedEvents, setSuggestedEvents] = useState(() => {
-    const saved = localStorage.getItem("suggestedEvents");
-    return saved ? JSON.parse(saved) : {};
-  });
-  
-  // Public events - load from adminEvents and filter for public only
-  const [publicEvents, setPublicEvents] = useState(() => {
-    const saved = localStorage.getItem("adminEvents");
-    const allEvents = saved ? JSON.parse(saved) : [];
-    return allEvents.filter(event => event.isPublic !== false); // Show public events (isPublic true or undefined for backward compatibility)
-  });
-  
-  // Sync public events with adminEvents whenever localStorage changes
+  // Load data from API when user logs in
   useEffect(() => {
-    const syncPublicEvents = () => {
-      const saved = localStorage.getItem("adminEvents");
-      if (saved) {
-        let allEvents = JSON.parse(saved);
-        
-        // Migration: Add capacity to events that don't have it
-        let needsUpdate = false;
-        allEvents = allEvents.map(event => {
-          if (event.capacity === undefined) {
-            needsUpdate = true;
-            // Admin events (type: "custom") have no capacity limit
-            // User-created events (has host or createdBy) have capacity of 6
-            const isAdminEvent = event.type === "custom" || (!event.host && !event.createdBy);
-            return {
-              ...event,
-              capacity: isAdminEvent ? null : 6
-            };
-          }
-          return event;
-        });
-        
-        // Save back to localStorage if we added capacity fields
-        if (needsUpdate) {
-          localStorage.setItem("adminEvents", JSON.stringify(allEvents));
-        }
-        
-        // Filter to only show public events
-        setPublicEvents(allEvents.filter(event => event.isPublic !== false));
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const loadUserData = async () => {
+      try {
+        setLoading(true);
+        const username = user?.username || user?.name;
+
+        // Load all public events
+        const events = await api.getAllEvents();
+        setPublicEvents(events);
+
+        // Load user's joined events
+        const userEventsData = await api.getUserEvents(username);
+        setUserEvents({ [username]: userEventsData });
+
+        // Load friends
+        const friendsList = await api.getFriends(username);
+        setFriends({ [username]: friendsList });
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to load data from API:", error);
+        setLoading(false);
       }
     };
-    
-    // Listen for storage changes
-    window.addEventListener("storage", syncPublicEvents);
-    
-    // Also check periodically in case changes happen in same tab
-    const interval = setInterval(syncPublicEvents, 2000);
-    
-    return () => {
-      window.removeEventListener("storage", syncPublicEvents);
-      clearInterval(interval);
+
+    loadUserData();
+  }, [user]);
+
+  // Refresh public events periodically
+  useEffect(() => {
+    const refreshEvents = async () => {
+      try {
+        const events = await api.getAllEvents();
+        setPublicEvents(events);
+      } catch (error) {
+        console.error("Failed to refresh events:", error);
+      }
     };
+
+    const interval = setInterval(refreshEvents, 10000); // Refresh every 10 seconds
+    return () => clearInterval(interval);
   }, []);
 
   const joinedEvents = user ? userEvents[user?.username || user?.name] || [] : [];
   const userSuggestedEvents = user ? suggestedEvents[user?.username || user?.name] || [] : [];
 
-  // Migration: Add capacity to userEvents that don't have it
-  useEffect(() => {
-    let needsUpdate = false;
-    const migratedUserEvents = { ...userEvents };
-    
-    Object.keys(migratedUserEvents).forEach(username => {
-      migratedUserEvents[username] = migratedUserEvents[username].map(event => {
-        if (event.capacity === undefined) {
-          needsUpdate = true;
-          // Admin events (type: "custom") have no capacity limit
-          // User-created events (has host or createdBy) have capacity of 6
-          const isAdminEvent = event.type === "custom" || (!event.host && !event.createdBy);
-          return {
-            ...event,
-            capacity: isAdminEvent ? null : 6
-          };
-        }
-        return event;
-      });
-    });
-    
-    if (needsUpdate) {
-      setUserEvents(migratedUserEvents);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount - migration only
-
-  useEffect(() => {
-    localStorage.setItem("userEvents", JSON.stringify(userEvents));
-  }, [userEvents]);
-  useEffect(() => {
-    localStorage.setItem("suggestedEvents", JSON.stringify(suggestedEvents));
-  }, [suggestedEvents]);
-  // Reference unused setters to satisfy linter (setters may be used in future flows)
-  useEffect(() => {
-    // no-op
-  }, [setUserEvents, setChatHistory]);
-  useEffect(() => {
-    localStorage.setItem("friends", JSON.stringify(friends));
-  }, [friends]);
-  useEffect(() => {
-    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-  }, [chatHistory]);
-  useEffect(() => {
-    localStorage.setItem("pendingFriendRequests", JSON.stringify(pendingFriendRequests));
-  }, [pendingFriendRequests]);
-
-  // Expose cleanup function to browser console and auto-remove specific event
-  useEffect(() => {
-    window.removeEventByNameAndDate = (eventName, eventDate) => {
-      // Remove from adminEvents
-      const adminEvents = localStorage.getItem("adminEvents");
-      if (adminEvents) {
-        const events = JSON.parse(adminEvents);
-        const filtered = events.filter(e => !(e.name === eventName && e.date === eventDate));
-        localStorage.setItem("adminEvents", JSON.stringify(filtered));
-        console.log(`✅ Removed ${events.length - filtered.length} event(s) from adminEvents`);
-      }
-
-      // Remove from userEvents state
-      setUserEvents(prev => {
-        const updated = { ...prev };
-        Object.keys(updated).forEach(username => {
-          updated[username] = updated[username].filter(e => !(e.name === eventName && e.date === eventDate));
-        });
-        return updated;
-      });
-
-      console.log("✅ Event removed! Page will reload.");
-      setTimeout(() => window.location.reload(), 500);
-    };
-
-    // Auto-remove the Language Exchange event
-    const autoCleanup = () => {
-      let needsReload = false;
-
-      // Remove from adminEvents
-      const adminEvents = localStorage.getItem("adminEvents");
-      if (adminEvents) {
-        const events = JSON.parse(adminEvents);
-        const filtered = events.filter(e => !(e.name === "Language Exchange" && e.date === "2025-11-02"));
-        if (filtered.length !== events.length) {
-          localStorage.setItem("adminEvents", JSON.stringify(filtered));
-          console.log("🗑️ Auto-removed Language Exchange event from adminEvents");
-          needsReload = true;
-        }
-      }
-
-      // Remove from all users' joined events
-      Object.keys(localStorage).forEach(key => {
-        if (key === "userEvents") {
-          const userEvents = JSON.parse(localStorage.getItem(key) || "{}");
-          let modified = false;
-          Object.keys(userEvents).forEach(username => {
-            const original = userEvents[username].length;
-            userEvents[username] = userEvents[username].filter(e => !(e.name === "Language Exchange" && e.date === "2025-11-02"));
-            if (userEvents[username].length !== original) {
-              modified = true;
-              console.log(`�️ Removed Language Exchange from ${username}'s events`);
-            }
-          });
-          if (modified) {
-            localStorage.setItem(key, JSON.stringify(userEvents));
-            needsReload = true;
-          }
-        }
-      });
-
-      if (needsReload) {
-        console.log("✅ Cleanup complete! Reloading...");
-        setTimeout(() => window.location.reload(), 500);
-      }
-    };
-
-    autoCleanup();
-
-    console.log("🔧 To remove an event, use: removeEventByNameAndDate('Event Name', 'YYYY-MM-DD')");
-  }, []);
 
   // Points management functions
   const getUserPoints = (username) => {
@@ -402,61 +266,41 @@ function App() {
           setRouletteResult(null);
         }}
         onUserClick={setSelectedProfile}
-        onLeaveEvent={(evToRemove) => {
+        onLeaveEvent={async (evToRemove) => {
           const currentUserKey = user?.username || user?.name;
-          // Remove from user's joined events
-          setUserEvents(prev => {
-            const updated = { ...prev };
-            const list = Array.isArray(updated[currentUserKey]) ? updated[currentUserKey] : [];
-            updated[currentUserKey] = list.filter(ev => String(ev.id || ev.name) !== String(evToRemove?.id || evToRemove?.name));
-            return updated;
-          });
-          // Navigate back to home
-          setShowChat(false);
-          setRouletteResult(null);
-          // Show confirmation
-          alert(`You have left the event "${evToRemove?.name}"`);
+          try {
+            // Leave event via API
+            await api.leaveEvent(evToRemove.id, currentUserKey);
+            // Refresh user's events
+            const userEventsData = await api.getUserEvents(currentUserKey);
+            setUserEvents({ [currentUserKey]: userEventsData });
+            // Refresh all events to update participant counts
+            const allEvents = await api.getAllEvents();
+            setPublicEvents(allEvents);
+            // Navigate back to home
+            setShowChat(false);
+            setRouletteResult(null);
+            // Show confirmation
+            alert(`You have left the event "${evToRemove?.name}"`);
+          } catch (error) {
+            console.error("Failed to leave event:", error);
+            alert("Failed to leave event. Please try again.");
+          }
         }}
-        onEditEvent={(updatedEvent) => {
-          // Update in adminEvents localStorage
-          const saved = localStorage.getItem("adminEvents");
-          if (saved) {
-            const events = JSON.parse(saved);
-            const index = events.findIndex(e => e.id === updatedEvent.id);
-            if (index !== -1) {
-              events[index] = updatedEvent;
-              localStorage.setItem("adminEvents", JSON.stringify(events));
-              
-              // Update the rouletteResult to reflect changes
-              setRouletteResult(updatedEvent);
-              
-              // Also update in userEvents state and localStorage
-              const userKey = user?.username || user?.name;
-              setUserEvents(prev => {
-                const newUserEvents = { ...prev };
-                if (newUserEvents[userKey]) {
-                  const userEventIndex = newUserEvents[userKey].findIndex(e => e.id === updatedEvent.id);
-                  if (userEventIndex !== -1) {
-                    newUserEvents[userKey][userEventIndex] = updatedEvent;
-                  }
-                }
-                return newUserEvents;
-              });
-              
-              // Also update in joinedEvents localStorage
-              const joinedKey = `joinedEvents_${userKey}`;
-              const joinedSaved = localStorage.getItem(joinedKey);
-              if (joinedSaved) {
-                const joinedEvents = JSON.parse(joinedSaved);
-                const joinedIndex = joinedEvents.findIndex(e => e.id === updatedEvent.id);
-                if (joinedIndex !== -1) {
-                  joinedEvents[joinedIndex] = updatedEvent;
-                  localStorage.setItem(joinedKey, JSON.stringify(joinedEvents));
-                }
-              }
-              
-              alert("✨ Event updated successfully!");
-            }
+        onEditEvent={async (updatedEvent) => {
+          // TODO: Implement edit event API endpoint
+          // For now, we'll just refresh to get latest data
+          try {
+            const allEvents = await api.getAllEvents();
+            setPublicEvents(allEvents);
+            const userKey = user?.username || user?.name;
+            const userEventsData = await api.getUserEvents(userKey);
+            setUserEvents({ [userKey]: userEventsData });
+            setRouletteResult(updatedEvent);
+            alert("Event changes saved!");
+          } catch (error) {
+            console.error("Failed to update event:", error);
+            alert("Failed to update event. Changes may not be saved.");
           }
         }}
         onDeleteEvent={(eventToDelete) => {
@@ -546,7 +390,7 @@ function App() {
           publicEvents={publicEvents}
           addPoints={addPoints}
           getUserPoints={getUserPoints}
-          onJoinPublicEvent={(event) => {
+          onJoinPublicEvent={async (event) => {
             const currentUserKey = user?.username || user?.name;
             // Check if already joined
             const list = userEvents[currentUserKey] || [];
@@ -554,17 +398,23 @@ function App() {
               alert(`You've already joined "${event.name}"! Check your joined events below.`);
               return;
             }
-            // Add public event to joined events
-            setUserEvents(prev => {
-              const updated = { ...prev };
-              const list = updated[currentUserKey] || [];
-              updated[currentUserKey] = [...list, event];
-              return updated;
-            });
-            // Award 1 point for joining an event
-            const newPoints = addPoints(currentUserKey, 1);
-            // Show success message
-            alert(`🎉 Success! You joined "${event.name}"!\n\n📍 ${event.location}${event.place ? ` - ${event.place}` : ''}\n⏰ ${event.date} at ${event.time}\n\n⭐ +1 point earned! You now have ${newPoints} points!\n\nCheck your "My Joined Events" section below to see it!`);
+            try {
+              // Join event via API
+              await api.joinEvent(event.id, currentUserKey);
+              // Refresh user's events
+              const userEventsData = await api.getUserEvents(currentUserKey);
+              setUserEvents({ [currentUserKey]: userEventsData });
+              // Refresh all events to update participant counts
+              const allEvents = await api.getAllEvents();
+              setPublicEvents(allEvents);
+              // Award 1 point for joining an event
+              const newPoints = addPoints(currentUserKey, 1);
+              // Show success message
+              alert(`🎉 Success! You joined "${event.name}"!\n\n📍 ${event.location}${event.place ? ` - ${event.place}` : ''}\n⏰ ${event.date} at ${event.time}\n\n⭐ +1 point earned! You now have ${newPoints} points!\n\nCheck your "My Joined Events" section below to see it!`);
+            } catch (error) {
+              console.error("Failed to join event:", error);
+              alert("Failed to join event. Please try again.");
+            }
           }}
           onAcceptSuggestion={(idx, event) => {
             const currentUserKey = user?.username || user?.name;
@@ -604,14 +454,21 @@ function App() {
             setShowChat(true);
           }}
           onUserClick={setSelectedProfile}
-          onLeaveEvent={(evToRemove) => {
+          onLeaveEvent={async (evToRemove) => {
             const currentUserKey = user?.username || user?.name;
-            setUserEvents(prev => {
-              const updated = { ...prev };
-              const list = Array.isArray(updated[currentUserKey]) ? updated[currentUserKey] : [];
-              updated[currentUserKey] = list.filter(ev => String(ev.id || ev.name) !== String(evToRemove?.id || evToRemove?.name));
-              return updated;
-            });
+            try {
+              // Leave event via API
+              await api.leaveEvent(evToRemove.id, currentUserKey);
+              // Refresh user's events
+              const userEventsData = await api.getUserEvents(currentUserKey);
+              setUserEvents({ [currentUserKey]: userEventsData });
+              // Refresh all events
+              const allEvents = await api.getAllEvents();
+              setPublicEvents(allEvents);
+            } catch (error) {
+              console.error("Failed to leave event:", error);
+              alert("Failed to leave event. Please try again.");
+            }
           }}
           showDebug={true}
           friendEvents={(friends[user?.username || user?.name] || []).map(fr => ({
