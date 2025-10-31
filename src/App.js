@@ -71,6 +71,22 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Refresh the logged-in user's events periodically so newly created/joined events appear without reload
+  useEffect(() => {
+    if (!user) return;
+    const currentUserKey = user?.username || user?.name;
+    const refreshUserEvents = async () => {
+      try {
+        const userEventsData = await api.getUserEvents(currentUserKey);
+        setUserEvents({ [currentUserKey]: userEventsData });
+      } catch (error) {
+        console.error("Failed to refresh user events:", error);
+      }
+    };
+    const interval = setInterval(refreshUserEvents, 10000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   const joinedEvents = user ? userEvents[user?.username || user?.name] || [] : [];
   const userSuggestedEvents = user ? suggestedEvents[user?.username || user?.name] || [] : [];
 
