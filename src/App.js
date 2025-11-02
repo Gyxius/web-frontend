@@ -314,35 +314,43 @@ function App() {
             alert("Failed to update event. Changes may not be saved.");
           }
         }}
-        onDeleteEvent={(eventToDelete) => {
-          // Remove from adminEvents localStorage
-          const saved = localStorage.getItem("adminEvents");
-          if (saved) {
-            const events = JSON.parse(saved);
-            const filteredEvents = events.filter(e => e.id !== eventToDelete.id);
-            localStorage.setItem("adminEvents", JSON.stringify(filteredEvents));
-          }
-          
-          // Remove from all users' joined events
-          Object.keys(localStorage).forEach(key => {
-            if (key.startsWith("joinedEvents_")) {
-              const joinedEvents = JSON.parse(localStorage.getItem(key) || "[]");
-              const filtered = joinedEvents.filter(e => e.id !== eventToDelete.id);
-              localStorage.setItem(key, JSON.stringify(filtered));
+        onDeleteEvent={async (eventToDelete) => {
+          try {
+            // Delete from backend
+            await api.deleteEvent(eventToDelete.id, user);
+            
+            // Remove from adminEvents localStorage
+            const saved = localStorage.getItem("adminEvents");
+            if (saved) {
+              const events = JSON.parse(saved);
+              const filteredEvents = events.filter(e => e.id !== eventToDelete.id);
+              localStorage.setItem("adminEvents", JSON.stringify(filteredEvents));
             }
-          });
-          
-          // Remove from userEvents state
-          setUserEvents(prev => {
-            const newUserEvents = { ...prev };
-            Object.keys(newUserEvents).forEach(key => {
-              newUserEvents[key] = newUserEvents[key].filter(e => e.id !== eventToDelete.id);
+            
+            // Remove from all users' joined events
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith("joinedEvents_")) {
+                const joinedEvents = JSON.parse(localStorage.getItem(key) || "[]");
+                const filtered = joinedEvents.filter(e => e.id !== eventToDelete.id);
+                localStorage.setItem(key, JSON.stringify(filtered));
+              }
             });
-            return newUserEvents;
-          });
-          
-          // Navigate back to home
-          setShowChat(false);
+            
+            // Remove from userEvents state
+            setUserEvents(prev => {
+              const newUserEvents = { ...prev };
+              Object.keys(newUserEvents).forEach(key => {
+                newUserEvents[key] = newUserEvents[key].filter(e => e.id !== eventToDelete.id);
+              });
+              return newUserEvents;
+            });
+            
+            // Navigate back to home
+            setShowChat(false);
+          } catch (error) {
+            console.error("Failed to delete event:", error);
+            alert("Failed to delete event: " + error.message);
+          }
           setRouletteResult(null);
           alert("🗑️ Event deleted successfully!");
         }}

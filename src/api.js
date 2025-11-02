@@ -40,6 +40,19 @@ export const leaveEvent = async (eventId, username) => {
   return response.json();
 };
 
+export const deleteEvent = async (eventId, username) => {
+  const response = await fetch(`${API_URL}/api/events/${eventId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to delete event");
+  }
+  return response.json();
+};
+
 export const getUserEvents = async (username) => {
   const response = await fetch(`${API_URL}/api/users/${username}/events`);
   if (!response.ok) throw new Error("Failed to fetch user events");
