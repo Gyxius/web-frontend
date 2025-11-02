@@ -87,6 +87,30 @@ function App() {
     return () => clearInterval(interval);
   }, [user]);
 
+  // Load chat messages when opening a chat
+  useEffect(() => {
+    if (showChat && rouletteResult?.id) {
+      const loadChatMessages = async () => {
+        try {
+          const messages = await api.getChatMessages(rouletteResult.id);
+          // Convert backend format to frontend format
+          const formattedMessages = messages.map(msg => ({
+            from: msg.username,
+            text: msg.message,
+            ts: new Date(msg.timestamp).getTime()
+          }));
+          setChatHistory(prev => ({
+            ...prev,
+            [rouletteResult.id]: formattedMessages
+          }));
+        } catch (error) {
+          console.error("Failed to load chat messages:", error);
+        }
+      };
+      loadChatMessages();
+    }
+  }, [showChat, rouletteResult?.id]);
+
   const joinedEvents = user ? userEvents[user?.username || user?.name] || [] : [];
   const userSuggestedEvents = user ? suggestedEvents[user?.username || user?.name] || [] : [];
 
@@ -259,15 +283,23 @@ function App() {
     mainContent = (
       <SocialChat
         event={{ ...rouletteResult, crew_full }}
-        initialMessages={chatHistory[rouletteResult.name] || []}
+        initialMessages={chatHistory[rouletteResult.id] || []}
         currentUser={user?.username || user?.name}
-        onSendMessage={(msg) => {
-          const key = rouletteResult.name;
-          setChatHistory((prev) => {
-            const list = prev[key] || [];
-            const withTs = { ...msg, ts: Date.now() };
-            return { ...prev, [key]: [...list, withTs] };
-          });
+        onSendMessage={async (msg) => {
+          try {
+            // Save message to backend database
+            await api.sendChatMessage(rouletteResult.id, msg.from, msg.text);
+            // Also update local state for immediate display
+            const key = rouletteResult.id;
+            setChatHistory((prev) => {
+              const list = prev[key] || [];
+              const withTs = { ...msg, ts: Date.now() };
+              return { ...prev, [key]: [...list, withTs] };
+            });
+          } catch (error) {
+            console.error("Failed to send message:", error);
+            alert("Failed to send message. Please try again.");
+          }
         }}
         onBack={() => {
           setShowChat(false);
