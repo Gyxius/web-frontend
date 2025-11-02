@@ -317,7 +317,8 @@ function App() {
         onDeleteEvent={async (eventToDelete) => {
           try {
             // Delete from backend
-            await api.deleteEvent(eventToDelete.id, user);
+            const username = user?.username || user?.name;
+            await api.deleteEvent(eventToDelete.id, username);
             
             // Remove from adminEvents localStorage
             const saved = localStorage.getItem("adminEvents");
