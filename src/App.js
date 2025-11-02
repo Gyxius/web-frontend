@@ -87,13 +87,13 @@ function App() {
     return () => clearInterval(interval);
   }, [user]);
 
-  // Load chat messages when opening a chat
+  // Load chat messages and refresh event data when opening a chat
   useEffect(() => {
     if (showChat && rouletteResult?.id) {
-      const loadChatMessages = async () => {
+      const loadChatData = async () => {
         try {
+          // Load chat messages
           const messages = await api.getChatMessages(rouletteResult.id);
-          // Convert backend format to frontend format
           const formattedMessages = messages.map(msg => ({
             from: msg.username,
             text: msg.message,
@@ -103,11 +103,18 @@ function App() {
             ...prev,
             [rouletteResult.id]: formattedMessages
           }));
+          
+          // Refresh event data to get latest participants
+          const allEvents = await api.getAllEvents();
+          const updatedEvent = allEvents.find(e => e.id === rouletteResult.id);
+          if (updatedEvent) {
+            setRouletteResult(updatedEvent);
+          }
         } catch (error) {
-          console.error("Failed to load chat messages:", error);
+          console.error("Failed to load chat data:", error);
         }
       };
-      loadChatMessages();
+      loadChatData();
     }
   }, [showChat, rouletteResult?.id]);
 
@@ -271,15 +278,25 @@ function App() {
       />
     );
   } else if (showChat && rouletteResult) {
-    // Build crew_full: all users who joined this event
+    // Build crew_full from database participants if available, otherwise from localStorage
     let crew_full = [];
-    Object.entries(userEvents).forEach(([userKey, events]) => {
-      if (Array.isArray(events) && events.find(ev => ev.name === rouletteResult?.name)) {
-        const userInfo = users.find(u => u.name === userKey || u.username === userKey);
+    if (rouletteResult.participants && rouletteResult.participants.length > 0) {
+      // Use participants from database
+      rouletteResult.participants.forEach(username => {
+        const userInfo = users.find(u => u.name === username || u.username === username);
         if (userInfo) crew_full.push(userInfo);
-        else crew_full.push({ name: userKey });
-      }
-    });
+        else crew_full.push({ name: username });
+      });
+    } else {
+      // Fallback to localStorage
+      Object.entries(userEvents).forEach(([userKey, events]) => {
+        if (Array.isArray(events) && events.find(ev => ev.name === rouletteResult?.name)) {
+          const userInfo = users.find(u => u.name === userKey || u.username === userKey);
+          if (userInfo) crew_full.push(userInfo);
+          else crew_full.push({ name: userKey });
+        }
+      });
+    }
     mainContent = (
       <SocialChat
         event={{ ...rouletteResult, crew_full }}
