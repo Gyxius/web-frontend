@@ -1,7 +1,7 @@
 import React from "react";
 import users from "./users";
 
-function UserProfile({ user, getUserPoints, onBack, onAddFriend, isFriend, hasPendingRequest, incomingRequest, onAcceptFriendRequest, onDeclineFriendRequest, onRequestJoinEvent, joinedEvents, onRemoveFriend }) {
+function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFriend, isFriend, hasPendingRequest, incomingRequest, onAcceptFriendRequest, onDeclineFriendRequest, onRequestJoinEvent, joinedEvents, onRemoveFriend }) {
   if (!user) return null;
   
   // If user object is incomplete (like from host), look up full user data
@@ -16,6 +16,11 @@ function UserProfile({ user, getUserPoints, onBack, onAddFriend, isFriend, hasPe
   // Get real-time points from localStorage
   const realPoints = getUserPoints ? getUserPoints(fullUser.name || fullUser.username) : fullUser.points || 0;
   
+  // Check if viewing own profile
+  const currentUserKey = currentUser?.username || currentUser?.name;
+  const viewedUserKey = fullUser.username || fullUser.name;
+  const isOwnProfile = currentUserKey === viewedUserKey;
+  
   return (
     <div style={styles.container}>
       <button style={styles.backBtn} onClick={onBack}>← Back</button>
@@ -29,17 +34,17 @@ function UserProfile({ user, getUserPoints, onBack, onAddFriend, isFriend, hasPe
         <div style={styles.info}><b>Points:</b> {realPoints}</div>
         <div style={styles.info}><b>Languages:</b> {fullUser.languages?.join ? fullUser.languages.join(", ") : fullUser.languages}</div>
         <div style={styles.info}><b>Interests:</b> {fullUser.interests?.join ? fullUser.interests.join(", ") : fullUser.interests}</div>
-        {!isFriend && !hasPendingRequest && !incomingRequest && (
+        {!isOwnProfile && !isFriend && !hasPendingRequest && !incomingRequest && (
           <button style={styles.friendBtn} onClick={() => onAddFriend && onAddFriend(user)}>
             Request Friend
           </button>
         )}
-        {hasPendingRequest && !isFriend && (
+        {!isOwnProfile && hasPendingRequest && !isFriend && (
           <div style={{ marginTop: 16, color: '#f59e0b', fontWeight: 600, textAlign: 'center' }}>
             Friend request sent. Waiting for acceptance.
           </div>
         )}
-        {incomingRequest && !isFriend && (
+        {!isOwnProfile && incomingRequest && !isFriend && (
           <div style={{ marginTop: 16, textAlign: 'center' }}>
             <div style={{ color: '#3b82f6', fontWeight: 600 }}>You have a friend request!</div>
             <button style={styles.friendBtn} onClick={() => onAcceptFriendRequest && onAcceptFriendRequest(user)}>
@@ -50,7 +55,7 @@ function UserProfile({ user, getUserPoints, onBack, onAddFriend, isFriend, hasPe
             </button>
           </div>
         )}
-        {isFriend && (
+        {!isOwnProfile && isFriend && (
           <>
             <div style={styles.friendStatus}>✅ You are friends</div>
             <button style={styles.removeBtn} onClick={() => onRemoveFriend && onRemoveFriend(user)}>

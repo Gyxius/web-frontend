@@ -184,6 +184,7 @@ function App() {
     mainContent = (
       <UserProfile
         user={selectedProfile}
+        currentUser={user}
         getUserPoints={getUserPoints}
         onBack={() => setSelectedProfile(null)}
         onAddFriend={() => {
