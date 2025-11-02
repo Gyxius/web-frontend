@@ -41,10 +41,9 @@ export const leaveEvent = async (eventId, username) => {
 };
 
 export const deleteEvent = async (eventId, username) => {
-  const response = await fetch(`${API_URL}/api/events/${eventId}`, {
+  const response = await fetch(`${API_URL}/api/events/${eventId}?username=${encodeURIComponent(username)}`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username }),
   });
   if (!response.ok) {
     const error = await response.json();
