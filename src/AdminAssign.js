@@ -111,6 +111,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     category: "food",
     languages: [], // Array of languages for exchange
     description: "",
+    imageUrl: "", // Image URL for the event
     isPublic: true, // Default to public events
   });
 
@@ -1354,6 +1355,104 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
               />
             </div>
 
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
+                🖼️ Event Image <span style={{ color: theme.textMuted, fontWeight: 600, fontSize: 13 }}>(optional)</span>
+              </label>
+              
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <input
+                  type="url"
+                  value={createEventForm.imageUrl}
+                  onChange={(e) => setCreateEventForm({ ...createEventForm, imageUrl: e.target.value })}
+                  placeholder="Paste image URL or upload below"
+                  style={{
+                    flex: 1,
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: `1px solid ${theme.border}`,
+                    fontSize: 14,
+                    outline: "none",
+                  }}
+                />
+                <label
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: 12,
+                    background: theme.accent,
+                    color: "white",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontSize: 14,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  📤 Upload
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      // Show loading state
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      
+                      try {
+                        const response = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/upload-image`, {
+                          method: "POST",
+                          body: formData,
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error("Upload failed");
+                        }
+                        
+                        const data = await response.json();
+                        const fullUrl = `${process.env.REACT_APP_API_URL || "http://localhost:8000"}${data.url}`;
+                        setCreateEventForm({ ...createEventForm, imageUrl: fullUrl });
+                      } catch (error) {
+                        console.error("Error uploading image:", error);
+                        alert("Failed to upload image. Please try again.");
+                      }
+                      
+                      // Reset input
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+              
+              {createEventForm.imageUrl && (
+                <div style={{ marginTop: 8, fontSize: 13, color: theme.textMuted }}>
+                  Preview:
+                  <div style={{ 
+                    marginTop: 6, 
+                    width: "100%", 
+                    height: 150, 
+                    borderRadius: 12, 
+                    overflow: "hidden",
+                    border: `1px solid ${theme.border}`,
+                  }}>
+                    <img 
+                      src={createEventForm.imageUrl} 
+                      alt="Event preview" 
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:13px;">⚠️ Invalid image URL</div>';
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
               style={{
                 ...styles.primaryBtn,
@@ -1389,6 +1488,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   category: createEventForm.category,
                   languages: createEventForm.languages,
                   description: createEventForm.description,
+                  image_url: createEventForm.imageUrl,
                   is_public: createEventForm.isPublic,
                   event_type: "custom", // Mark as admin-created
                   capacity: null, // No capacity limit for admin events
@@ -1425,6 +1525,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   category: "food",
                   languages: [],
                   description: "",
+                  imageUrl: "",
                   isPublic: true, // Reset to default public
                 });
                 

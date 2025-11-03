@@ -796,10 +796,10 @@ function SocialHome({
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
             
-            // Filter for user-created events only (those with capacity = 6)
+            // Filter for user-created events (capacity = 6 or admin-created events with null capacity)
             const communityEvents = publicEvents.filter((event) => {
-              // Must be a user event (has capacity of 6)
-              const isUserEvent = event.capacity === 6 || (event.host || event.createdBy);
+              // Must be a user event (has capacity of 6) or admin-created event (capacity is null)
+              const isUserEvent = event.capacity === 6 || event.capacity === null || (event.host || event.createdBy);
               if (!isUserEvent) return false;
               
               // Skip if this is the current user's event
@@ -1009,10 +1009,11 @@ function SocialHome({
         <>
       {/* Featured Events - Template Events Created by Admin */}
       {(() => {
-        // Filter for featured events (isFeatured === true) and exclude joined events
+        // Filter for featured events (isFeatured === true OR created by admin) and exclude joined events
         const featuredEvents = publicEvents.filter(event => {
-          // Must be a featured event
-          if (!event.isFeatured) return false;
+          // Must be a featured event OR created by admin
+          const isFeaturedOrAdmin = event.isFeatured || (event.createdBy && event.createdBy.toLowerCase() === 'admin');
+          if (!isFeaturedOrAdmin) return false;
           
           // Must not be already joined
           return !joinedEvents.some(je => String(je.id) === String(event.id));
@@ -1021,12 +1022,12 @@ function SocialHome({
         if (!featuredEvents || featuredEvents.length === 0) {
           return (
             <div style={styles.highlightCard}>
-              <div style={styles.highlightTitle}>⭐ Featured Events</div>
+              <div style={styles.highlightTitle}>🎉 Featured Events</div>
               <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-                Template events you can customize and join
+                Main events happening - organize language exchanges or hangouts around them!
               </div>
               <div style={{ ...styles.empty, margin: "20px 0 20px 0" }}>
-                There are no featured events yet.
+                No featured events available yet.
               </div>
             </div>
           );
@@ -1034,9 +1035,9 @@ function SocialHome({
         
         return (
         <div style={styles.highlightCard}>
-          <div style={styles.highlightTitle}>⭐ Featured Events</div>
+          <div style={styles.highlightTitle}>🎉 Featured Events</div>
           <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-            Template events you can customize and join
+            Main events happening - organize language exchanges or hangouts around them!
           </div>
           {featuredEvents.slice(0, 5).map((event, idx) => (
             <div key={idx} style={{ 
@@ -1047,7 +1048,7 @@ function SocialHome({
               border: `1px solid ${theme.track}`,
               cursor: "pointer",
             }}
-            onClick={() => setEventPreview(event)}
+            onClick={() => onJoinedEventClick && onJoinedEventClick(event)}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                 <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
@@ -1100,71 +1101,6 @@ function SocialHome({
                     ? `${attendeeCount}/${event.capacity} spots filled` 
                     : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
                 })()}
-              </div>
-              
-              <div style={{ display: "flex", gap: 10 }}>
-                <button
-                  style={{
-                    ...styles.joinButton,
-                    padding: "10px 16px",
-                    fontSize: 14,
-                    flex: 1,
-                    opacity: (() => {
-                      const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                      return (event.capacity && attendeeCount >= event.capacity) ? 0.5 : 1;
-                    })(),
-                    cursor: (() => {
-                      const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                      return (event.capacity && attendeeCount >= event.capacity) ? "not-allowed" : "pointer";
-                    })(),
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                    if (event.capacity && attendeeCount >= event.capacity) {
-                      alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
-                      return;
-                    }
-                    onJoinPublicEvent && onJoinPublicEvent(event);
-                  }}
-                >
-                  {(() => {
-                    const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                    return (event.capacity && attendeeCount >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event";
-                  })()}
-                </button>
-                
-                <button
-                  style={{
-                    ...styles.joinButton,
-                    padding: "10px 16px",
-                    fontSize: 14,
-                    flex: 1,
-                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Pre-fill the create event form with template data
-                    setNewEvent({
-                      name: event.name, // User can customize
-                      location: event.location || "cite",
-                      venue: event.venue || "",
-                      address: event.address || "",
-                      coordinates: event.coordinates || null,
-                      date: "", // User sets their own date
-                      time: "", // User sets their own time
-                      description: "", // User adds their own description
-                      category: event.category || "food",
-                      languages: [], // User selects languages
-                      imageUrl: event.imageUrl || "",
-                      templateEventId: event.id, // Link back to template
-                    });
-                    setShowCreateEventModal(true);
-                    setCreateEventStep(1);
-                  }}
-                >
-                  ✨ Create Your Own
-                </button>
               </div>
             </div>
           ))}
@@ -2919,26 +2855,68 @@ function SocialHome({
 
             {/* Action Buttons */}
             <div style={{ display: "flex", gap: 12 }}>
-              <button
-                style={{
-                  flex: 1,
-                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
-                  color: "white",
-                  border: "none",
-                  borderRadius: 14,
-                  padding: 16,
-                  fontWeight: 900,
-                  fontSize: 16,
-                  cursor: "pointer",
-                  boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
-                }}
-                onClick={() => {
-                  onJoinPublicEvent && onJoinPublicEvent(eventPreview);
-                  setEventPreview(null);
-                }}
-              >
-                🎉 Join This Event
-              </button>
+              {/* Check if this is a featured/admin event */}
+              {(eventPreview.isFeatured || (eventPreview.createdBy && eventPreview.createdBy.toLowerCase() === 'admin')) ? (
+                // Featured event - show "Create Your Own" button
+                <button
+                  style={{
+                    flex: 1,
+                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 14,
+                    padding: 16,
+                    fontWeight: 900,
+                    fontSize: 16,
+                    cursor: "pointer",
+                    boxShadow: "0 6px 16px rgba(102,126,234,0.28)",
+                  }}
+                  onClick={() => {
+                    // Pre-fill the create event form with template data
+                    setNewEvent({
+                      name: eventPreview.name,
+                      location: eventPreview.location || "cite",
+                      venue: eventPreview.venue || "",
+                      address: eventPreview.address || "",
+                      coordinates: eventPreview.coordinates || null,
+                      date: "",
+                      time: "",
+                      description: "",
+                      category: eventPreview.category || "food",
+                      languages: [],
+                      imageUrl: eventPreview.imageUrl || "",
+                      templateEventId: eventPreview.id,
+                    });
+                    setEventPreview(null);
+                    setShowCreateEventModal(true);
+                    setCreateEventStep(1);
+                  }}
+                >
+                  ✨ Create Your Own Event
+                </button>
+              ) : (
+                // Regular event - show "Join Event" button
+                <button
+                  style={{
+                    flex: 1,
+                    background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                    color: "white",
+                    border: "none",
+                    borderRadius: 14,
+                    padding: 16,
+                    fontWeight: 900,
+                    fontSize: 16,
+                    cursor: "pointer",
+                    boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                  }}
+                  onClick={() => {
+                    onJoinPublicEvent && onJoinPublicEvent(eventPreview);
+                    setEventPreview(null);
+                  }}
+                >
+                  🎉 Join This Event
+                </button>
+              )}
               <button
                 style={{
                   padding: "16px 24px",

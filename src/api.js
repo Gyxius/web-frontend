@@ -121,3 +121,11 @@ export const registerUser = async (username, password) => {
   }
   return response.json();
 };
+
+// ===== ADMIN ENDPOINTS =====
+
+export const getPendingRequests = async () => {
+  const response = await fetch(`${API_URL}/api/admin/pending-requests`);
+  if (!response.ok) throw new Error("Failed to fetch pending requests");
+  return response.json();
+};

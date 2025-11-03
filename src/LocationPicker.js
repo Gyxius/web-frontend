@@ -20,12 +20,11 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme }) {
 
     setIsSearching(true);
     try {
-      // Using Nominatim API for geocoding (100% free)
+      // Using backend proxy to avoid CORS issues
+      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
+        `${API_URL}/api/geocode?` +
         `q=${encodeURIComponent(query)}&` +
-        `format=json&` +
-        `addressdetails=1&` +
         `limit=5&` +
         `countrycodes=fr` // Restrict to France
       );

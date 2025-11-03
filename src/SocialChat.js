@@ -563,6 +563,51 @@ function SocialChat({
           )}
         </div>
 
+        {/* Featured Event Notice */}
+        {(event?.isFeatured || (event?.createdBy && event.createdBy.toLowerCase() === 'admin')) && (
+          <div style={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            padding: "20px 24px",
+            borderRadius: theme.radius,
+            marginBottom: 24,
+            boxShadow: "0 4px 16px rgba(102,126,234,0.25)",
+          }}>
+            <div style={{
+              fontSize: 16,
+              fontWeight: 800,
+              color: "white",
+              marginBottom: 8,
+            }}>
+              🎉 Featured Main Event
+            </div>
+            <div style={{
+              fontSize: 14,
+              color: "rgba(255,255,255,0.9)",
+              marginBottom: 16,
+              lineHeight: 1.5,
+            }}>
+              Organize a language exchange or hangout related to this event! Create a pre-drinks, coffee meetup, or post-event gathering with your preferred time and languages.
+            </div>
+            <button
+              style={{
+                background: "white",
+                color: "#667eea",
+                border: "none",
+                borderRadius: 12,
+                padding: "12px 24px",
+                fontWeight: 800,
+                fontSize: 15,
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                width: "100%",
+              }}
+              onClick={onHome}
+            >
+              ✨ Create Hangout
+            </button>
+          </div>
+        )}
+
         {/* Event Meta Information */}
         <div style={{ marginBottom: 24 }}>
           {event?.location && (
@@ -826,13 +871,23 @@ function SocialChat({
         flexWrap: "wrap",
         justifyContent: "center"
       }}>
-        <button style={styles.homeBtn} onClick={onHome}>Go to Homepage</button>
-        <button
-          style={styles.leaveBtn}
-          onClick={() => onLeaveEvent && onLeaveEvent(event)}
-        >
-          Leave Event
-        </button>
+        {/* For featured/admin events, don't show these buttons - they're just templates */}
+        {!(event?.isFeatured || (event?.createdBy && event.createdBy.toLowerCase() === 'admin')) && (
+          <>
+            <button style={styles.homeBtn} onClick={onHome}>Go to Homepage</button>
+            <button
+              style={styles.leaveBtn}
+              onClick={() => onLeaveEvent && onLeaveEvent(event)}
+            >
+              Leave Event
+            </button>
+          </>
+        )}
+        
+        {/* For featured events, show back button */}
+        {(event?.isFeatured || (event?.createdBy && event.createdBy.toLowerCase() === 'admin')) && (
+          <button style={styles.homeBtn} onClick={onHome}>← Back to Events</button>
+        )}
       </div>
 
       {/* Edit Event Screen */}

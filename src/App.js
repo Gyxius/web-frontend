@@ -25,6 +25,7 @@ function App() {
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
   const [suggestedEvents, setSuggestedEvents] = useState({});
   const [publicEvents, setPublicEvents] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
   
   // Load data from API when user logs in
   useEffect(() => {
@@ -47,6 +48,16 @@ function App() {
         // Load friends
         const friendsList = await api.getFriends(username);
         setFriends({ [username]: friendsList });
+
+        // Load pending requests for admin
+        if (username?.toLowerCase() === 'admin') {
+          try {
+            const requests = await api.getPendingRequests();
+            setPendingRequests(requests);
+          } catch (error) {
+            console.error("Failed to load pending requests:", error);
+          }
+        }
 
       } catch (error) {
         console.error("Failed to load data from API:", error);
@@ -184,6 +195,8 @@ function App() {
       <>
         <AdminAssign
           userEvents={userEvents}
+          pendingRequests={pendingRequests}
+          onAddPendingRequests={(requests) => setPendingRequests(requests)}
           onRemoveJoinedEvent={(userKey, idx) => {
             setUserEvents(prev => {
               const updated = { ...prev };
