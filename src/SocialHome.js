@@ -66,6 +66,7 @@ function SocialHome({
     category: "food",
     languages: [], // Array of languages that will be spoken
     imageUrl: "", // Background image for the event
+    templateEventId: null, // ID of template event if created from featured event
   });
   const [showAllLanguages, setShowAllLanguages] = useState(false);
 
@@ -1006,24 +1007,23 @@ function SocialHome({
       {/* Tab Content */}
       {activeTab === "featured" && !showExplore && (
         <>
-      {/* Featured Events - Created by Admin */}
+      {/* Featured Events - Template Events Created by Admin */}
       {(() => {
-        // Filter for admin events only (capacity null or type "custom") and exclude joined events
-        const availablePublicEvents = publicEvents.filter(event => {
-          // Must be an admin event (no capacity limit)
-          const isAdminEvent = event.capacity === null || event.type === "custom";
-          if (!isAdminEvent) return false;
+        // Filter for featured events (isFeatured === true) and exclude joined events
+        const featuredEvents = publicEvents.filter(event => {
+          // Must be a featured event
+          if (!event.isFeatured) return false;
           
           // Must not be already joined
           return !joinedEvents.some(je => String(je.id) === String(event.id));
         });
         
-        if (!availablePublicEvents || availablePublicEvents.length === 0) {
+        if (!featuredEvents || featuredEvents.length === 0) {
           return (
             <div style={styles.highlightCard}>
               <div style={styles.highlightTitle}>⭐ Featured Events</div>
               <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-                Events created by admins
+                Template events you can customize and join
               </div>
               <div style={{ ...styles.empty, margin: "20px 0 20px 0" }}>
                 There are no featured events yet.
@@ -1036,9 +1036,9 @@ function SocialHome({
         <div style={styles.highlightCard}>
           <div style={styles.highlightTitle}>⭐ Featured Events</div>
           <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-            Events created by admins
+            Template events you can customize and join
           </div>
-          {availablePublicEvents.slice(0, 5).map((event, idx) => (
+          {featuredEvents.slice(0, 5).map((event, idx) => (
             <div key={idx} style={{ 
               background: theme.bg, 
               padding: 14, 
@@ -1102,41 +1102,75 @@ function SocialHome({
                 })()}
               </div>
               
-              <button
-                style={{
-                  ...styles.joinButton,
-                  padding: "10px 16px",
-                  fontSize: 14,
-                  width: "100%",
-                  opacity: (() => {
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  style={{
+                    ...styles.joinButton,
+                    padding: "10px 16px",
+                    fontSize: 14,
+                    flex: 1,
+                    opacity: (() => {
+                      const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                      return (event.capacity && attendeeCount >= event.capacity) ? 0.5 : 1;
+                    })(),
+                    cursor: (() => {
+                      const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                      return (event.capacity && attendeeCount >= event.capacity) ? "not-allowed" : "pointer";
+                    })(),
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
                     const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                    return (event.capacity && attendeeCount >= event.capacity) ? 0.5 : 1;
-                  })(),
-                  cursor: (() => {
+                    if (event.capacity && attendeeCount >= event.capacity) {
+                      alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
+                      return;
+                    }
+                    onJoinPublicEvent && onJoinPublicEvent(event);
+                  }}
+                >
+                  {(() => {
                     const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                    return (event.capacity && attendeeCount >= event.capacity) ? "not-allowed" : "pointer";
-                  })(),
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                  if (event.capacity && attendeeCount >= event.capacity) {
-                    alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
-                    return;
-                  }
-                  onJoinPublicEvent && onJoinPublicEvent(event);
-                }}
-              >
-                {(() => {
-                  const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                  return (event.capacity && attendeeCount >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event";
-                })()}
-              </button>
+                    return (event.capacity && attendeeCount >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event";
+                  })()}
+                </button>
+                
+                <button
+                  style={{
+                    ...styles.joinButton,
+                    padding: "10px 16px",
+                    fontSize: 14,
+                    flex: 1,
+                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Pre-fill the create event form with template data
+                    setNewEvent({
+                      name: event.name, // User can customize
+                      location: event.location || "cite",
+                      venue: event.venue || "",
+                      address: event.address || "",
+                      coordinates: event.coordinates || null,
+                      date: "", // User sets their own date
+                      time: "", // User sets their own time
+                      description: "", // User adds their own description
+                      category: event.category || "food",
+                      languages: [], // User selects languages
+                      imageUrl: event.imageUrl || "",
+                      templateEventId: event.id, // Link back to template
+                    });
+                    setShowCreateEventModal(true);
+                    setCreateEventStep(1);
+                  }}
+                >
+                  ✨ Create Your Own
+                </button>
+              </div>
             </div>
           ))}
-          {availablePublicEvents.length > 5 && (
+          {featuredEvents.length > 5 && (
             <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8 }}>
-              +{availablePublicEvents.length - 5} more featured event{availablePublicEvents.length - 5 !== 1 ? "s" : ""} available
+              +{featuredEvents.length - 5} more featured event{featuredEvents.length - 5 !== 1 ? "s" : ""} available
             </div>
           )}
         </div>
@@ -1777,7 +1811,7 @@ function SocialHome({
         <div style={styles.modalOverlay} onClick={() => {
           setShowCreateEventModal(false);
           setCreateEventStep(1);
-          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "" });
+          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "", templateEventId: null });
           setShowAllLanguages(false);
         }}>
           <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "visible", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
@@ -2591,6 +2625,7 @@ function SocialHome({
                           event_type: "in-person",
                           capacity: 6,
                           created_by: userName,
+                          template_event_id: newEvent.templateEventId || null,
                         };
                         
                         // Call the API to create the event
@@ -2605,7 +2640,7 @@ function SocialHome({
                         }
                         
                         // Reset form and close
-                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "" });
+                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "", templateEventId: null });
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
@@ -2641,7 +2676,7 @@ function SocialHome({
               onClick={() => {
                 setShowCreateEventModal(false);
                 setCreateEventStep(1);
-                setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "" });
+                setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "", templateEventId: null });
                 setShowAllLanguages(false);
               }}
             >
