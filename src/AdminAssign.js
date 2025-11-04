@@ -1210,61 +1210,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
               </div>
             </div>
 
-            {/* Public/Private Toggle */}
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
-                Event Visibility
-              </label>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button
-                  type="button"
-                  onClick={() => setCreateEventForm({ ...createEventForm, isPublic: true })}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    borderRadius: 12,
-                    border: `2px solid ${createEventForm.isPublic ? theme.primary : theme.border}`,
-                    background: createEventForm.isPublic ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
-                    color: createEventForm.isPublic ? "white" : theme.text,
-                    cursor: "pointer",
-                    fontWeight: 800,
-                    fontSize: 14,
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  🌍 Public Event
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCreateEventForm({ ...createEventForm, isPublic: false })}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    borderRadius: 12,
-                    border: `2px solid ${!createEventForm.isPublic ? theme.accent : theme.border}`,
-                    background: !createEventForm.isPublic ? `linear-gradient(135deg, ${theme.accent}, #0AA6EB)` : theme.card,
-                    color: !createEventForm.isPublic ? "white" : theme.text,
-                    cursor: "pointer",
-                    fontWeight: 800,
-                    fontSize: 14,
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  🔒 Private Event
-                </button>
-              </div>
-              <div style={{ fontSize: 12.5, color: theme.textMuted, marginTop: 6, fontStyle: "italic" }}>
-                {createEventForm.isPublic 
-                  ? "👥 Public events are visible to all users on their homepage and anyone can join."
-                  : "🔐 Private events are only for users assigned by admin and won't appear in public listings."
-                }
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
-                Language Exchange {createEventForm.isPublic && <span style={{ color: theme.textMuted, fontWeight: 600, fontSize: 13 }}>(optional)</span>}
-                {!createEventForm.isPublic && <span style={{ color: theme.textMuted, fontWeight: 600, fontSize: 13 }}>(select 2-3 languages)</span>}
+                Language Exchange <span style={{ color: theme.textMuted, fontWeight: 600, fontSize: 13 }}>(optional)</span>
               </label>
               <div style={{ 
                 display: "grid", 
@@ -1469,11 +1417,6 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   alert("Please provide an exact address using the location picker");
                   return;
                 }
-                // Language selection is required for private events, optional for public events
-                if (!createEventForm.isPublic && createEventForm.languages.length < 2) {
-                  alert("Please select at least 2 languages for the language exchange (required for private events)");
-                  return;
-                }
                 logAdminActivity(`Created new event: ${createEventForm.name} at ${createEventForm.address}`);
                 
                 // Create new event object
@@ -1511,7 +1454,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   ? `Languages: ${createEventForm.languages.join(" ↔ ")}` 
                   : "Languages: None specified";
                 
-                alert(`Event "${createEventForm.name}" created successfully!\n\nVisibility: ${createEventForm.isPublic ? "🌍 Public" : "🔒 Private"}\nLocation: ${createEventForm.location}\nVenue: ${createEventForm.venue}\nAddress: ${createEventForm.address}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\n${languagesText}`);
+                alert(`Event "${createEventForm.name}" created successfully!\n\nLocation: ${createEventForm.location}\nVenue: ${createEventForm.venue}\nAddress: ${createEventForm.address}\nDate: ${createEventForm.date}\nTime: ${createEventForm.time}\n${languagesText}`);
                 
                 // Reset form
                 setCreateEventForm({
