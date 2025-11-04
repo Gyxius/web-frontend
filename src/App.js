@@ -27,6 +27,7 @@ function App() {
   const [publicEvents, setPublicEvents] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [templateEventToCreate, setTemplateEventToCreate] = useState(null);
+  const [adminOpenEventId, setAdminOpenEventId] = useState(null);
   
   // Load data from API when user logs in
   useEffect(() => {
@@ -67,6 +68,29 @@ function App() {
 
     loadUserData();
   }, [user]);
+
+  // Expose a global hook so Admin panel can open the user event view
+  useEffect(() => {
+    if ((user?.username || user?.name)?.toLowerCase() === "admin") {
+      window.__ADMIN_OPEN_EVENT__ = (id) => setAdminOpenEventId(id);
+      return () => { try { delete window.__ADMIN_OPEN_EVENT__; } catch {} };
+    }
+  }, [user]);
+
+  // When admin selects an event, open the same detailed chat view users see
+  useEffect(() => {
+    const openAdminEvent = async () => {
+      if (!adminOpenEventId) return;
+      try {
+        const ev = await api.getEventById(adminOpenEventId);
+        setRouletteResult(ev);
+        setShowChat(true);
+      } catch (e) {
+        console.error("Failed to open admin event", adminOpenEventId, e);
+      }
+    };
+    openAdminEvent();
+  }, [adminOpenEventId]);
 
   // Refresh public events periodically
   useEffect(() => {
@@ -191,7 +215,115 @@ function App() {
         startEditing={!!justRegistered}
       />
     );
+  // Show detailed event/chat view for any user (including admin) if requested
+  } else if (showChat && rouletteResult) {
+    // Build crew_full from database participants if available, otherwise from localStorage
+    let crew_full = [];
+    if (rouletteResult.participants && rouletteResult.participants.length > 0) {
+      // Use participants from database
+      rouletteResult.participants.forEach(username => {
+        const userInfo = users.find(u => u.name === username || u.username === username);
+        if (userInfo) crew_full.push(userInfo);
+        else crew_full.push({ name: username });
+      });
+    } else {
+      // Fallback to localStorage
+      Object.entries(userEvents).forEach(([userKey, events]) => {
+        if (Array.isArray(events) && events.find(ev => ev.name === rouletteResult?.name)) {
+          const userInfo = users.find(u => u.name === userKey || u.username === userKey);
+          if (userInfo) crew_full.push(userInfo);
+          else crew_full.push({ name: userKey });
+        }
+      });
+    }
+    mainContent = (
+      <SocialChat
+        event={{ ...rouletteResult, crew_full }}
+        initialMessages={chatHistory[rouletteResult.id] || []}
+        currentUser={user?.username || user?.name}
+        onSendMessage={async (msg) => {
+          try {
+            await api.sendChatMessage(rouletteResult.id, msg.from, msg.text);
+            const key = rouletteResult.id;
+            setChatHistory((prev) => {
+              const list = prev[key] || [];
+              const withTs = { ...msg, ts: Date.now() };
+              return { ...prev, [key]: [...list, withTs] };
+            });
+          } catch (error) {
+            console.error("Failed to send message:", error);
+            alert("Failed to send message. Please try again.");
+          }
+        }}
+        onBack={() => {
+          setShowChat(false);
+          setRouletteResult(null);
+          // If admin opened it, go back to admin dashboard
+          if ((user?.username || user?.name)?.toLowerCase() === 'admin') {
+            setAdminOpenEventId(null);
+          }
+        }}
+        onHome={() => {
+          setShowChat(false);
+          setRouletteResult(null);
+          if ((user?.username || user?.name)?.toLowerCase() === 'admin') {
+            setAdminOpenEventId(null);
+          }
+        }}
+        onUserClick={setSelectedProfile}
+        onLeaveEvent={async (evToRemove) => {
+          const currentUserKey = user?.username || user?.name;
+          try {
+            await api.leaveEvent(evToRemove.id, currentUserKey);
+            const userEventsData = await api.getUserEvents(currentUserKey);
+            setUserEvents({ [currentUserKey]: userEventsData });
+            const allEvents = await api.getAllEvents();
+            setPublicEvents(allEvents);
+            setShowChat(false);
+            setRouletteResult(null);
+            alert(`You have left the event "${evToRemove?.name}"`);
+          } catch (error) {
+            console.error("Failed to leave event:", error);
+            alert("Failed to leave event. Please try again.");
+          }
+        }}
+        onEditEvent={async (updatedEvent) => {
+          try {
+            const username = user?.username || user?.name;
+            const eventData = {
+              name: updatedEvent.name,
+              description: updatedEvent.description || "",
+              location: updatedEvent.location || "cite",
+              venue: updatedEvent.venue || "",
+              address: updatedEvent.address || "",
+              coordinates: updatedEvent.coordinates || null,
+              date: updatedEvent.date || "",
+              time: updatedEvent.time || "",
+              category: updatedEvent.category || "food",
+              languages: updatedEvent.languages || [],
+              is_public: updatedEvent.isPublic !== undefined ? updatedEvent.isPublic : true,
+              event_type: updatedEvent.type || "custom",
+              capacity: updatedEvent.capacity || null,
+              image_url: updatedEvent.imageUrl || "",
+              created_by: username,
+            };
+            await api.updateEvent(updatedEvent.id, eventData);
+            const allEvents = await api.getAllEvents();
+            setPublicEvents(allEvents);
+            const userEventsData = await api.getUserEvents(username);
+            setUserEvents({ [username]: userEventsData });
+            setRouletteResult(updatedEvent);
+            alert("Event changes saved!");
+          } catch (error) {
+            console.error("Failed to update event:", error);
+            alert("Failed to update event: " + error.message);
+          }
+        }}
+      />
+    );
   } else if ((user?.username || user?.name)?.toLowerCase() === "admin") {
+    // If admin clicked an event, show the same screen users see, focused on that event
+    if (!adminOpenEventId) {
     mainContent = (
       <>
         <AdminAssign
@@ -216,6 +348,7 @@ function App() {
         </button>
       </>
     );
+    }
   } else if (selectedProfile) {
     const currentUserKey = user?.username || user?.name;
     const selectedKey = selectedProfile?.username || selectedProfile?.name;

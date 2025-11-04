@@ -33,6 +33,71 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   // Debug: show pendingRequests
   console.log("[DEBUG] pendingRequests:", pendingRequests);
   
+  // Helper functions for display
+  const getLanguageFlag = (language) => {
+    const flagMap = {
+      "French": "🇫🇷",
+      "English": "🇬🇧",
+      "Spanish": "🇪🇸",
+      "German": "🇩🇪",
+      "Italian": "🇮🇹",
+      "Portuguese": "🇵🇹",
+      "Chinese": "🇨🇳",
+      "Japanese": "🇯🇵",
+      "Korean": "🇰🇷",
+      "Arabic": "🇸🇦",
+    };
+    return flagMap[language] || "🗣️";
+  };
+
+  const formatLanguagesForTitle = (languages) => {
+    if (!languages || languages.length === 0) return "";
+    if (languages.length === 1) {
+      return ` - ${getLanguageFlag(languages[0])} ${languages[0]}`;
+    }
+    // For multiple languages: "🇫🇷 French ↔ English 🇬🇧"
+    return ` - ${languages.map((lang, idx) => {
+      const flag = getLanguageFlag(lang);
+      if (idx === 0) {
+        return `${flag} ${lang}`;
+      } else if (idx === languages.length - 1) {
+        return `${lang} ${flag}`;
+      } else {
+        return lang;
+      }
+    }).join(" ↔ ")}`;
+  };
+
+  const formatDateOnly = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      return String(dateStr).includes('T') ? String(dateStr).split('T')[0] : String(dateStr);
+    } catch {
+      return String(dateStr);
+    }
+  };
+
+  const getCategoryEmoji = (category) => {
+    const emojiMap = {
+      food: "🍽️",
+      drinks: "🍹",
+      random: "🎲",
+      walk: "🚶",
+      coffee: "☕",
+    };
+    return emojiMap[category] || "🎯";
+  };
+
+  const getLocationDisplay = (location, venue) => {
+    let displayText = "";
+    if (location === "cite") displayText = "🏛️ Cité";
+    else if (location === "paris") displayText = "🗼 Paris";
+    else displayText = `📍 ${location}`;
+    
+    if (venue) displayText += ` · ${venue}`;
+    return displayText;
+  };
+  
   // Manage places with state - load from localStorage
   const [places, setPlaces] = useState(() => {
     const saved = localStorage.getItem("adminPlaces");
@@ -1860,13 +1925,31 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           <div style={styles.sectionTitle}>📅 All Events ({events.length})</div>
           <ul style={{ padding: 0 }}>
             {events.map(ev => (
-              <li key={ev.id} style={{ ...styles.card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <li key={ev.id} style={{ ...styles.card, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                 <div 
                   style={{ flex: 1, cursor: "pointer" }} 
-                  onClick={() => setSelectedEventForModal(ev)}
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && window.__ADMIN_OPEN_EVENT__) {
+                      try { window.__ADMIN_OPEN_EVENT__(ev.id); return; } catch {}
+                    }
+                    // Fallback to in-panel modal
+                    setSelectedEventForModal(ev);
+                  }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <div style={{ fontSize: 18.5, fontWeight: 800, color: theme.text }}>{ev.name}</div>
+                  {/* Line 1: Name + Languages */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <div style={{ fontSize: 17, fontWeight: 800, color: theme.text }}>
+                      {ev.name}
+                      {ev.languages && ev.languages.length > 0 && (
+                        <span style={{ fontSize: 14.5, fontWeight: 600, color: theme.textMuted }}>
+                          {formatLanguagesForTitle(ev.languages)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Badges: Featured & Public/Private */}
+                  <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
                     {ev.isFeatured && (
                       <span style={{
                         fontSize: 11,
@@ -1892,9 +1975,24 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                       {ev.isPublic === false ? "🔒 Private" : "🌍 Public"}
                     </span>
                   </div>
-                  <div style={{ fontSize: 14, color: theme.textMuted }}>Time: {ev.time}</div>
-                  {ev.languageLabels && (
-                    <div style={{ fontSize: 13, color: theme.accent, marginTop: 4 }}>{ev.languageLabels}</div>
+                  
+                  {/* Line 2: Location */}
+                  {ev.location && (
+                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 4 }}>
+                      {getLocationDisplay(ev.location, ev.venue)}
+                    </div>
+                  )}
+                  
+                  {/* Line 3: Date */}
+                  <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 4 }}>
+                    ⏰ {formatDateOnly(ev.date) || ev.time}
+                  </div>
+                  
+                  {/* Line 4: Category */}
+                  {ev.category && (
+                    <div style={{ fontSize: 14, color: theme.textMuted }}>
+                      {getCategoryEmoji(ev.category)} {ev.category}
+                    </div>
                   )}
                 </div>
                 <button

@@ -3,7 +3,7 @@ import { FaUserCircle } from "react-icons/fa";
 import users from "./users";
 import LocationPicker from "./LocationPicker";
 import "./SocialHome.animations.css";
-import { createEvent } from "./api";
+import { createEvent, getEventById, updateEvent } from "./api";
 
 function SocialHome({
   userName = "Guest",
@@ -28,6 +28,10 @@ function SocialHome({
   getUserPoints,
   templateEventToCreate = null,
   onTemplateEventHandled = null,
+  // Admin handoff: allow opening SocialHome to preview/edit a specific event
+  adminMode = false,
+  initialEventId = null,
+  onBackFromAdmin = null,
 }) {
   if (showDebug) {
     console.log("[DEBUG] joinedEvents for", userName, joinedEvents);
@@ -37,6 +41,8 @@ function SocialHome({
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [createEventStep, setCreateEventStep] = useState(1);
   const [eventPreview, setEventPreview] = useState(null); // For previewing events before joining
+  const [adminEditMode, setAdminEditMode] = useState(false);
+  const [adminEditForm, setAdminEditForm] = useState(null);
   // View mode: 'my' shows only user's joined events, 'friends' shows only friends' joined events
   const [viewMode, setViewMode] = useState("my");
   
@@ -99,6 +105,22 @@ function SocialHome({
       }
     }
   }, [templateEventToCreate, onTemplateEventHandled]);
+
+  // If admin opened a specific event, fetch it and open the same preview screen users see
+  useEffect(() => {
+    const openInitial = async () => {
+      if (adminMode && initialEventId && !eventPreview) {
+        try {
+          const ev = await getEventById(initialEventId);
+          setEventPreview(ev);
+        } catch (e) {
+          console.error("Failed to load event by id", initialEventId, e);
+        }
+      }
+    };
+    openInitial();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminMode, initialEventId]);
 
   const fadeIn = { animation: "fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1)" };
   const pulse = { animation: "pulse 1.2s infinite" };
@@ -201,6 +223,15 @@ function SocialHome({
       "Arabic": "🇸🇦",
     };
     return flagMap[language] || "🗣️";
+  };
+
+  const formatDateOnly = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      return String(dateStr).includes('T') ? String(dateStr).split('T')[0] : String(dateStr);
+    } catch {
+      return String(dateStr);
+    }
   };
 
   const formatLanguagesForTitle = (languages) => {
@@ -488,6 +519,27 @@ function SocialHome({
 
   return (
     <div style={styles.container}>
+      {adminMode && (
+        <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1100 }}>
+          <button
+            onClick={() => {
+              if (onBackFromAdmin) onBackFromAdmin();
+            }}
+            style={{
+              background: "#6B7280",
+              color: "white",
+              border: "none",
+              borderRadius: 10,
+              padding: "8px 12px",
+              fontWeight: 800,
+              cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            }}
+          >
+            ← Back to Admin
+          </button>
+        </div>
+      )}
       {/* Top Fixed Header - Frimake Style */}
       <div style={{
         position: "fixed",
@@ -981,7 +1033,7 @@ function SocialHome({
                     )}
                     
                     <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                      ⏰ {event.date}
+                      ⏰ {formatDateOnly(event.date)}
                     </div>
                     
                     {event.category && (
@@ -1115,7 +1167,7 @@ function SocialHome({
               )}
               
               <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                ⏰ {event.date || event.time}
+                ⏰ {formatDateOnly(event.date) || event.time}
               </div>
               
               {event.category && (
@@ -1223,7 +1275,7 @@ function SocialHome({
                     )}
                     
                     <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                      ⏰ {item.date}
+                      ⏰ {formatDateOnly(item.date)}
                     </div>
                     
                     {item.category && (
@@ -1330,7 +1382,7 @@ function SocialHome({
                     )}
                     
                     <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                      ⏰ {item.date}
+                      ⏰ {formatDateOnly(item.date)}
                     </div>
                     
                     {item.category && (
@@ -1446,7 +1498,7 @@ function SocialHome({
                 📍 {event.location} {event.place ? `· ${event.place}` : ""}
               </div>
               <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 4 }}>
-                ⏰ {event.date} at {event.time}
+                ⏰ {formatDateOnly(event.date)}
               </div>
               {event.languages && event.languages.length > 0 && (
                 <div style={{ fontSize: 13.5, color: theme.textMuted, marginBottom: 10 }}>
@@ -1561,7 +1613,7 @@ function SocialHome({
                       {ev.location && (
                         <div style={styles.details}>{getLocationDisplay(ev.location, ev.venue)}</div>
                       )}
-                      <div style={styles.details}>⏰ {ev.date ? `${ev.date} at ${ev.time}` : String(ev.time || ev.date || "")}</div>
+                      <div style={styles.details}>⏰ {formatDateOnly(ev.date) || String(ev.date || ev.time || "")}</div>
                       {ev.category && (
                         <div style={styles.details}>
                           {getCategoryEmoji(ev.category)} {ev.category}
@@ -1623,7 +1675,7 @@ function SocialHome({
                         </div>
                       )}
                       <div style={styles.details}>
-                        ⏰ {item.date ? `${item.date} at ${item.time}` : String(item.time || item.date)}
+                        ⏰ {formatDateOnly(item.date) || String(item.date || item.time || "")}
                       </div>
                       {item.category && (
                         <div style={styles.details}>
@@ -1689,7 +1741,7 @@ function SocialHome({
                     </div>
                   )}
                   <div style={styles.details}>
-                    ⏰ {item.date ? `${item.date} at ${item.time}` : String(item.time || item.date)}
+                    ⏰ {formatDateOnly(item.date) || String(item.date || item.time || "")}
                   </div>
                   {item.category && (
                     <div style={styles.details}>
@@ -2815,6 +2867,41 @@ function SocialHome({
             <h2 style={{ fontSize: 28, fontWeight: 900, color: theme.text, marginBottom: 16 }}>
               {eventPreview.name}
             </h2>
+            {adminMode && !adminEditMode && (
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: -8, marginBottom: 8 }}>
+                <button
+                  onClick={() => {
+                    setAdminEditMode(true);
+                    setAdminEditForm({
+                      name: eventPreview.name || "",
+                      description: eventPreview.description || "",
+                      location: eventPreview.location || "cite",
+                      venue: eventPreview.venue || "",
+                      address: eventPreview.address || "",
+                      coordinates: eventPreview.coordinates || null,
+                      date: eventPreview.date || "",
+                      time: eventPreview.time || "",
+                      category: eventPreview.category || "food",
+                      languages: Array.isArray(eventPreview.languages) ? eventPreview.languages.slice() : [],
+                      capacity: eventPreview.capacity || null,
+                      imageUrl: eventPreview.imageUrl || "",
+                    });
+                  }}
+                  style={{
+                    background: "#1CB0F6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "8px 12px",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  ✏️ Edit
+                </button>
+              </div>
+            )}
 
             {/* Event Image */}
             {eventPreview.imageUrl && (
@@ -2962,6 +3049,92 @@ function SocialHome({
               </div>
             )}
 
+            {/* Admin Edit Form */}
+            {adminMode && adminEditMode && adminEditForm && (
+              <div style={{
+                marginBottom: 20,
+                background: "#F9FAFB",
+                border: "1px solid #EEF2F7",
+                borderRadius: 12,
+                padding: 16,
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 900, color: "#1CB0F6", marginBottom: 10 }}>Admin Edit</div>
+                <div style={{ display: "grid", gap: 10 }}>
+                  <div>
+                    <label style={{ fontWeight: 800, fontSize: 13 }}>Name</label>
+                    <input type="text" value={adminEditForm.name} onChange={(e)=>setAdminEditForm(prev=>({...prev,name:e.target.value}))} style={{ width:"100%", padding:10, border:"1px solid #EEF2F7", borderRadius:10 }} />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div>
+                      <label style={{ fontWeight: 800, fontSize: 13 }}>Date</label>
+                      <input type="date" value={adminEditForm.date} onChange={(e)=>setAdminEditForm(prev=>({...prev,date:e.target.value}))} style={{ width:"100%", padding:10, border:"1px solid #EEF2F7", borderRadius:10 }} />
+                    </div>
+                    <div>
+                      <label style={{ fontWeight: 800, fontSize: 13 }}>Time</label>
+                      <input type="time" value={adminEditForm.time} onChange={(e)=>setAdminEditForm(prev=>({...prev,time:e.target.value}))} style={{ width:"100%", padding:10, border:"1px solid #EEF2F7", borderRadius:10 }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontWeight: 800, fontSize: 13 }}>Address</label>
+                    <input type="text" value={adminEditForm.address} onChange={(e)=>setAdminEditForm(prev=>({...prev,address:e.target.value}))} style={{ width:"100%", padding:10, border:"1px solid #EEF2F7", borderRadius:10 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontWeight: 800, fontSize: 13 }}>Description</label>
+                    <textarea rows={3} value={adminEditForm.description} onChange={(e)=>setAdminEditForm(prev=>({...prev,description:e.target.value}))} style={{ width:"100%", padding:10, border:"1px solid #EEF2F7", borderRadius:10, resize:"vertical" }} />
+                  </div>
+                  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => { setAdminEditMode(false); setAdminEditForm(null); }}
+                      style={{ background: "#6B7280", color:"white", border:"none", borderRadius:10, padding:"10px 14px", fontWeight:800, cursor:"pointer" }}
+                    >Cancel</button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const payload = {
+                            name: adminEditForm.name,
+                            description: adminEditForm.description || "",
+                            location: adminEditForm.location || (eventPreview.location || "cite"),
+                            venue: adminEditForm.venue || "",
+                            address: adminEditForm.address || "",
+                            coordinates: adminEditForm.coordinates || null,
+                            date: adminEditForm.date || "",
+                            time: adminEditForm.time || "",
+                            category: adminEditForm.category || (eventPreview.category || "food"),
+                            languages: Array.isArray(adminEditForm.languages) ? adminEditForm.languages : [],
+                            is_public: eventPreview.isPublic !== undefined ? eventPreview.isPublic : true,
+                            event_type: eventPreview.type || "custom",
+                            capacity: adminEditForm.capacity || null,
+                            image_url: adminEditForm.imageUrl || "",
+                            created_by: eventPreview.createdBy || userName,
+                          };
+                          await updateEvent(eventPreview.id, payload);
+                          // Reflect changes locally in preview UI
+                          setEventPreview(prev => prev ? ({
+                            ...prev,
+                            name: payload.name,
+                            description: payload.description,
+                            address: payload.address,
+                            date: payload.date,
+                            time: payload.time,
+                            category: payload.category,
+                            languages: payload.languages,
+                            imageUrl: payload.image_url || prev.imageUrl,
+                          }) : prev);
+                          setAdminEditMode(false);
+                          setAdminEditForm(null);
+                          alert("Event updated");
+                        } catch (err) {
+                          console.error("Failed to update event", err);
+                          alert("Failed to update event: " + (err?.message || String(err)));
+                        }
+                      }}
+                      style={{ background: "#58CC02", color:"white", border:"none", borderRadius:10, padding:"10px 14px", fontWeight:900, cursor:"pointer", boxShadow:"0 6px 16px rgba(88,204,2,0.28)" }}
+                    >Save Changes</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Participants */}
             {(() => {
               const allParticipants = [
@@ -3012,7 +3185,7 @@ function SocialHome({
             })()}
 
             {/* Action Buttons */}
-            <div style={{ display: "flex", gap: 12 }}>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               {/* Check if this is a featured/admin event */}
               {(eventPreview.isFeatured || (eventPreview.createdBy && eventPreview.createdBy.toLowerCase() === 'admin')) ? (
                 // Featured event - show "Create Your Own" button
@@ -3073,6 +3246,40 @@ function SocialHome({
                   }}
                 >
                   🎉 Join This Event
+                </button>
+              )}
+              {adminMode && !adminEditMode && (
+                <button
+                  style={{
+                    padding: "16px 24px",
+                    background: "#1CB0F6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 14,
+                    fontWeight: 900,
+                    fontSize: 16,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    // open edit mode (duplicate of top edit button for convenience)
+                    setAdminEditMode(true);
+                    setAdminEditForm({
+                      name: eventPreview.name || "",
+                      description: eventPreview.description || "",
+                      location: eventPreview.location || "cite",
+                      venue: eventPreview.venue || "",
+                      address: eventPreview.address || "",
+                      coordinates: eventPreview.coordinates || null,
+                      date: eventPreview.date || "",
+                      time: eventPreview.time || "",
+                      category: eventPreview.category || "food",
+                      languages: Array.isArray(eventPreview.languages) ? eventPreview.languages.slice() : [],
+                      capacity: eventPreview.capacity || null,
+                      imageUrl: eventPreview.imageUrl || "",
+                    });
+                  }}
+                >
+                  ✏️ Edit
                 </button>
               )}
               <button
