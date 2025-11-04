@@ -628,12 +628,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
         <div style={styles.title}>Lemi Admin Dashboard</div>
       </div>
       <div style={styles.tabs}>
-        <button style={styles.tabBtn(activeTab === "requests")} onClick={() => setActiveTab("requests")}>Pending Requests</button>
-        <button style={styles.tabBtn(activeTab === "proposals")} onClick={() => setActiveTab("proposals")}>Auto‑Proposals</button>
         <button style={styles.tabBtn(activeTab === "users")} onClick={() => setActiveTab("users")}>All Users</button>
         <button style={styles.tabBtn(activeTab === "events")} onClick={() => setActiveTab("events")}>All Events</button>
         <button style={styles.tabBtn(activeTab === "create")} onClick={() => setActiveTab("create")}>Create Event</button>
-        <button style={styles.tabBtn(activeTab === "places")} onClick={() => setActiveTab("places")}>Manage Places</button>
         <button style={styles.tabBtn(activeTab === "joined")} onClick={() => setActiveTab("joined")}>Joined Events</button>
         <button style={styles.tabBtn(activeTab === "faker")} onClick={() => setActiveTab("faker")}>Test Tools</button>
         <button style={styles.tabBtn(activeTab === "invites")} onClick={() => setActiveTab("invites")}>Invitations</button>
@@ -704,7 +701,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           </div>
         </div>
       )}
-      {activeTab === "proposals" && (
+      {false && activeTab === "proposals" && (
         <div style={styles.section}>
           <div style={styles.sectionTitle}>✨ Auto‑Generated Proposals</div>
           {Array.isArray(proposals) && proposals.length > 0 ? (
@@ -1482,7 +1479,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
         </div>
       )}
 
-      {activeTab === "places" && (
+      {false && activeTab === "places" && (
         <div style={styles.section}>
           <div style={styles.sectionTitle}>📍 Manage Places</div>
           
@@ -1643,7 +1640,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
         </div>
       )}
 
-      {activeTab === "requests" && (
+      {false && activeTab === "requests" && (
         <div style={styles.section}>
           <div style={styles.sectionTitle}>📝 Pending Requests</div>
           {(() => {
@@ -2085,7 +2082,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           </div>
         </div>
       )}
-      {selectedIdx !== null && activeTab === "requests" && (
+      {false && selectedIdx !== null && activeTab === "requests" && (
         <div style={styles.card}>
           <div style={{ fontWeight: 900, marginBottom: 10, color: theme.accent }}>
             Assign Event to {typeof pendingRequests[selectedIdx].user === "object" ? (pendingRequests[selectedIdx].user.name || JSON.stringify(pendingRequests[selectedIdx].user)) : String(pendingRequests[selectedIdx].user)}
