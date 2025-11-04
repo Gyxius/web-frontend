@@ -40,14 +40,24 @@ function SocialChat({
   // Fetch template event if this hangout is based on a featured event
   useEffect(() => {
     const fetchTemplateEvent = async () => {
+      console.log("🔍 SocialChat - Checking for template event:", {
+        hasEvent: !!event,
+        eventId: event?.id,
+        templateEventId: event?.templateEventId,
+        fullEvent: event
+      });
+      
       if (event?.templateEventId) {
         try {
+          console.log("📡 Fetching template event with ID:", event.templateEventId);
           const template = await api.getEventById(event.templateEventId);
+          console.log("✅ Template event fetched:", template);
           setTemplateEvent(template);
         } catch (error) {
-          console.error("Failed to fetch template event:", error);
+          console.error("❌ Failed to fetch template event:", error);
         }
       } else {
+        console.log("ℹ️ No templateEventId found, clearing template event");
         setTemplateEvent(null);
       }
     };

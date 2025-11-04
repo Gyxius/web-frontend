@@ -564,6 +564,12 @@ function App() {
             });
           }}
           onJoinedEventClick={event => {
+            console.log("🎯 Event clicked:", {
+              eventId: event.id,
+              eventName: event.name,
+              templateEventId: event.templateEventId,
+              fullEvent: event
+            });
             setRouletteResult(event);
             setShowChat(true);
           }}
