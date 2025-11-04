@@ -65,6 +65,7 @@ function SocialHome({
     description: "",
     category: "food",
     languages: [], // Array of languages that will be spoken
+    capacity: 6, // Maximum number of participants
     imageUrl: "", // Background image for the event
     templateEventId: null, // ID of template event if created from featured event
   });
@@ -796,10 +797,10 @@ function SocialHome({
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
             
-            // Filter for user-created events (capacity = 6 or admin-created events with null capacity)
+            // Filter for user-created events
             const communityEvents = publicEvents.filter((event) => {
-              // Must be a user event (has capacity of 6) or admin-created event (capacity is null)
-              const isUserEvent = event.capacity === 6 || event.capacity === null || (event.host || event.createdBy);
+              // Must be a user event (has any capacity) or admin-created event (capacity is null)
+              const isUserEvent = event.capacity !== undefined || event.capacity === null || (event.host || event.createdBy);
               if (!isUserEvent) return false;
               
               // Skip if this is the current user's event
@@ -1747,14 +1748,14 @@ function SocialHome({
         <div style={styles.modalOverlay} onClick={() => {
           setShowCreateEventModal(false);
           setCreateEventStep(1);
-          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "", templateEventId: null });
+          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
           setShowAllLanguages(false);
         }}>
           <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "visible", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
             
             {/* Progress Indicator */}
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 24 }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map(step => (
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(step => (
                 <div
                   key={step}
                   style={{
@@ -2332,8 +2333,126 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 7: Description (Optional) */}
+            {/* Step 7: Capacity */}
             {createEventStep === 7 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  How many people? 👥
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Set the maximum number of participants
+                </p>
+                
+                {/* Capacity Selector */}
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: "repeat(3, 1fr)", 
+                  gap: 12, 
+                  marginBottom: 24,
+                  maxWidth: 400,
+                  margin: "0 auto 32px auto",
+                }}>
+                  {[4, 6, 8, 10, 12, 15, 20, 25, 30].map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setNewEvent({...newEvent, capacity: size})}
+                      style={{
+                        padding: "16px 12px",
+                        borderRadius: 14,
+                        border: `3px solid ${newEvent.capacity === size ? theme.primary : theme.border}`,
+                        background: newEvent.capacity === size 
+                          ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` 
+                          : theme.card,
+                        color: newEvent.capacity === size ? "white" : theme.text,
+                        fontWeight: 900,
+                        fontSize: 20,
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        boxShadow: newEvent.capacity === size ? "0 4px 12px rgba(88,204,2,0.3)" : "none",
+                      }}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Input */}
+                <div style={{ marginBottom: 24 }}>
+                  <label style={{ 
+                    display: "block", 
+                    fontSize: 14, 
+                    fontWeight: 700, 
+                    color: theme.textMuted, 
+                    marginBottom: 8 
+                  }}>
+                    Or enter a custom number:
+                  </label>
+                  <input
+                    type="number"
+                    min="2"
+                    max="100"
+                    value={newEvent.capacity || ''}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= 2 && value <= 100) {
+                        setNewEvent({...newEvent, capacity: value});
+                      }
+                    }}
+                    placeholder="Enter number (2-100)"
+                    style={{
+                      width: "100%",
+                      maxWidth: 200,
+                      padding: isMobile ? 12 : 14,
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      fontSize: 16,
+                      textAlign: "center",
+                      fontWeight: 700,
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(6)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: newEvent.capacity ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
+                      color: newEvent.capacity ? "white" : theme.textMuted,
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: newEvent.capacity ? "pointer" : "not-allowed",
+                      boxShadow: newEvent.capacity ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                    }}
+                    onClick={() => newEvent.capacity && setCreateEventStep(8)}
+                    disabled={!newEvent.capacity}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 8: Description (Optional) */}
+            {createEventStep === 8 && (
               <div style={{ textAlign: "center", ...fadeIn }}>
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Tell us more! 💬
@@ -2371,7 +2490,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(6)}
+                    onClick={() => setCreateEventStep(7)}
                   >
                     ← Back
                   </button>
@@ -2388,7 +2507,7 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => setCreateEventStep(8)}
+                    onClick={() => setCreateEventStep(9)}
                   >
                     Next →
                   </button>
@@ -2396,8 +2515,8 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 8: Image Upload (Optional) */}
-            {createEventStep === 8 && (
+            {/* Step 9: Image Upload (Optional) */}
+            {createEventStep === 9 && (
               <div style={{ textAlign: "center", ...fadeIn }}>
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Add a cover image 🖼️
@@ -2525,7 +2644,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(7)}
+                    onClick={() => setCreateEventStep(8)}
                   >
                     ← Back
                   </button>
@@ -2559,7 +2678,7 @@ function SocialHome({
                           image_url: newEvent.imageUrl || "",
                           is_public: true,
                           event_type: "in-person",
-                          capacity: 6,
+                          capacity: newEvent.capacity,
                           created_by: userName,
                           template_event_id: newEvent.templateEventId || null,
                         };
@@ -2576,7 +2695,7 @@ function SocialHome({
                         }
                         
                         // Reset form and close
-                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "", templateEventId: null });
+                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
@@ -2612,7 +2731,7 @@ function SocialHome({
               onClick={() => {
                 setShowCreateEventModal(false);
                 setCreateEventStep(1);
-                setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], imageUrl: "", templateEventId: null });
+                setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
                 setShowAllLanguages(false);
               }}
             >
