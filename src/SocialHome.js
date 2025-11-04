@@ -2704,6 +2704,8 @@ function SocialHome({
                           template_event_id: newEvent.templateEventId || null,
                         };
                         
+                        console.log("Creating event with data:", eventData);
+                        
                         // Call the API to create the event
                         await createEvent(eventData);
                         
