@@ -584,8 +584,8 @@ function SocialChat({
           )}
         </div>
 
-        {/* Featured Event Notice */}
-        {(event?.isFeatured || (event?.createdBy && event.createdBy.toLowerCase() === 'admin')) && (
+        {/* Featured Event Notice - Only show for actual featured events */}
+        {event?.isFeatured && (
           <div style={{
             background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
             padding: "20px 24px",
