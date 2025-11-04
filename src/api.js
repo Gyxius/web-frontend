@@ -40,6 +40,19 @@ export const leaveEvent = async (eventId, username) => {
   return response.json();
 };
 
+export const updateEvent = async (eventId, event) => {
+  const response = await fetch(`${API_URL}/api/events/${eventId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(event),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to update event");
+  }
+  return response.json();
+};
+
 export const deleteEvent = async (eventId, username) => {
   const response = await fetch(`${API_URL}/api/events/${eventId}?username=${encodeURIComponent(username)}`, {
     method: "DELETE",

@@ -362,19 +362,41 @@ function App() {
           }
         }}
         onEditEvent={async (updatedEvent) => {
-          // TODO: Implement edit event API endpoint
-          // For now, we'll just refresh to get latest data
           try {
+            const username = user?.username || user?.name;
+            
+            // Prepare the event data for the API
+            const eventData = {
+              name: updatedEvent.name,
+              description: updatedEvent.description || "",
+              location: updatedEvent.location || "cite",
+              venue: updatedEvent.venue || "",
+              address: updatedEvent.address || "",
+              coordinates: updatedEvent.coordinates || null,
+              date: updatedEvent.date || "",
+              time: updatedEvent.time || "",
+              category: updatedEvent.category || "food",
+              languages: updatedEvent.languages || [],
+              is_public: updatedEvent.isPublic !== undefined ? updatedEvent.isPublic : true,
+              event_type: updatedEvent.type || "custom",
+              capacity: updatedEvent.capacity || null,
+              image_url: updatedEvent.imageUrl || "",
+              created_by: username,
+            };
+            
+            // Update via API
+            await api.updateEvent(updatedEvent.id, eventData);
+            
+            // Refresh events to get latest data
             const allEvents = await api.getAllEvents();
             setPublicEvents(allEvents);
-            const userKey = user?.username || user?.name;
-            const userEventsData = await api.getUserEvents(userKey);
-            setUserEvents({ [userKey]: userEventsData });
+            const userEventsData = await api.getUserEvents(username);
+            setUserEvents({ [username]: userEventsData });
             setRouletteResult(updatedEvent);
             alert("Event changes saved!");
           } catch (error) {
             console.error("Failed to update event:", error);
-            alert("Failed to update event. Changes may not be saved.");
+            alert("Failed to update event: " + error.message);
           }
         }}
         onDeleteEvent={async (eventToDelete) => {
