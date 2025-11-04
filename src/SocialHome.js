@@ -77,17 +77,17 @@ function SocialHome({
   useEffect(() => {
     if (templateEventToCreate) {
       setNewEvent({
-        name: templateEventToCreate.name || "",
+        name: "", // User customizes the hangout name
         location: templateEventToCreate.location || "cite",
         venue: templateEventToCreate.venue || "",
         address: templateEventToCreate.address || "",
         coordinates: templateEventToCreate.coordinates || null,
-        date: "",
-        time: "",
-        description: "",
+        date: templateEventToCreate.date || "", // Copy date from template
+        time: templateEventToCreate.time || "", // Copy time from template
+        description: templateEventToCreate.description || "", // Copy description from template
         category: templateEventToCreate.category || "food",
-        languages: [],
-        capacity: 6,
+        languages: [], // User customizes languages
+        capacity: 6, // User customizes capacity
         imageUrl: templateEventToCreate.imageUrl || "",
         templateEventId: templateEventToCreate.id,
       });
