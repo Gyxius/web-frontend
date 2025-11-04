@@ -754,16 +754,6 @@ function SocialChat({
           </div>
         )}
 
-        {/* Event Description */}
-        {event?.description && (
-          <div style={styles.section}>
-            <div style={styles.sectionTitle}>📝 About this event</div>
-            <div style={{ fontSize: 15, color: theme.textMuted, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-              {event.description}
-            </div>
-          </div>
-        )}
-
         {/* Template Event - Show original event this hangout is based on */}
         {templateEvent && (
           <div style={styles.section}>
@@ -773,29 +763,59 @@ function SocialChat({
               padding: 16,
               borderLeft: `4px solid ${theme.accent}`,
               backgroundColor: theme.accentLight,
-            }}>
+              cursor: 'pointer',
+            }}
+            onClick={() => {
+              // Navigate to the original event
+              if (onBack) onBack();
+            }}
+            >
               <div style={{ fontSize: 16, fontWeight: 600, color: theme.text, marginBottom: 8 }}>
                 {templateEvent.name}
               </div>
               {templateEvent.description && (
-                <div style={{ fontSize: 14, color: theme.textMuted, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 14, color: theme.textMuted, lineHeight: 1.5, marginBottom: 8 }}>
                   {templateEvent.description}
                 </div>
               )}
-              {templateEvent.isFeatured && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {templateEvent.isFeatured && (
+                  <div style={{ 
+                    display: "inline-block", 
+                    fontSize: 12, 
+                    color: theme.accent, 
+                    fontWeight: 600,
+                    padding: "4px 8px",
+                    backgroundColor: theme.card,
+                    borderRadius: 6,
+                  }}>
+                    🎉 Featured Event
+                  </div>
+                )}
                 <div style={{ 
                   display: "inline-block", 
                   fontSize: 12, 
                   color: theme.accent, 
-                  fontWeight: 600, 
-                  marginTop: 8,
+                  fontWeight: 600,
                   padding: "4px 8px",
                   backgroundColor: theme.card,
                   borderRadius: 6,
                 }}>
-                  🎉 Featured Event
+                  📅 {templateEvent.date} at {templateEvent.time}
                 </div>
-              )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Hangout Description */}
+        {event?.description && (
+          <div style={styles.section}>
+            <div style={styles.sectionTitle}>
+              {templateEvent ? "📝 About this hangout" : "📝 About this event"}
+            </div>
+            <div style={{ fontSize: 15, color: theme.textMuted, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+              {event.description}
             </div>
           </div>
         )}

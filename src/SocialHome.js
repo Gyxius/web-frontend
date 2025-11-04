@@ -84,7 +84,7 @@ function SocialHome({
         coordinates: templateEventToCreate.coordinates || null,
         date: templateEventToCreate.date || "", // Copy date from template
         time: templateEventToCreate.time || "", // Copy time from template
-        description: templateEventToCreate.description || "", // Copy description from template
+        description: "", // User writes their own hangout description
         category: templateEventToCreate.category || "food",
         languages: [], // User customizes languages
         capacity: 6, // User customizes capacity
