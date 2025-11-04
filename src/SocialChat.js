@@ -493,6 +493,7 @@ function SocialChat({
                           description: event?.description || "",
                           category: event?.category || "food",
                           languages: event?.languages || [],
+                          capacity: event?.capacity || 6,
                           imageUrl: event?.imageUrl || "",
                         });
                         setShowEditModal(true);
@@ -1072,6 +1073,77 @@ function SocialChat({
                     )}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                Maximum Participants 👥
+              </label>
+              <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: "repeat(5, 1fr)", 
+                gap: 8, 
+                marginBottom: 12,
+              }}>
+                {[4, 6, 8, 10, 12, 15, 20, 25, 30, 50].map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setEditedEvent({...editedEvent, capacity: size})}
+                    style={{
+                      padding: "10px 8px",
+                      borderRadius: 10,
+                      border: `2px solid ${editedEvent.capacity === size ? theme.primary : theme.border}`,
+                      background: editedEvent.capacity === size 
+                        ? theme.primary
+                        : theme.card,
+                      color: editedEvent.capacity === size ? "white" : theme.text,
+                      fontWeight: 800,
+                      fontSize: 16,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label style={{ 
+                  display: "block", 
+                  fontSize: 13, 
+                  fontWeight: 600, 
+                  color: theme.textMuted, 
+                  marginBottom: 6 
+                }}>
+                  Or enter custom (2-100):
+                </label>
+                <input
+                  type="number"
+                  min="2"
+                  max="100"
+                  value={editedEvent.capacity || ''}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (value >= 2 && value <= 100) {
+                      setEditedEvent({...editedEvent, capacity: value});
+                    } else if (e.target.value === '') {
+                      setEditedEvent({...editedEvent, capacity: null});
+                    }
+                  }}
+                  placeholder="Enter number"
+                  style={{
+                    width: "100%",
+                    padding: 12,
+                    borderRadius: 12,
+                    border: `2px solid ${theme.border}`,
+                    fontSize: 16,
+                    boxSizing: "border-box",
+                    textAlign: "center",
+                    fontWeight: 600,
+                  }}
+                />
               </div>
             </div>
 
