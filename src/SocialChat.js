@@ -763,11 +763,6 @@ function SocialChat({
               padding: 16,
               borderLeft: `4px solid ${theme.accent}`,
               backgroundColor: theme.accentLight,
-              cursor: 'pointer',
-            }}
-            onClick={() => {
-              // Navigate to the original event
-              if (onBack) onBack();
             }}
             >
               <div style={{ fontSize: 16, fontWeight: 600, color: theme.text, marginBottom: 8 }}>
