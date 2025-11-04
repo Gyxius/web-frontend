@@ -23,6 +23,7 @@ function SocialChat({
   const chatBoxRef = useRef(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [templateEvent, setTemplateEvent] = useState(null);
+  const [relatedHangouts, setRelatedHangouts] = useState([]);
   const [editedEvent, setEditedEvent] = useState({
     name: event?.name || "",
     location: event?.location || "cite",
@@ -54,6 +55,27 @@ function SocialChat({
     };
     fetchTemplateEvent();
   }, [event?.templateEventId]);
+
+  // Fetch related hangouts if this is a featured event
+  useEffect(() => {
+    const fetchRelatedHangouts = async () => {
+      if (event?.isFeatured) {
+        try {
+          const allEvents = await api.getAllEvents();
+          const hangouts = allEvents.filter(
+            (e) => e.templateEventId === event.id
+          );
+          setRelatedHangouts(hangouts);
+        } catch (error) {
+          console.error("Failed to fetch related hangouts:", error);
+          setRelatedHangouts([]);
+        }
+      } else {
+        setRelatedHangouts([]);
+      }
+    };
+    fetchRelatedHangouts();
+  }, [event?.id, event?.isFeatured]);
 
   const sendMsg = () => {
     if (!input.trim()) return;
@@ -832,6 +854,70 @@ function SocialChat({
             </div>
             <div style={{ fontSize: 15, color: theme.textMuted, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
               {event.description}
+            </div>
+          </div>
+        )}
+
+        {/* Related Hangouts (shown on featured events) */}
+        {event?.isFeatured && relatedHangouts.length > 0 && (
+          <div style={styles.section}>
+            <div style={styles.sectionTitle}>
+              🎪 Related Hangouts ({relatedHangouts.length})
+            </div>
+            <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
+              People have organized these gatherings based on this event:
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {relatedHangouts.map((hangout) => (
+                <div
+                  key={hangout.id}
+                  style={{
+                    ...styles.card,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onClick={() => {
+                    if (onEventClick) onEventClick(hangout);
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                  }}
+                >
+                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>
+                    {hangout.name}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: theme.textMuted, marginBottom: 6 }}>
+                    <span>📅 {hangout.date} at {hangout.time}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: theme.textMuted, marginBottom: 6 }}>
+                    <span>👤 Hosted by {hangout.createdBy}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: theme.textMuted }}>
+                    <span>👥 {hangout.eventParticipants?.length || 0}/{hangout.capacity || 6} participants</span>
+                  </div>
+                  {hangout.description && (
+                    <div style={{ 
+                      fontSize: 13, 
+                      color: theme.textMuted, 
+                      marginTop: 8, 
+                      paddingTop: 8, 
+                      borderTop: `1px solid ${theme.border}`,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                    }}>
+                      {hangout.description}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
