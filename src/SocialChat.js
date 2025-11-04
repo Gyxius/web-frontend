@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import * as api from "./api";
 
 function SocialChat({
   event,
@@ -20,6 +21,7 @@ function SocialChat({
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const chatBoxRef = useRef(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [templateEvent, setTemplateEvent] = useState(null);
   const [editedEvent, setEditedEvent] = useState({
     name: event?.name || "",
     location: event?.location || "cite",
@@ -34,6 +36,23 @@ function SocialChat({
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages, event]);
+
+  // Fetch template event if this hangout is based on a featured event
+  useEffect(() => {
+    const fetchTemplateEvent = async () => {
+      if (event?.templateEventId) {
+        try {
+          const template = await api.getEventById(event.templateEventId);
+          setTemplateEvent(template);
+        } catch (error) {
+          console.error("Failed to fetch template event:", error);
+        }
+      } else {
+        setTemplateEvent(null);
+      }
+    };
+    fetchTemplateEvent();
+  }, [event?.templateEventId]);
 
   const sendMsg = () => {
     if (!input.trim()) return;
@@ -741,6 +760,42 @@ function SocialChat({
             <div style={styles.sectionTitle}>📝 About this event</div>
             <div style={{ fontSize: 15, color: theme.textMuted, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
               {event.description}
+            </div>
+          </div>
+        )}
+
+        {/* Template Event - Show original event this hangout is based on */}
+        {templateEvent && (
+          <div style={styles.section}>
+            <div style={styles.sectionTitle}>✨ Based on Main Event</div>
+            <div style={{
+              ...styles.card,
+              padding: 16,
+              borderLeft: `4px solid ${theme.accent}`,
+              backgroundColor: theme.accentLight,
+            }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: theme.text, marginBottom: 8 }}>
+                {templateEvent.name}
+              </div>
+              {templateEvent.description && (
+                <div style={{ fontSize: 14, color: theme.textMuted, lineHeight: 1.5 }}>
+                  {templateEvent.description}
+                </div>
+              )}
+              {templateEvent.isFeatured && (
+                <div style={{ 
+                  display: "inline-block", 
+                  fontSize: 12, 
+                  color: theme.accent, 
+                  fontWeight: 600, 
+                  marginTop: 8,
+                  padding: "4px 8px",
+                  backgroundColor: theme.card,
+                  borderRadius: 6,
+                }}>
+                  🎉 Featured Event
+                </div>
+              )}
             </div>
           </div>
         )}

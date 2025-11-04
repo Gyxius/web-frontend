@@ -10,6 +10,12 @@ export const getAllEvents = async () => {
   return response.json();
 };
 
+export const getEventById = async (eventId) => {
+  const response = await fetch(`${API_URL}/api/events/${eventId}`);
+  if (!response.ok) throw new Error("Failed to fetch event");
+  return response.json();
+};
+
 export const createEvent = async (event) => {
   const response = await fetch(`${API_URL}/api/events`, {
     method: "POST",
