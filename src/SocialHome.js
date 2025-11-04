@@ -2684,6 +2684,10 @@ function SocialHome({
                     onClick={async () => {
                       // Create event via API
                       try {
+                        console.log("STEP 1: Button clicked, starting event creation");
+                        console.log("STEP 2: Current newEvent state:", JSON.stringify(newEvent, null, 2));
+                        console.log("STEP 3: Current userName:", userName);
+                        
                         const eventData = {
                           name: newEvent.name,
                           location: newEvent.location,
@@ -2704,27 +2708,39 @@ function SocialHome({
                           template_event_id: newEvent.templateEventId || null,
                         };
                         
-                        console.log("Creating event with data:", eventData);
+                        console.log("STEP 4: Prepared eventData:", JSON.stringify(eventData, null, 2));
+                        console.log("STEP 5: About to call createEvent API...");
                         
                         // Call the API to create the event
-                        await createEvent(eventData);
+                        const result = await createEvent(eventData);
+                        
+                        console.log("STEP 6: API call successful! Result:", result);
+                        console.log("STEP 7: Awarding points...");
                         
                         // Award 3 points for hosting an event
                         if (addPoints) {
                           const newPoints = addPoints(userName, 3);
+                          console.log("STEP 8: Points awarded! New total:", newPoints);
                           alert(`🎉 Event created successfully!\n\n⭐ +3 points earned! You now have ${newPoints} points!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section`);
                         } else {
+                          console.log("STEP 8: No points system available");
                           alert("🎉 Event created successfully!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section");
                         }
                         
+                        console.log("STEP 9: Resetting form and closing modal...");
                         // Reset form and close
                         setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
+                        console.log("STEP 10: Event creation complete!");
                       } catch (err) {
-                        console.error("Failed to create event:", err);
-                        alert("Failed to create event. Please try again.");
+                        console.error("❌ ERROR at some step:");
+                        console.error("Error object:", err);
+                        console.error("Error message:", err.message);
+                        console.error("Error name:", err.name);
+                        console.error("Error stack:", err.stack);
+                        alert("Failed to create event. Please try again.\n\nError: " + err.message);
                       }
                     }}
                   >
