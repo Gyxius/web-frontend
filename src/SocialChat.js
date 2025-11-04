@@ -426,6 +426,48 @@ function SocialChat({
 
   return (
     <div style={styles.container}>
+      {/* Back Button - Fixed at top */}
+      <div style={{
+        position: "sticky",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        background: theme.bg,
+        padding: "12px 16px",
+        borderBottom: `1px solid ${theme.border}`,
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+      }}>
+        <button
+          onClick={onBack}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 8,
+            fontSize: 24,
+            color: theme.text,
+            transition: "transform 0.2s",
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+        >
+          ←
+        </button>
+        <div style={{
+          fontSize: 18,
+          fontWeight: 800,
+          color: theme.text,
+        }}>
+          Event
+        </div>
+      </div>
+
       {/* Event Header Banner */}
       <div style={{
         ...styles.eventHeader,
