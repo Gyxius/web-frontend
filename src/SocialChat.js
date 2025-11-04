@@ -864,34 +864,27 @@ function SocialChat({
                     e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
                   }}
                 >
-                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>
+                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>
                     {hangout.name}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: theme.textMuted, marginBottom: 6 }}>
-                    <span>📅 {hangout.date} at {hangout.time}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: theme.textMuted, marginBottom: 6 }}>
-                    <span>👤 Hosted by {hangout.createdBy}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: theme.textMuted }}>
-                    <span>👥 {hangout.eventParticipants?.length || 0}/{hangout.capacity || 6} participants</span>
-                  </div>
-                  {hangout.description && (
-                    <div style={{ 
-                      fontSize: 13, 
-                      color: theme.textMuted, 
-                      marginTop: 8, 
-                      paddingTop: 8, 
-                      borderTop: `1px solid ${theme.border}`,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                    }}>
-                      {hangout.description}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, color: theme.textMuted }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>📍</span>
+                      <span>{hangout.location || 'Cité'} · {hangout.venue || 'Venue TBD'}</span>
                     </div>
-                  )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>⏰</span>
+                      <span>{hangout.date}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>🎯</span>
+                      <span>{hangout.category || 'social'}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>👥</span>
+                      <span>{hangout.eventParticipants?.length || 0} attendees</span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
