@@ -797,49 +797,25 @@ function SocialChat({
             onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
             onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
             >
-              <div style={{ fontSize: 16, fontWeight: 600, color: theme.text, marginBottom: 8 }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: theme.text, marginBottom: 12 }}>
                 {templateEvent.name}
               </div>
-              {templateEvent.description && (
-                <div style={{ fontSize: 14, color: theme.textMuted, lineHeight: 1.5, marginBottom: 8 }}>
-                  {templateEvent.description}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, color: theme.textMuted }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>📍</span>
+                  <span>{templateEvent.location || 'Cité'} · {templateEvent.venue || 'Venue TBD'}</span>
                 </div>
-              )}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                {templateEvent.isFeatured && (
-                  <div style={{ 
-                    display: "inline-block", 
-                    fontSize: 12, 
-                    color: theme.accent, 
-                    fontWeight: 600,
-                    padding: "4px 8px",
-                    backgroundColor: theme.card,
-                    borderRadius: 6,
-                  }}>
-                    🎉 Featured Event
-                  </div>
-                )}
-                <div style={{ 
-                  display: "inline-block", 
-                  fontSize: 12, 
-                  color: theme.accent, 
-                  fontWeight: 600,
-                  padding: "4px 8px",
-                  backgroundColor: theme.card,
-                  borderRadius: 6,
-                }}>
-                  📅 {templateEvent.date} at {templateEvent.time}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>⏰</span>
+                  <span>{templateEvent.date}</span>
                 </div>
-                <div style={{ 
-                  display: "inline-block", 
-                  fontSize: 12, 
-                  color: theme.accent, 
-                  fontWeight: 600,
-                  padding: "4px 8px",
-                  backgroundColor: theme.card,
-                  borderRadius: 6,
-                }}>
-                  👉 View Event
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>🎯</span>
+                  <span>{templateEvent.category || 'social'}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>👥</span>
+                  <span>{templateEvent.eventParticipants?.length || 0} attendees</span>
                 </div>
               </div>
             </div>
