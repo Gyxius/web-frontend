@@ -17,13 +17,30 @@ export const getEventById = async (eventId) => {
 };
 
 export const createEvent = async (event) => {
-  const response = await fetch(`${API_URL}/api/events`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(event),
-  });
-  if (!response.ok) throw new Error("Failed to create event");
-  return response.json();
+  // Retry logic for Render cold starts
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      console.log(`API attempt ${attempt}/3...`);
+      const response = await fetch(`${API_URL}/api/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+      });
+      if (!response.ok) throw new Error("Failed to create event");
+      console.log(`API attempt ${attempt} succeeded!`);
+      return response.json();
+    } catch (error) {
+      console.error(`API attempt ${attempt} failed:`, error.message);
+      lastError = error;
+      if (attempt < 3) {
+        const delay = attempt * 2000; // 2s, 4s
+        console.log(`Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  throw lastError;
 };
 
 export const joinEvent = async (eventId, username) => {
