@@ -2700,6 +2700,7 @@ function SocialHome({
                           event_type: "in-person",
                           capacity: newEvent.capacity,
                           created_by: userName,
+                          is_featured: false,
                           template_event_id: newEvent.templateEventId || null,
                         };
                         
