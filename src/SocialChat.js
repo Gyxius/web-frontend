@@ -815,7 +815,7 @@ function SocialChat({
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span>👥</span>
-                  <span>{templateEvent.eventParticipants?.length || 0} attendees</span>
+                  <span>{Math.max(templateEvent.eventParticipants?.length || 0, 1)} attendees</span>
                 </div>
               </div>
             </div>
@@ -884,7 +884,7 @@ function SocialChat({
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span>👥</span>
-                      <span>{hangout.eventParticipants?.length || 0} attendees</span>
+                      <span>{Math.max(hangout.eventParticipants?.length || 0, 1)} attendees</span>
                     </div>
                   </div>
                 </div>
