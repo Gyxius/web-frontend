@@ -447,6 +447,11 @@ function App() {
           setRouletteResult(null);
           setTemplateEventToCreate(featuredEvent);
         }}
+        onEventClick={(newEvent) => {
+          // Switch to viewing a different event
+          setRouletteResult(newEvent);
+          // Keep chat open to show the new event
+        }}
         allUsers={users}
       />
     );

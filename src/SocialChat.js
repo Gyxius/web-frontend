@@ -13,6 +13,7 @@ function SocialChat({
   onEditEvent,
   onDeleteEvent,
   onCreateHangout,
+  onEventClick,
   allUsers = [],
 }) {
   const [messages, setMessages] = useState(initialMessages);
@@ -763,7 +764,16 @@ function SocialChat({
               padding: 16,
               borderLeft: `4px solid ${theme.accent}`,
               backgroundColor: theme.accentLight,
+              cursor: 'pointer',
+              transition: 'transform 0.2s',
             }}
+            onClick={() => {
+              if (onEventClick) {
+                onEventClick(templateEvent);
+              }
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
             >
               <div style={{ fontSize: 16, fontWeight: 600, color: theme.text, marginBottom: 8 }}>
                 {templateEvent.name}
@@ -797,6 +807,17 @@ function SocialChat({
                   borderRadius: 6,
                 }}>
                   📅 {templateEvent.date} at {templateEvent.time}
+                </div>
+                <div style={{ 
+                  display: "inline-block", 
+                  fontSize: 12, 
+                  color: theme.accent, 
+                  fontWeight: 600,
+                  padding: "4px 8px",
+                  backgroundColor: theme.card,
+                  borderRadius: 6,
+                }}>
+                  👉 View Event
                 </div>
               </div>
             </div>
