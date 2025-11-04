@@ -1119,19 +1119,10 @@ function SocialHome({
               </div>
               
               {event.category && (
-                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
+                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
                   🎯 {event.category}
                 </div>
               )}
-              
-              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
-                👥 {(() => {
-                  const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                  return event.capacity 
-                    ? `${attendeeCount}/${event.capacity} spots filled` 
-                    : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
-                })()}
-              </div>
             </div>
           ))}
           {featuredEvents.length > 5 && (
