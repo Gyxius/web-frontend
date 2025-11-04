@@ -113,6 +113,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     description: "",
     imageUrl: "", // Image URL for the event
     isPublic: true, // Default to public events
+    isFeatured: false, // Default to not featured
   });
 
   // Create Place state
@@ -1317,6 +1318,23 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
             </div>
 
             <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={createEventForm.isFeatured}
+                  onChange={(e) => setCreateEventForm({ ...createEventForm, isFeatured: e.target.checked })}
+                  style={{ width: 18, height: 18, cursor: "pointer" }}
+                />
+                <span style={{ fontWeight: 800, fontSize: 14, color: theme.text }}>
+                  🎉 Featured Main Event
+                  <span style={{ fontWeight: 600, fontSize: 13, color: theme.textMuted, marginLeft: 6 }}>
+                    (Users can create hangouts based on this event)
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
                 🖼️ Event Image <span style={{ color: theme.textMuted, fontWeight: 600, fontSize: 13 }}>(optional)</span>
               </label>
@@ -1446,6 +1464,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   description: createEventForm.description,
                   image_url: createEventForm.imageUrl,
                   is_public: createEventForm.isPublic,
+                  is_featured: createEventForm.isFeatured,
                   event_type: "custom", // Mark as admin-created
                   capacity: null, // No capacity limit for admin events
                   created_by: "admin"
@@ -1483,6 +1502,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   description: "",
                   imageUrl: "",
                   isPublic: true, // Reset to default public
+                  isFeatured: false, // Reset to not featured
                 });
                 
                 // Switch to "All Events" tab to show the newly created event
@@ -1847,6 +1867,19 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                     <div style={{ fontSize: 18.5, fontWeight: 800, color: theme.text }}>{ev.name}</div>
+                    {ev.isFeatured && (
+                      <span style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: "3px 8px",
+                        borderRadius: 6,
+                        backgroundColor: "#fce4ec",
+                        color: "#c2185b",
+                        border: "1px solid #f48fb1",
+                      }}>
+                        🎉 Featured
+                      </span>
+                    )}
                     <span style={{
                       fontSize: 11,
                       fontWeight: 700,
