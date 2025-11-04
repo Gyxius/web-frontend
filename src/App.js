@@ -26,6 +26,7 @@ function App() {
   const [suggestedEvents, setSuggestedEvents] = useState({});
   const [publicEvents, setPublicEvents] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
+  const [templateEventToCreate, setTemplateEventToCreate] = useState(null);
   
   // Load data from API when user logs in
   useEffect(() => {
@@ -440,6 +441,12 @@ function App() {
           setRouletteResult(null);
           alert("🗑️ Event deleted successfully!");
         }}
+        onCreateHangout={(featuredEvent) => {
+          // Close chat and trigger create event flow with featured event as template
+          setShowChat(false);
+          setRouletteResult(null);
+          setTemplateEventToCreate(featuredEvent);
+        }}
         allUsers={users}
       />
     );
@@ -491,6 +498,8 @@ function App() {
           userName={user?.username || user?.name}
           onEditProfile={() => setShowEditProfile(true)}
           joinedEvents={joinedEvents}
+          templateEventToCreate={templateEventToCreate}
+          onTemplateEventHandled={() => setTemplateEventToCreate(null)}
           suggestedEvents={userSuggestedEvents}
           publicEvents={publicEvents}
           addPoints={addPoints}

@@ -26,6 +26,8 @@ function SocialHome({
   onDeclineFriendRequestFrom,
   addPoints,
   getUserPoints,
+  templateEventToCreate = null,
+  onTemplateEventHandled = null,
 }) {
   if (showDebug) {
     console.log("[DEBUG] joinedEvents for", userName, joinedEvents);
@@ -70,6 +72,33 @@ function SocialHome({
     templateEventId: null, // ID of template event if created from featured event
   });
   const [showAllLanguages, setShowAllLanguages] = useState(false);
+
+  // Handle template event for "Create Hangout" feature
+  useEffect(() => {
+    if (templateEventToCreate) {
+      setNewEvent({
+        name: templateEventToCreate.name || "",
+        location: templateEventToCreate.location || "cite",
+        venue: templateEventToCreate.venue || "",
+        address: templateEventToCreate.address || "",
+        coordinates: templateEventToCreate.coordinates || null,
+        date: "",
+        time: "",
+        description: "",
+        category: templateEventToCreate.category || "food",
+        languages: [],
+        capacity: 6,
+        imageUrl: templateEventToCreate.imageUrl || "",
+        templateEventId: templateEventToCreate.id,
+      });
+      setShowCreateEventModal(true);
+      setCreateEventStep(1);
+      // Notify parent that we've handled the template
+      if (onTemplateEventHandled) {
+        onTemplateEventHandled();
+      }
+    }
+  }, [templateEventToCreate, onTemplateEventHandled]);
 
   const fadeIn = { animation: "fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1)" };
   const pulse = { animation: "pulse 1.2s infinite" };

@@ -11,6 +11,7 @@ function SocialChat({
   onLeaveEvent,
   onEditEvent,
   onDeleteEvent,
+  onCreateHangout,
   allUsers = [],
 }) {
   const [messages, setMessages] = useState(initialMessages);
@@ -602,7 +603,13 @@ function SocialChat({
                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                 width: "100%",
               }}
-              onClick={onHome}
+              onClick={() => {
+                if (onCreateHangout) {
+                  onCreateHangout(event);
+                } else {
+                  onHome();
+                }
+              }}
             >
               ✨ Create Hangout
             </button>
