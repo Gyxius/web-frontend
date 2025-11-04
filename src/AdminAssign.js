@@ -349,39 +349,55 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   };
   
   // Handle event removal (bots-only events are removable)
-  const handleRemoveEvent = (eventId) => {
+  const handleRemoveEvent = async (eventId) => {
     const ev = events.find(e => e.id === eventId);
     if (!ev) return;
     
     if (window.confirm(`Are you sure you want to remove "${ev.name}"? This will remove it for all users.`)) {
-      // Remove from local state
-      setEvents(events.filter(ev => ev.id !== eventId));
-      
-      // Remove from adminEvents localStorage
-      const saved = localStorage.getItem("adminEvents");
-      if (saved) {
-        const adminEvents = JSON.parse(saved);
-        const filtered = adminEvents.filter(e => e.id !== eventId);
-        localStorage.setItem("adminEvents", JSON.stringify(filtered));
-      }
-      
-      // Remove from all users' joined events in localStorage
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith("joinedEvents_")) {
-          const joinedEvents = JSON.parse(localStorage.getItem(key) || "[]");
-          const filtered = joinedEvents.filter(e => e.id !== eventId);
-          localStorage.setItem(key, JSON.stringify(filtered));
+      try {
+        // Delete from backend database
+        const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const response = await fetch(`${API_URL}/api/events/${eventId}?username=admin`, {
+          method: "DELETE",
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || "Failed to delete event");
         }
-      });
-      
-      logAdminActivity(`Removed event: ${ev.name} (ID: ${eventId})`);
-      
-      // Close modal if it's open for this event
-      if (selectedEventForModal && selectedEventForModal.id === eventId) {
-        setSelectedEventForModal(null);
+        
+        // Remove from local state
+        setEvents(events.filter(ev => ev.id !== eventId));
+        
+        // Remove from adminEvents localStorage
+        const saved = localStorage.getItem("adminEvents");
+        if (saved) {
+          const adminEvents = JSON.parse(saved);
+          const filtered = adminEvents.filter(e => e.id !== eventId);
+          localStorage.setItem("adminEvents", JSON.stringify(filtered));
+        }
+        
+        // Remove from all users' joined events in localStorage
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith("joinedEvents_")) {
+            const joinedEvents = JSON.parse(localStorage.getItem(key) || "[]");
+            const filtered = joinedEvents.filter(e => e.id !== eventId);
+            localStorage.setItem(key, JSON.stringify(filtered));
+          }
+        });
+        
+        logAdminActivity(`Removed event: ${ev.name} (ID: ${eventId})`);
+        
+        // Close modal if it's open for this event
+        if (selectedEventForModal && selectedEventForModal.id === eventId) {
+          setSelectedEventForModal(null);
+        }
+        
+        alert(`✅ Event "${ev.name}" has been removed successfully!`);
+      } catch (error) {
+        console.error("Error deleting event:", error);
+        alert(`❌ Failed to delete event: ${error.message}`);
       }
-      
-      alert(`✅ Event "${ev.name}" has been removed successfully!`);
     }
   };
   // Events now provided by a shared dataset (see src/events.js)
