@@ -189,13 +189,32 @@ function NotificationsInbox({
   };
 
   const handleViewEvent = async (event, eventId) => {
-    // Mark as read before opening the chat
-    await handleMarkAsRead(eventId);
-    
-    if (onEventClick && event) {
-      onEventClick(event);
+    try {
+      // Mark as read before opening the chat
+      const username = currentUser?.username || currentUser?.name || currentUser;
+      await api.markNotificationsRead(username, eventId);
+      
+      // Refresh notification count immediately
+      if (onMarkAsRead) {
+        await onMarkAsRead();
+      }
+      
+      // Small delay to ensure UI updates
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Then open the chat
+      if (onEventClick && event) {
+        onEventClick(event);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Failed to mark as read and open chat:", error);
+      // Even if there's an error, still try to open the chat
+      if (onEventClick && event) {
+        onEventClick(event);
+      }
+      onClose();
     }
-    onClose();
   };
 
   return (
