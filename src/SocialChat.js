@@ -36,6 +36,21 @@ function SocialChat({
     imageUrl: event?.imageUrl || "",
   });
 
+  // Sync editedEvent with event prop changes
+  useEffect(() => {
+    setEditedEvent({
+      name: event?.name || "",
+      location: event?.location || "cite",
+      date: event?.date || "",
+      time: event?.time || "",
+      description: event?.description || "",
+      category: event?.category || "food",
+      languages: event?.languages || [],
+      capacity: event?.capacity || 6,
+      imageUrl: event?.imageUrl || "",
+    });
+  }, [event]);
+
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages, event]);
