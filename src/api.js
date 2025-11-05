@@ -94,21 +94,21 @@ export const getUserEvents = async (username) => {
   return response.json();
 };
 
-// ===== FRIENDS ENDPOINTS =====
+// ===== FOLLOWS ENDPOINTS =====
 
-export const getFriends = async (username) => {
-  const response = await fetch(`${API_URL}/api/friends/${username}`);
-  if (!response.ok) throw new Error("Failed to fetch friends");
+export const getFollows = async (username) => {
+  const response = await fetch(`${API_URL}/api/follows/${username}`);
+  if (!response.ok) throw new Error("Failed to fetch follows");
   return response.json();
 };
 
-export const addFriend = async (user1, user2) => {
-  const response = await fetch(`${API_URL}/api/friends`, {
+export const addFollow = async (user1, user2) => {
+  const response = await fetch(`${API_URL}/api/follows`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user1, user2 }),
   });
-  if (!response.ok) throw new Error("Failed to add friend");
+  if (!response.ok) throw new Error("Failed to add follow");
   return response.json();
 };
 

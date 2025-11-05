@@ -1764,7 +1764,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                     <div>
                       <div style={{ fontWeight: 800, color: theme.text }}>
                         {typeof req.user === "object" ? (req.user.name || JSON.stringify(req.user)) : String(req.user)}
-                        {req.targetFriend && (
+                        {req.targetFollower && (
                           <span style={{
                             marginLeft: 8,
                             fontSize: 11,
@@ -1775,7 +1775,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                             border: `1px solid ${theme.border}`,
                             color: theme.textMuted,
                           }}>
-                            via {String(req.targetFriend)}
+                            via {String(req.targetFollower)}
                           </span>
                         )}
                       </div>
@@ -1836,15 +1836,15 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
               const ev = req.event || {};
               return (
                 <>
-                  <div style={{ marginBottom: 8 }}><b>User:</b> {userLabel} {req.targetFriend ? `(via ${String(req.targetFriend)})` : ""}</div>
+                  <div style={{ marginBottom: 8 }}><b>User:</b> {userLabel} {req.targetFollower ? `(via ${String(req.targetFollower)})` : ""}</div>
                   {(() => {
                     const ts = req.createdAt || (Array.isArray(req.history) && req.history.length > 0 ? req.history[0].ts : null);
                     if (!ts) return null;
                     const when = new Date(ts).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
                     return <div style={{ marginBottom: 8, color: theme.textMuted }}><b>Requested on:</b> {when}</div>;
                   })()}
-                  {req.targetFriend && (
-                    <div style={{ marginBottom: 8 }}><b>Target Friend:</b> {String(req.targetFriend)}</div>
+                  {req.targetFollower && (
+                    <div style={{ marginBottom: 8 }}><b>Target Follower:</b> {String(req.targetFollower)}</div>
                   )}
                   <div style={{ fontWeight: 800, marginTop: 10, marginBottom: 6, color: theme.primary }}>Event Payload</div>
                   <ul style={{ margin: 0, paddingLeft: 16, color: theme.text }}>

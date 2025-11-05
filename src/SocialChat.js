@@ -782,7 +782,9 @@ function SocialChat({
                       borderRadius: '12px',
                       marginTop: '12px',
                       border: '2px solid #E5E5E5',
-                      overflow: 'hidden'
+                      overflow: 'hidden',
+                      position: 'relative',
+                      zIndex: 1
                     }}
                   />
                 )}
@@ -997,9 +999,25 @@ function SocialChat({
                 <div style={styles.hostName}>
                   {event.host.name} {event.host.country}
                 </div>
-                {event.host.bio && (
-                  <div style={styles.hostBio}>{event.host.bio}</div>
-                )}
+                <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
+                  {event.host.building && (
+                    <div>{event.host.building}</div>
+                  )}
+                  {event.host.languageLevels && (
+                    <div style={{ marginTop: 2 }}>
+                      {Object.entries(event.host.languageLevels).map(([lang, level], idx) => {
+                        const langName = lang.charAt(0).toUpperCase() + lang.slice(1);
+                        const levelName = level.charAt(0).toUpperCase() + level.slice(1);
+                        return (
+                          <span key={lang}>
+                            {idx > 0 && ", "}
+                            {levelName} {langName}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -1025,9 +1043,25 @@ function SocialChat({
                     <div style={styles.hostName}>
                       {coHost.name} {coHost.country}
                     </div>
-                    {coHost.bio && (
-                      <div style={styles.hostBio}>{coHost.bio}</div>
-                    )}
+                    <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
+                      {coHost.building && (
+                        <div>{coHost.building}</div>
+                      )}
+                      {coHost.languageLevels && (
+                        <div style={{ marginTop: 2 }}>
+                          {Object.entries(coHost.languageLevels).map(([lang, level], idx) => {
+                            const langName = lang.charAt(0).toUpperCase() + lang.slice(1);
+                            const levelName = level.charAt(0).toUpperCase() + level.slice(1);
+                            return (
+                              <span key={lang}>
+                                {idx > 0 && ", "}
+                                {levelName} {langName}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1041,19 +1075,44 @@ function SocialChat({
             <div style={styles.sectionTitle}>
               🧃 Attendees ({(event?.crew_full || event?.crew || []).filter(item => !event?.host || item.name !== event.host.name).length})
             </div>
-            <div style={styles.attendeesList}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {(event?.crew_full || event?.crew || [])
                 .filter(item => !event?.host || item.name !== event.host.name)
                 .map((item, i) => (
                   <div
                     key={i}
-                    style={styles.attendeeCard}
+                    style={styles.hostCard}
                     onClick={() => onUserClick && onUserClick(item)}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
                   >
-                    <span style={styles.attendeeAvatar}>{item.emoji}</span>
-                    <span>{item.name}</span>
+                    <div style={styles.hostAvatar}>
+                      {item.emoji}
+                    </div>
+                    <div style={styles.hostInfo}>
+                      <div style={styles.hostName}>
+                        {item.name} {item.country}
+                      </div>
+                      <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
+                        {item.building && (
+                          <div>{item.building}</div>
+                        )}
+                        {item.languageLevels && (
+                          <div style={{ marginTop: 2 }}>
+                            {Object.entries(item.languageLevels).map(([lang, level], idx) => {
+                              const langName = lang.charAt(0).toUpperCase() + lang.slice(1);
+                              const levelName = level.charAt(0).toUpperCase() + level.slice(1);
+                              return (
+                                <span key={lang}>
+                                  {idx > 0 && ", "}
+                                  {levelName} {langName}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
             </div>

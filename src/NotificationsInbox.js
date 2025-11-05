@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import * as api from "./api";
+import users from "./users";
 
 function NotificationsInbox({
   currentUser,
@@ -9,6 +10,9 @@ function NotificationsInbox({
   onEventClick,
   onMarkAsRead,
   allEvents = [],
+  followRequests = [],
+  onAcceptFollowRequest,
+  onDeclineFollowRequest,
 }) {
   const [notificationDetails, setNotificationDetails] = useState([]);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
@@ -244,6 +248,65 @@ function NotificationsInbox({
         >
           See My Profile
         </button>
+
+        {/* Follow Requests Section */}
+        {followRequests && followRequests.length > 0 && (
+          <>
+            <div style={styles.sectionTitle}>
+              👥 Follow Requests
+            </div>
+            {followRequests.map((req, idx) => {
+              const fromKey = req.from;
+              const fromUser = users.find(u => u.name === fromKey || u.username === fromKey);
+              const userLabel = fromUser ? `${fromUser.emoji || ""} ${fromUser.name} ${fromUser.country || ""}` : fromKey;
+              
+              return (
+                <div key={idx} style={styles.notificationCard}>
+                  <div style={styles.notificationHeader}>
+                    <div style={styles.eventName}>{userLabel}</div>
+                  </div>
+                  <div style={styles.notificationText}>
+                    wants to follow you
+                  </div>
+                  <div style={styles.buttonRow}>
+                    <button 
+                      style={styles.viewButton}
+                      onClick={() => {
+                        if (onAcceptFollowRequest) {
+                          onAcceptFollowRequest(fromKey);
+                        }
+                      }}
+                      onMouseEnter={(e) => e.target.style.background = theme.primaryDark}
+                      onMouseLeave={(e) => e.target.style.background = theme.primary}
+                    >
+                      Accept
+                    </button>
+                    <button 
+                      style={styles.markReadButton}
+                      onClick={() => {
+                        if (onDeclineFollowRequest) {
+                          onDeclineFollowRequest(fromKey);
+                        }
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = "#FEE";
+                        e.target.style.borderColor = theme.danger;
+                        e.target.style.color = theme.danger;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = "white";
+                        e.target.style.borderColor = theme.border;
+                        e.target.style.color = theme.text;
+                      }}
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
 
         <div style={styles.sectionTitle}>
           📬 Message Notifications

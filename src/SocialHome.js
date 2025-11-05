@@ -21,14 +21,14 @@ function SocialHome({
   onUserClick,
   onLeaveEvent,
   showDebug,
-  friendEvents = [],
+  followingEvents = [],
   onRequestJoinEvent,
-  friendRequestsIncoming = [],
-  onAcceptFriendRequestFrom,
+  followRequestsIncoming = [],
+  onAcceptFollowRequestFrom,
   notificationCount = 0,
   notificationsData = null,
   onRefreshNotifications,
-  onDeclineFriendRequestFrom,
+  onDeclineFollowRequestFrom,
   addPoints,
   getUserPoints,
   templateEventToCreate = null,
@@ -49,7 +49,7 @@ function SocialHome({
   const [eventPreview, setEventPreview] = useState(null); // For previewing events before joining
   const [adminEditMode, setAdminEditMode] = useState(false);
   const [adminEditForm, setAdminEditForm] = useState(null);
-  // View mode: 'my' shows only user's joined events, 'friends' shows only friends' joined events
+  // View mode: 'my' shows only user's joined events, 'following' shows only following users' joined events
   const [viewMode, setViewMode] = useState("my");
   
   // New state for Frimake-style navigation
@@ -594,7 +594,7 @@ function SocialHome({
               }}
             >
               <FaUserCircle size={28} />
-              {notificationCount > 0 && (
+              {(notificationCount + (followRequestsIncoming?.length || 0)) > 0 && (
                 <div style={{
                   position: "absolute",
                   top: -4,
@@ -609,10 +609,10 @@ function SocialHome({
                   justifyContent: "center",
                   fontSize: 11,
                   fontWeight: "bold",
-                  padding: notificationCount > 9 ? "0 4px" : 0,
+                  padding: (notificationCount + (followRequestsIncoming?.length || 0)) > 9 ? "0 4px" : 0,
                   boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
                 }}>
-                  {notificationCount > 99 ? "99+" : notificationCount}
+                  {(notificationCount + (followRequestsIncoming?.length || 0)) > 99 ? "99+" : (notificationCount + (followRequestsIncoming?.length || 0))}
                 </div>
               )}
             </button>
@@ -1567,12 +1567,12 @@ function SocialHome({
       )}
 
       <div style={styles.section}>
-        {/* Friend Requests Notification */}
-        {friendRequestsIncoming && friendRequestsIncoming.length > 0 && (
+        {/* Follow Requests Notification */}
+        {followRequestsIncoming && followRequestsIncoming.length > 0 && (
           <div style={{ ...styles.highlightCard, marginTop: -4 }}>
-            <div style={{ ...styles.highlightTitle, color: theme.accent }}>🔔 Friend Requests</div>
+            <div style={{ ...styles.highlightTitle, color: theme.accent }}>🔔 Follow Requests</div>
             <ul style={{ margin: 0, paddingLeft: 16 }}>
-              {friendRequestsIncoming.map((req, idx) => {
+              {followRequestsIncoming.map((req, idx) => {
                 const fromKey = req.from;
                 const fromUser = users.find(u => u.name === fromKey || u.username === fromKey);
                 const label = fromUser ? `${fromUser.emoji || ""} ${fromUser.name} ${fromUser.country || ""}` : fromKey;
@@ -1587,7 +1587,7 @@ function SocialHome({
                           flex: "unset",
                           background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
                         }}
-                        onClick={() => onAcceptFriendRequestFrom && onAcceptFriendRequestFrom(fromKey)}
+                        onClick={() => onAcceptFollowRequestFrom && onAcceptFollowRequestFrom(fromKey)}
                       >
                         Accept
                       </button>
@@ -1597,7 +1597,7 @@ function SocialHome({
                           padding: "10px 12px",
                           marginTop: 0,
                         }}
-                        onClick={() => onDeclineFriendRequestFrom && onDeclineFriendRequestFrom(fromKey)}
+                        onClick={() => onDeclineFollowRequestFrom && onDeclineFollowRequestFrom(fromKey)}
                       >
                         Decline
                       </button>
@@ -1610,17 +1610,17 @@ function SocialHome({
         )}
       </div>
 
-      {/* Friends' Joined Events (only in friends view) */}
-      {viewMode === "friends" && (
-        <div style={styles.section} id="friends-joined-events">
-          <div style={styles.sectionTitle}>👥 Friends’ Joined Events</div>
-          {Array.isArray(friendEvents) && friendEvents.length > 0 ? (
+      {/* Following Users' Joined Events (only in friends view) */}
+      {viewMode === "following" && (
+        <div style={styles.section} id="following-joined-events">
+          <div style={styles.sectionTitle}>👥 Following’ Joined Events</div>
+          {Array.isArray(followingEvents) && followingEvents.length > 0 ? (
             <ul style={{ padding: 0 }}>
-              {friendEvents.map((fe, i) => (
+              {followingEvents.map((fe, i) => (
                 <li key={i} style={{ listStyle: "none", marginBottom: 12 }}>
                   <div style={{ fontWeight: 800, color: theme.text, marginBottom: 8 }}>
-                  {fe.friend?.emoji ? fe.friend.emoji + " " : ""}
-                  {fe.friend?.name || fe.friend?.username} {fe.friend?.country || ""}
+                  {fe.following?.emoji ? fe.following.emoji + " " : ""}
+                  {fe.following?.name || fe.following?.username} {fe.following?.country || ""}
                   </div>
                   {fe.events.map((ev, j) => (
                     <div key={j} style={{ ...styles.eventCard, cursor: "default" }}>
@@ -1652,7 +1652,7 @@ function SocialHome({
                       {/* Budget hidden in simplified flow */}
                       <button
                         style={{ ...styles.joinButton, padding: "10px 12px", alignSelf: "flex-start", marginTop: 10 }}
-                        onClick={() => onRequestJoinEvent && onRequestJoinEvent(fe.friend, ev)}
+                        onClick={() => onRequestJoinEvent && onRequestJoinEvent(fe.following, ev)}
                       >
                         Request to Join
                       </button>
@@ -1662,7 +1662,7 @@ function SocialHome({
               ))}
             </ul>
           ) : (
-            <div style={styles.empty}>No friends’ joined events yet.</div>
+            <div style={styles.empty}>No following users’ joined events yet.</div>
           )}
         </div>
       )}
@@ -3694,7 +3694,7 @@ function SocialHome({
 
         <button
           onClick={() => {
-            setActiveBottomTab("friends");
+            setActiveBottomTab("following");
             setViewMode("friends");
             setActiveTab("featured");
             setShowExplore(false);
@@ -3708,12 +3708,12 @@ function SocialHome({
             background: "none",
             border: "none",
             cursor: "pointer",
-            color: activeBottomTab === "friends" ? theme.primary : theme.textMuted,
+            color: activeBottomTab === "following" ? theme.primary : theme.textMuted,
           }}
         >
           <div style={{ fontSize: 24 }}>👥</div>
-          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "friends" ? 700 : 600 }}>
-            Friends
+          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "following" ? 700 : 600 }}>
+            Following
           </div>
         </button>
       </div>
@@ -4055,6 +4055,9 @@ function SocialHome({
             }
           }}
           allEvents={publicEvents}
+          followRequests={followRequestsIncoming}
+          onAcceptFollowRequest={onAcceptFollowRequestFrom}
+          onDeclineFollowRequest={onDeclineFollowRequestFrom}
         />
       )}
     </div>

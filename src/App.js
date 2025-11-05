@@ -21,8 +21,8 @@ function App() {
   const [userEvents, setUserEvents] = useState({});
   const [chatHistory, setChatHistory] = useState({});
   const [selectedProfile, setSelectedProfile] = useState(null);
-  const [friends, setFriends] = useState({});
-  const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
+  const [follows, setFollows] = useState({});
+  const [pendingFollowRequests, setPendingFollowRequests] = useState([]);
   const [suggestedEvents, setSuggestedEvents] = useState({});
   const [publicEvents, setPublicEvents] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -49,9 +49,9 @@ function App() {
         const userEventsData = await api.getUserEvents(username);
         setUserEvents({ [username]: userEventsData });
 
-        // Load friends
-        const friendsList = await api.getFriends(username);
-        setFriends({ [username]: friendsList });
+        // Load follows
+        const followsList = await api.getFollows(username);
+        setFollows({ [username]: followsList });
 
         // Load pending requests for admin
         if (username?.toLowerCase() === 'admin') {
@@ -473,35 +473,45 @@ function App() {
   } else if (selectedProfile) {
     const currentUserKey = user?.username || user?.name;
     const selectedKey = selectedProfile?.username || selectedProfile?.name;
-    const isFriend = !!(friends[currentUserKey] && friends[currentUserKey].find(f => f.id === selectedProfile?.id));
-    const hasPendingRequest = pendingFriendRequests.some(
+    const isFollowing = !!(follows[currentUserKey] && follows[currentUserKey].find(f => f.id === selectedProfile?.id));
+    const hasPendingRequest = pendingFollowRequests.some(
       req => req.from === currentUserKey && req.to === selectedKey
     );
-    const incomingRequest = pendingFriendRequests.find(
+    const incomingRequest = pendingFollowRequests.find(
       req => req.from === selectedKey && req.to === currentUserKey
     );
+    
+    // Calculate follower and following counts for selected profile
+    const followingCount = follows[selectedKey]?.length || 0;
+    const followerCount = Object.values(follows).filter(followList => 
+      followList.some(f => (f.id || f.name || f.username) === selectedKey || 
+                           (f.id || f.name || f.username) === (selectedProfile?.id || selectedProfile?.username))
+    ).length;
+    
     mainContent = (
       <UserProfile
         user={selectedProfile}
         currentUser={user}
         getUserPoints={getUserPoints}
         onBack={() => setSelectedProfile(null)}
-        onAddFriend={() => {
-          // Send friend request
-          if (!hasPendingRequest && !isFriend) {
-            setPendingFriendRequests(prev => [...prev, { from: currentUserKey, to: selectedKey }]);
+        followingCount={followingCount}
+        followerCount={followerCount}
+        onAddFollow={() => {
+          // Send follow request
+          if (!hasPendingRequest && !isFollowing) {
+            setPendingFollowRequests(prev => [...prev, { from: currentUserKey, to: selectedKey }]);
           }
         }}
-        onAcceptFriendRequest={() => {
+        onAcceptFollowRequest={() => {
           // Accept incoming request
-          setFriends(prev => {
+          setFollows(prev => {
             const updated = { ...prev };
             if (!updated[currentUserKey]) updated[currentUserKey] = [];
             if (!updated[currentUserKey].find(f => f.id === selectedProfile.id)) {
               updated[currentUserKey].push(selectedProfile);
             }
-            // Also add current user to selectedProfile's friends (robust id/name fallback)
-            const selfFriendObj = {
+            // Also add current user to selectedProfile's follows (robust id/name fallback)
+            const selfFollowObj = {
               id: user?.id || user?.username || user?.name,
               name: user?.name || user?.username,
               emoji: user?.emoji,
@@ -509,18 +519,18 @@ function App() {
               desc: user?.desc,
             };
             if (!updated[selectedKey]) updated[selectedKey] = [];
-            if (!updated[selectedKey].find(f => (f.id || f.name) === selfFriendObj.id)) {
-              updated[selectedKey].push(selfFriendObj);
+            if (!updated[selectedKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
+              updated[selectedKey].push(selfFollowObj);
             }
             return updated;
           });
-          setPendingFriendRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
+          setPendingFollowRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
         }}
-        onDeclineFriendRequest={() => {
-          setPendingFriendRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
+        onDeclineFollowRequest={() => {
+          setPendingFollowRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
         }}
-        onRemoveFriend={() => {
-          setFriends(prev => {
+        onRemoveFollow={() => {
+          setFollows(prev => {
             const updated = { ...prev };
             // Remove from current user's list
             if (updated[currentUserKey]) {
@@ -538,7 +548,7 @@ function App() {
             return updated;
           });
         }}
-        isFriend={isFriend}
+        isFollowing={isFollowing}
         hasPendingRequest={hasPendingRequest}
         incomingRequest={!!incomingRequest}
         onRequestJoinEvent={() => {}}
@@ -894,21 +904,21 @@ function App() {
             }
           }}
           showDebug={true}
-          friendEvents={(friends[user?.username || user?.name] || []).map(fr => ({
-            friend: fr,
+          followingEvents={(follows[user?.username || user?.name] || []).map(fr => ({
+            following: fr,
             events: userEvents[fr?.username || fr?.name] || []
           })).filter(fe => Array.isArray(fe.events) && fe.events.length > 0)}
-          friendRequestsIncoming={pendingFriendRequests.filter(r => r.to === (user?.username || user?.name))}
-          onAcceptFriendRequestFrom={(fromKey) => {
+          followRequestsIncoming={pendingFollowRequests.filter(r => r.to === (user?.username || user?.name))}
+          onAcceptFollowRequestFrom={(fromKey) => {
             const currentUserKey = user?.username || user?.name;
             const requester = users.find(u => u.name === fromKey || u.username === fromKey) || { name: fromKey, id: fromKey };
-            setFriends(prev => {
+            setFollows(prev => {
               const updated = { ...prev };
               if (!updated[currentUserKey]) updated[currentUserKey] = [];
               if (!updated[currentUserKey].find(f => (f.id || f.name) === (requester.id || requester.name))) {
                 updated[currentUserKey].push(requester);
               }
-              const selfFriendObj = {
+              const selfFollowObj = {
                 id: user?.id || user?.username || user?.name,
                 name: user?.name || user?.username,
                 emoji: user?.emoji,
@@ -916,15 +926,15 @@ function App() {
                 desc: user?.desc,
               };
               if (!updated[fromKey]) updated[fromKey] = [];
-              if (!updated[fromKey].find(f => (f.id || f.name) === selfFriendObj.id)) {
-                updated[fromKey].push(selfFriendObj);
+              if (!updated[fromKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
+                updated[fromKey].push(selfFollowObj);
               }
               return updated;
             });
-            setPendingFriendRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
+            setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
           }}
-          onDeclineFriendRequestFrom={(fromKey) => {
-            setPendingFriendRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
+          onDeclineFollowRequestFrom={(fromKey) => {
+            setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
           }}
         />
       </>

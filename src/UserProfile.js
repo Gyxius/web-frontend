@@ -1,7 +1,7 @@
 import React from "react";
 import users from "./users";
 
-function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFriend, isFriend, hasPendingRequest, incomingRequest, onAcceptFriendRequest, onDeclineFriendRequest, onRequestJoinEvent, joinedEvents, onRemoveFriend }) {
+function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, isFollowing, hasPendingRequest, incomingRequest, onAcceptFollowRequest, onDeclineFollowRequest, onRequestJoinEvent, joinedEvents, onRemoveFollow, followingCount = 0, followerCount = 0 }) {
   if (!user) return null;
   
   // If user object is incomplete (like from host), look up full user data
@@ -29,43 +29,56 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFriend, is
         <div style={styles.name}>{fullUser.name} ({fullUser.country})</div>
         <div style={styles.type}>Type: {fullUser.type}</div>
         <div style={styles.desc}>{fullUser.desc || fullUser.bio}</div>
+        
+        {/* Follower/Following counts */}
+        <div style={styles.statsRow}>
+          <div style={styles.stat}>
+            <div style={styles.statNumber}>{followerCount}</div>
+            <div style={styles.statLabel}>Followers</div>
+          </div>
+          <div style={styles.stat}>
+            <div style={styles.statNumber}>{followingCount}</div>
+            <div style={styles.statLabel}>Following</div>
+          </div>
+        </div>
+        
         <div style={styles.info}><b>Age:</b> {fullUser.age}</div>
         <div style={styles.info}><b>House:</b> {fullUser.house}</div>
         <div style={styles.info}><b>Points:</b> {realPoints}</div>
         <div style={styles.info}><b>Languages:</b> {fullUser.languages?.join ? fullUser.languages.join(", ") : fullUser.languages}</div>
         <div style={styles.info}><b>Interests:</b> {fullUser.interests?.join ? fullUser.interests.join(", ") : fullUser.interests}</div>
-        {!isOwnProfile && !isFriend && !hasPendingRequest && !incomingRequest && (
-          <button style={styles.friendBtn} onClick={() => onAddFriend && onAddFriend(user)}>
-            Request Friend
+        {!isOwnProfile && !isFollowing && !hasPendingRequest && !incomingRequest && (
+          <button style={styles.friendBtn} onClick={() => onAddFollow && onAddFollow(user)}>
+            Follow
           </button>
         )}
-        {!isOwnProfile && hasPendingRequest && !isFriend && (
+        {!isOwnProfile && hasPendingRequest && !isFollowing && (
           <div style={{ marginTop: 16, color: '#f59e0b', fontWeight: 600, textAlign: 'center' }}>
-            Friend request sent. Waiting for acceptance.
+            Follow request sent. Waiting for acceptance.
           </div>
         )}
-        {!isOwnProfile && incomingRequest && !isFriend && (
+        {!isOwnProfile && incomingRequest && !isFollowing && (
           <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <div style={{ color: '#3b82f6', fontWeight: 600 }}>You have a friend request!</div>
-            <button style={styles.friendBtn} onClick={() => onAcceptFriendRequest && onAcceptFriendRequest(user)}>
+            <div style={{ color: '#3b82f6', fontWeight: 600 }}>You have a follow request!</div>
+            <button style={styles.friendBtn} onClick={() => onAcceptFollowRequest && onAcceptFollowRequest(user)}>
               Accept
             </button>
-            <button style={styles.removeBtn} onClick={() => onDeclineFriendRequest && onDeclineFriendRequest(user)}>
+            <button style={styles.removeBtn} onClick={() => onDeclineFollowRequest && onDeclineFollowRequest(user)}>
               Decline
             </button>
           </div>
         )}
-        {!isOwnProfile && isFriend && (
+        {!isOwnProfile && isFollowing && (
           <>
-            <div style={styles.friendStatus}>✅ You are friends</div>
-            <button style={styles.removeBtn} onClick={() => onRemoveFriend && onRemoveFriend(user)}>
-              Remove Friend
+            <div style={styles.friendStatus}>✅ You are following</div>
+            <button style={styles.removeBtn} onClick={() => onRemoveFollow && onRemoveFollow(user)}>
+              Unfollow
             </button>
           </>
         )}
-        {isFriend && joinedEvents.length > 0 && (
+        {isFollowing && joinedEvents.length > 0 && (
           <div style={{ marginTop: 24 }}>
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>Friend's Events:</div>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Following's Events:</div>
             {joinedEvents.map((event, idx) => (
               <div key={idx} style={styles.eventCard}>
                 <div style={styles.eventName}>{event.name}</div>
@@ -91,6 +104,10 @@ const styles = {
   name: { fontSize: 22, fontWeight: 700, textAlign: "center", marginBottom: 6 },
   type: { fontSize: 16, color: "#555", textAlign: "center", marginBottom: 8 },
   desc: { fontSize: 15, color: "#444", textAlign: "center", marginBottom: 12 },
+  statsRow: { display: "flex", justifyContent: "center", gap: 40, marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #eee" },
+  stat: { textAlign: "center" },
+  statNumber: { fontSize: 24, fontWeight: 700, color: "#10b981" },
+  statLabel: { fontSize: 13, color: "#6B7280", marginTop: 4 },
   info: { fontSize: 14, color: "#333", marginBottom: 6 },
   friendBtn: { marginTop: 16, background: "#10b981", color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 600, cursor: "pointer" },
   friendStatus: { marginTop: 16, color: "#10b981", fontWeight: 600, textAlign: "center" },
