@@ -11,6 +11,7 @@ function NotificationsInbox({
   allEvents = [],
 }) {
   const [notificationDetails, setNotificationDetails] = useState([]);
+  const [isMarkingRead, setIsMarkingRead] = useState(false);
 
   useEffect(() => {
     // Enrich notifications with event details
@@ -177,7 +178,10 @@ function NotificationsInbox({
   };
 
   const handleMarkAsRead = async (eventId) => {
+    if (isMarkingRead) return; // Prevent duplicate calls
+    
     try {
+      setIsMarkingRead(true);
       const username = currentUser?.username || currentUser?.name || currentUser;
       await api.markNotificationsRead(username, eventId);
       if (onMarkAsRead) {
@@ -185,11 +189,16 @@ function NotificationsInbox({
       }
     } catch (error) {
       console.error("Failed to mark as read:", error);
+    } finally {
+      setIsMarkingRead(false);
     }
   };
 
   const handleViewEvent = async (event, eventId) => {
+    if (isMarkingRead) return; // Prevent duplicate calls
+    
     try {
+      setIsMarkingRead(true);
       // Mark as read before opening the chat
       const username = currentUser?.username || currentUser?.name || currentUser;
       await api.markNotificationsRead(username, eventId);
@@ -199,10 +208,7 @@ function NotificationsInbox({
         await onMarkAsRead();
       }
       
-      // Small delay to ensure UI updates
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Then open the chat
+      // Then open the chat and close modal
       if (onEventClick && event) {
         onEventClick(event);
       }
@@ -214,6 +220,8 @@ function NotificationsInbox({
         onEventClick(event);
       }
       onClose();
+    } finally {
+      setIsMarkingRead(false);
     }
   };
 
@@ -260,16 +268,18 @@ function NotificationsInbox({
               </div>
               <div style={styles.buttonRow}>
                 <button 
-                  style={styles.viewButton}
+                  style={{...styles.viewButton, opacity: isMarkingRead ? 0.6 : 1}}
                   onClick={() => handleViewEvent(notification.event, notification.eventId)}
-                  onMouseEnter={(e) => e.target.style.background = theme.primaryDark}
-                  onMouseLeave={(e) => e.target.style.background = theme.primary}
+                  disabled={isMarkingRead}
+                  onMouseEnter={(e) => !isMarkingRead && (e.target.style.background = theme.primaryDark)}
+                  onMouseLeave={(e) => !isMarkingRead && (e.target.style.background = theme.primary)}
                 >
-                  View Chat
+                  {isMarkingRead ? "Processing..." : "View Chat"}
                 </button>
                 <button 
-                  style={styles.markReadButton}
+                  style={{...styles.markReadButton, opacity: isMarkingRead ? 0.6 : 1}}
                   onClick={() => handleMarkAsRead(notification.eventId)}
+                  disabled={isMarkingRead}
                   onMouseEnter={(e) => {
                     e.target.style.background = theme.bg;
                     e.target.style.borderColor = theme.primary;
