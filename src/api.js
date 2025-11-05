@@ -94,6 +94,24 @@ export const getUserEvents = async (username) => {
   return response.json();
 };
 
+export const uploadImage = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  
+  const response = await fetch(`${API_URL}/api/upload-image`, {
+    method: "POST",
+    body: formData,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to upload image");
+  }
+  
+  const data = await response.json();
+  return data.url;
+};
+
 // ===== FOLLOWS ENDPOINTS =====
 
 export const getFollows = async (username) => {

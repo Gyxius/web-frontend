@@ -25,6 +25,7 @@ function SocialChat({
   const [showEditModal, setShowEditModal] = useState(false);
   const [templateEvent, setTemplateEvent] = useState(null);
   const [relatedHangouts, setRelatedHangouts] = useState([]);
+  const [imageFile, setImageFile] = useState(null); // Store uploaded file for later upload
   const [editedEvent, setEditedEvent] = useState({
     name: event?.name || "",
     location: event?.location || "cite",
@@ -617,6 +618,7 @@ function SocialChat({
                           capacity: event?.capacity || 6,
                           imageUrl: event?.imageUrl || "",
                         });
+                        setImageFile(null); // Clear any previous file selection
                         setShowEditModal(true);
                         setShowOptionsMenu(false);
                       }}
@@ -1500,12 +1502,14 @@ function SocialChat({
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (file) {
-                      // Check file size (max 2MB to avoid localStorage limits)
-                      if (file.size > 2 * 1024 * 1024) {
-                        alert("Image is too large! Please choose an image smaller than 2MB.");
+                      // Check file size (max 5MB for server upload)
+                      if (file.size > 5 * 1024 * 1024) {
+                        alert("Image is too large! Please choose an image smaller than 5MB.");
                         return;
                       }
                       
+                      // Store the file for upload and create preview
+                      setImageFile(file);
                       const reader = new FileReader();
                       reader.onloadend = () => {
                         setEditedEvent({...editedEvent, imageUrl: reader.result});
@@ -1622,7 +1626,10 @@ function SocialChat({
                   cursor: "pointer",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
                 }}
-                onClick={() => setShowEditModal(false)}
+                onClick={() => {
+                  setShowEditModal(false);
+                  setImageFile(null);
+                }}
               >
                 Cancel
               </button>
@@ -1639,13 +1646,30 @@ function SocialChat({
                   cursor: "pointer",
                   boxShadow: "0 8px 20px rgba(88,204,2,0.35)",
                 }}
-                onClick={() => {
+                onClick={async () => {
                   if (onEditEvent) {
-                    const updatedEvent = {
-                      ...event,
-                      ...editedEvent,
-                    };
-                    onEditEvent(updatedEvent);
+                    try {
+                      let finalImageUrl = editedEvent.imageUrl;
+                      
+                      // If there's a new image file, upload it first
+                      if (imageFile) {
+                        console.log("Uploading new image...");
+                        finalImageUrl = await api.uploadImage(imageFile);
+                        console.log("Image uploaded successfully:", finalImageUrl);
+                      }
+                      
+                      const updatedEvent = {
+                        ...event,
+                        ...editedEvent,
+                        imageUrl: finalImageUrl,
+                      };
+                      onEditEvent(updatedEvent);
+                      setImageFile(null); // Clear the file after successful upload
+                    } catch (error) {
+                      console.error("Failed to upload image:", error);
+                      alert("Failed to upload image: " + error.message);
+                      return; // Don't close modal if upload failed
+                    }
                   }
                   setShowEditModal(false);
                 }}
