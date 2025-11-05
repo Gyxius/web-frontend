@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Login from "./Login";
 import SocialHome from "./SocialHome";
 import SocialRoulette from "./SocialRoulette";
@@ -95,7 +95,7 @@ function App() {
   }, [adminOpenEventId]);
 
   // Function to refresh notification count
-  const refreshNotifications = async () => {
+  const refreshNotifications = useCallback(async () => {
     if (!user) {
       setNotificationCount(0);
       setNotificationsData(null);
@@ -109,7 +109,7 @@ function App() {
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     }
-  };
+  }, [user]);
 
   // Fetch notifications and poll every 30 seconds
   useEffect(() => {
