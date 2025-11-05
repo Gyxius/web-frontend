@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import * as api from "./api";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
 
@@ -54,7 +54,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
   const [inviteLoading, setInviteLoading] = useState(true);
   const [inviteError, setInviteError] = useState("");
 
-  const loadOrCreateInviteCode = async () => {
+  const loadOrCreateInviteCode = useCallback(async () => {
     setInviteLoading(true);
     setInviteError("");
     try {
@@ -72,16 +72,17 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     } finally {
       setInviteLoading(false);
     }
-  };
+  }, [userName]);
 
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
     (async () => {
-      if (!mounted) return;
-      await loadOrCreateInviteCode();
+      if (!cancelled) {
+        await loadOrCreateInviteCode();
+      }
     })();
-    return () => { mounted = false; };
-  }, [userName]);
+    return () => { cancelled = true; };
+  }, [loadOrCreateInviteCode]);
 
   const availableLanguages = [
     "English", "French", "Spanish", "German", "Italian", "Portuguese",
