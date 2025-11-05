@@ -319,6 +319,54 @@ function App() {
             alert("Failed to update event: " + error.message);
           }
         }}
+        onDeleteEvent={async (eventToDelete) => {
+          console.log("🗑️ Starting delete event:", eventToDelete);
+          try {
+            // Delete from backend
+            const username = user?.username || user?.name;
+            console.log("Deleting event from backend:", eventToDelete.id, "by user:", username);
+            await api.deleteEvent(eventToDelete.id, username);
+            console.log("✅ Event deleted from backend");
+            
+            // Refresh public events from API
+            const allEvents = await api.getAllEvents();
+            setPublicEvents(allEvents);
+            console.log("✅ Public events refreshed");
+            
+            // Refresh user events from API
+            const userEventsData = await api.getUserEvents(username);
+            setUserEvents({ [username]: userEventsData });
+            console.log("✅ User events refreshed");
+            
+            // Remove from adminEvents localStorage
+            const saved = localStorage.getItem("adminEvents");
+            if (saved) {
+              const events = JSON.parse(saved);
+              const filteredEvents = events.filter(e => e.id !== eventToDelete.id);
+              localStorage.setItem("adminEvents", JSON.stringify(filteredEvents));
+            }
+            
+            // Remove from all users' joined events localStorage
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith("joinedEvents_")) {
+                const joinedEvents = JSON.parse(localStorage.getItem(key) || "[]");
+                const filtered = joinedEvents.filter(e => e.id !== eventToDelete.id);
+                localStorage.setItem(key, JSON.stringify(filtered));
+              }
+            });
+            
+            // Show success message
+            alert("🗑️ Event deleted successfully!");
+            console.log("✅ Delete complete, navigating back");
+            
+            // Navigate back to home
+            setShowChat(false);
+            setRouletteResult(null);
+          } catch (error) {
+            console.error("❌ Failed to delete event:", error);
+            alert("Failed to delete event: " + (error.message || "Unknown error"));
+          }
+        }}
       />
     );
   } else if ((user?.username || user?.name)?.toLowerCase() === "admin") {
