@@ -631,10 +631,12 @@ function SocialChat({
                         alignItems: "center",
                         gap: 12,
                       }}
-                      onClick={() => {
+                      onClick={async () => {
                         if (window.confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
-                          onDeleteEvent && onDeleteEvent(event);
                           setShowOptionsMenu(false);
+                          if (onDeleteEvent) {
+                            await onDeleteEvent(event);
+                          }
                         }
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.background = "#FFF5F5"}

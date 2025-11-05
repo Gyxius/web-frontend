@@ -534,18 +534,23 @@ function App() {
           }
         }}
         onDeleteEvent={async (eventToDelete) => {
+          console.log("🗑️ Starting delete event:", eventToDelete);
           try {
             // Delete from backend
             const username = user?.username || user?.name;
+            console.log("Deleting event from backend:", eventToDelete.id, "by user:", username);
             await api.deleteEvent(eventToDelete.id, username);
+            console.log("✅ Event deleted from backend");
             
             // Refresh public events from API
             const allEvents = await api.getAllEvents();
             setPublicEvents(allEvents);
+            console.log("✅ Public events refreshed");
             
             // Refresh user events from API
             const userEventsData = await api.getUserEvents(username);
             setUserEvents({ [username]: userEventsData });
+            console.log("✅ User events refreshed");
             
             // Remove from adminEvents localStorage
             const saved = localStorage.getItem("adminEvents");
@@ -566,13 +571,14 @@ function App() {
             
             // Show success message
             alert("🗑️ Event deleted successfully!");
+            console.log("✅ Delete complete, navigating back");
             
             // Navigate back to home
             setShowChat(false);
             setRouletteResult(null);
           } catch (error) {
-            console.error("Failed to delete event:", error);
-            alert("Failed to delete event: " + error.message);
+            console.error("❌ Failed to delete event:", error);
+            alert("Failed to delete event: " + (error.message || "Unknown error"));
           }
         }}
         onCreateHangout={(featuredEvent) => {
