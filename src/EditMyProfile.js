@@ -160,6 +160,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
   "Maison de Tunisie",
     // Historic/region-focused (frequent on campus)
     "Maison des étudiants de l’Asie du Sud-Est",
+    "Alumni",
     // Fallback
     "Other",
   ];
