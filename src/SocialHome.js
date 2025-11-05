@@ -4,9 +4,11 @@ import users from "./users";
 import LocationPicker from "./LocationPicker";
 import "./SocialHome.animations.css";
 import { createEvent, getEventById, updateEvent } from "./api";
+import NotificationsInbox from "./NotificationsInbox";
 
 function SocialHome({
   userName = "Guest",
+  currentUser,
   onJoinEvent,
   onEditProfile,
   joinedEvents = [],
@@ -24,6 +26,8 @@ function SocialHome({
   friendRequestsIncoming = [],
   onAcceptFriendRequestFrom,
   notificationCount = 0,
+  notificationsData = null,
+  onRefreshNotifications,
   onDeclineFriendRequestFrom,
   addPoints,
   getUserPoints,
@@ -40,6 +44,7 @@ function SocialHome({
 
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
+  const [showNotificationsInbox, setShowNotificationsInbox] = useState(false);
   const [createEventStep, setCreateEventStep] = useState(1);
   const [eventPreview, setEventPreview] = useState(null); // For previewing events before joining
   const [adminEditMode, setAdminEditMode] = useState(false);
@@ -572,8 +577,7 @@ function SocialHome({
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button 
               onClick={() => {
-                setActiveBottomTab("profile");
-                onEditProfile && onEditProfile();
+                setShowNotificationsInbox(true);
               }}
               style={{ 
                 background: "none", 
@@ -4025,6 +4029,30 @@ function SocialHome({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Notifications Inbox Modal */}
+      {showNotificationsInbox && (
+        <NotificationsInbox
+          currentUser={currentUser}
+          notifications={notificationsData}
+          onClose={() => setShowNotificationsInbox(false)}
+          onViewProfile={() => {
+            setActiveBottomTab("profile");
+            onEditProfile && onEditProfile();
+          }}
+          onEventClick={(event) => {
+            if (onJoinedEventClick) {
+              onJoinedEventClick(event);
+            }
+          }}
+          onMarkAsRead={() => {
+            if (onRefreshNotifications) {
+              onRefreshNotifications();
+            }
+          }}
+          allEvents={publicEvents}
+        />
       )}
     </div>
   );

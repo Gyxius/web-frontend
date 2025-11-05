@@ -29,6 +29,7 @@ function App() {
   const [templateEventToCreate, setTemplateEventToCreate] = useState(null);
   const [adminOpenEventId, setAdminOpenEventId] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationsData, setNotificationsData] = useState(null);
   
   // Load data from API when user logs in
   useEffect(() => {
@@ -97,12 +98,14 @@ function App() {
   const refreshNotifications = async () => {
     if (!user) {
       setNotificationCount(0);
+      setNotificationsData(null);
       return;
     }
     try {
       const username = user?.username || user?.name;
       const notifications = await api.getNotifications(username);
       setNotificationCount(notifications.total_unread || 0);
+      setNotificationsData(notifications);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     }
@@ -775,6 +778,7 @@ function App() {
         </button>
         <SocialHome
           userName={user?.username || user?.name}
+          currentUser={user}
           onEditProfile={() => setShowEditProfile(true)}
           joinedEvents={joinedEvents}
           templateEventToCreate={templateEventToCreate}
@@ -784,6 +788,8 @@ function App() {
           addPoints={addPoints}
           getUserPoints={getUserPoints}
           notificationCount={notificationCount}
+          notificationsData={notificationsData}
+          onRefreshNotifications={refreshNotifications}
           onJoinPublicEvent={async (event) => {
             const currentUserKey = user?.username || user?.name;
             // Check if already joined
