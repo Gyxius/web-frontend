@@ -188,7 +188,10 @@ function NotificationsInbox({
     }
   };
 
-  const handleViewEvent = (event) => {
+  const handleViewEvent = async (event, eventId) => {
+    // Mark as read before opening the chat
+    await handleMarkAsRead(eventId);
+    
     if (onEventClick && event) {
       onEventClick(event);
     }
@@ -239,7 +242,7 @@ function NotificationsInbox({
               <div style={styles.buttonRow}>
                 <button 
                   style={styles.viewButton}
-                  onClick={() => handleViewEvent(notification.event)}
+                  onClick={() => handleViewEvent(notification.event, notification.eventId)}
                   onMouseEnter={(e) => e.target.style.background = theme.primaryDark}
                   onMouseLeave={(e) => e.target.style.background = theme.primary}
                 >
