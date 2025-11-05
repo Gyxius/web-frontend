@@ -49,6 +49,7 @@ function SocialHome({
   const [eventPreview, setEventPreview] = useState(null); // For previewing events before joining
   const [adminEditMode, setAdminEditMode] = useState(false);
   const [adminEditForm, setAdminEditForm] = useState(null);
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
   // View mode: 'my' shows only user's joined events, 'following' shows only following users' joined events
   const [viewMode, setViewMode] = useState("my");
   
@@ -2878,7 +2879,10 @@ function SocialHome({
             zIndex: 1000,
             padding: 20,
           }}
-          onClick={() => setEventPreview(null)}
+          onClick={() => {
+            setEventPreview(null);
+            setShowAdminMenu(false);
+          }}
         >
           <div 
             style={{
@@ -2890,17 +2894,61 @@ function SocialHome({
               maxHeight: "90vh",
               overflowY: "auto",
               boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+              position: "relative",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Event Title */}
-            <h2 style={{ fontSize: 28, fontWeight: 900, color: theme.text, marginBottom: 16 }}>
-              {eventPreview.name}
-            </h2>
-            {adminMode && !adminEditMode && (
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: -8, marginBottom: 8 }}>
+            {/* Header with close button and admin controls */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+              <button
+                onClick={() => setEventPreview(null)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  fontSize: 20,
+                  cursor: "pointer",
+                  color: theme.textSecondary,
+                  padding: 0,
+                }}
+              >
+                ← Back to Events
+              </button>
+              
+              {/* Admin Controls - Show for Admin user or in adminMode */}
+              {((currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode) && 
+                (eventPreview.isFeatured || eventPreview.createdBy?.toLowerCase() === 'admin')) && (
+                <button
+                  onClick={() => setShowAdminMenu(!showAdminMenu)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    fontSize: 24,
+                    cursor: "pointer",
+                    color: theme.textSecondary,
+                    padding: 0,
+                  }}
+                >
+                  ⚙️
+                </button>
+              )}
+            </div>
+
+            {/* Admin Dropdown Menu */}
+            {showAdminMenu && ((currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode) && 
+              (eventPreview.isFeatured || eventPreview.createdBy?.toLowerCase() === 'admin')) && (
+              <div style={{
+                position: "absolute",
+                top: 70,
+                right: 32,
+                background: "white",
+                borderRadius: 12,
+                boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+                overflow: "hidden",
+                zIndex: 1001,
+              }}>
                 <button
                   onClick={() => {
+                    setShowAdminMenu(false);
                     setAdminEditMode(true);
                     setAdminEditForm({
                       name: eventPreview.name || "",
@@ -2918,20 +2966,56 @@ function SocialHome({
                     });
                   }}
                   style={{
-                    background: "#1CB0F6",
-                    color: "white",
+                    width: "100%",
+                    background: "white",
+                    color: theme.text,
                     border: "none",
-                    borderRadius: 10,
-                    padding: "8px 12px",
-                    fontWeight: 800,
+                    padding: "12px 20px",
+                    textAlign: "left",
+                    fontWeight: 600,
+                    fontSize: 14,
                     cursor: "pointer",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    borderBottom: "1px solid #eee",
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
                 >
-                  ✏️ Edit
+                  ✏️ Edit Event
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAdminMenu(false);
+                    alert("Manage Co-Hosts feature coming soon!");
+                  }}
+                  style={{
+                    width: "100%",
+                    background: "white",
+                    color: theme.text,
+                    border: "none",
+                    padding: "12px 20px",
+                    textAlign: "left",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                >
+                  👥 Manage Co-Hosts
                 </button>
               </div>
             )}
+
+            {/* Event Title */}
+            <h2 style={{ fontSize: 28, fontWeight: 900, color: theme.text, marginBottom: 16 }}>
+              {eventPreview.name}
+            </h2>
 
             {/* Event Image */}
             {eventPreview.imageUrl && (
