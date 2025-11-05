@@ -11,7 +11,13 @@ import users from "./users";
 import * as api from "./api";
 
 function App() {
-  const [user, setUser] = useState(null);
+  // Persisted session: restore user from localStorage on first render
+  const [user, setUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem("sessionUser");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
   const [showRoulette, setShowRoulette] = useState(false);
   const [rouletteResult, setRouletteResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
@@ -213,6 +219,7 @@ function App() {
       if (!userObj) userObj = { username: usernameOrObj, name: usernameOrObj };
     }
     setUser(userObj);
+    try { localStorage.setItem("sessionUser", JSON.stringify(userObj)); } catch {}
     // Reset navigation states to ensure user lands on homepage
     setShowEditProfile(false);
     setShowRoulette(false);
@@ -222,6 +229,7 @@ function App() {
   };
   const handleSignOut = () => {
   setUser(null);
+  try { localStorage.removeItem("sessionUser"); } catch {}
   setShowRoulette(false);
   setShowResult(false);
   setShowChat(false);
