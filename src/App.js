@@ -801,6 +801,7 @@ function App() {
         <SocialHome
           userName={user?.username || user?.name}
           currentUser={user}
+          onSignOut={handleSignOut}
           onEditProfile={() => setShowEditProfile(true)}
           joinedEvents={joinedEvents}
           templateEventToCreate={templateEventToCreate}

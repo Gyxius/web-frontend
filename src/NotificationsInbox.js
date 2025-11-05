@@ -7,6 +7,7 @@ function NotificationsInbox({
   notifications,
   onClose,
   onViewProfile,
+  onSignOut,
   onEventClick,
   onMarkAsRead,
   allEvents = [],
@@ -103,6 +104,20 @@ function NotificationsInbox({
       cursor: "pointer",
       marginBottom: 20,
       transition: "background 0.2s",
+    },
+    signOutButton: {
+      width: "100%",
+      padding: 14,
+      background: "#EA2B2B",
+      color: "white",
+      border: "none",
+      borderRadius: theme.radius,
+      fontSize: 15,
+      fontWeight: 800,
+      cursor: "pointer",
+      marginBottom: 20,
+      boxShadow: "0 4px 12px rgba(234,43,43,0.25)",
+      transition: "opacity 0.2s, transform 0.1s",
     },
     sectionTitle: {
       fontSize: 18,
@@ -247,6 +262,18 @@ function NotificationsInbox({
           onMouseLeave={(e) => e.target.style.background = theme.primary}
         >
           See My Profile
+        </button>
+
+        <button
+          style={styles.signOutButton}
+          onClick={() => {
+            if (onSignOut) onSignOut();
+            onClose();
+          }}
+          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.98)")}
+          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          🚪 Sign Out
         </button>
 
         {/* Follow Requests Section */}

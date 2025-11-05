@@ -9,6 +9,7 @@ import NotificationsInbox from "./NotificationsInbox";
 function SocialHome({
   userName = "Guest",
   currentUser,
+  onSignOut,
   onJoinEvent,
   onEditProfile,
   joinedEvents = [],
@@ -4128,6 +4129,7 @@ function SocialHome({
             setActiveBottomTab("profile");
             onEditProfile && onEditProfile();
           }}
+          onSignOut={onSignOut}
           onEventClick={(event) => {
             if (onJoinedEventClick) {
               onJoinedEventClick(event);
