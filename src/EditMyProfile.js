@@ -172,10 +172,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     "Travel", "Food", "Technology", "Fashion", "Photography", "Fitness"
   ];
 
-  const countryEmojis = [
-    "🇫🇷", "🇬🇧", "🇺🇸", "🇪🇸", "🇩🇪", "🇮🇹", "🇵🇹", "🇳🇱",
-    "🇷🇺", "🇨🇳", "🇯🇵", "🇰🇷", "🇸🇦", "🇮🇳", "🇹🇷", "🇵🇱", "🇲🇬"
-  ];
+  // Note: Replaced emoji grid with a country dropdown; emoji list removed.
 
   const handleSave = () => {
     setProfile(editedProfile);
