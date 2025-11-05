@@ -158,6 +158,24 @@ export const registerUser = async (username, password) => {
   return response.json();
 };
 
+// ===== NOTIFICATION ENDPOINTS =====
+
+export const getNotifications = async (username) => {
+  const response = await fetch(`${API_URL}/api/notifications/${username}`);
+  if (!response.ok) throw new Error("Failed to fetch notifications");
+  return response.json();
+};
+
+export const markNotificationsRead = async (username, eventId = null) => {
+  const response = await fetch(`${API_URL}/api/notifications/${username}/mark-read`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event_id: eventId }),
+  });
+  if (!response.ok) throw new Error("Failed to mark notifications as read");
+  return response.json();
+};
+
 // ===== ADMIN ENDPOINTS =====
 
 export const getPendingRequests = async () => {
