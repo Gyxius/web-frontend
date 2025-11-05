@@ -51,15 +51,34 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
   }, [startEditing]);
   // Single reusable invite code for this user
   const [inviteCode, setInviteCode] = useState(null);
+  const [inviteLoading, setInviteLoading] = useState(true);
+  const [inviteError, setInviteError] = useState("");
+
+  const loadOrCreateInviteCode = async () => {
+    setInviteLoading(true);
+    setInviteError("");
+    try {
+      // Try to load existing code
+      const res = await api.getUserInviteCode(userName);
+      let code = res?.invite_code || null;
+      // If none exists yet, create one so it's always visible
+      if (!code) {
+        const created = await api.createOrRotateInviteCode(userName);
+        code = created?.invite_code || null;
+      }
+      setInviteCode(code);
+    } catch (e) {
+      setInviteError("Could not load invite code. Please try again.");
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
     (async () => {
-      try {
-        const res = await api.getUserInviteCode(userName);
-        if (mounted) setInviteCode(res.invite_code || null);
-      } catch {
-        // no-op
-      }
+      if (!mounted) return;
+      await loadOrCreateInviteCode();
     })();
     return () => { mounted = false; };
   }, [userName]);
@@ -621,7 +640,9 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
           <div style={styles.section}>
             <label style={styles.label}>Invitations</label>
             <div style={{ display: 'grid', gap: 10 }}>
-              {inviteCode ? (
+              {inviteLoading ? (
+                <div style={{ fontSize: 14, color: theme.textMuted }}>Loading invite code…</div>
+              ) : inviteCode ? (
                 <div style={{ display: 'grid', gap: 8 }}>
                   <div>
                     <div style={{ fontWeight: 800, color: theme.text }}>{inviteCode}</div>
@@ -641,13 +662,12 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
                   </div>
                 </div>
               ) : (
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 14, color: theme.textMuted }}>{inviteError || 'Invite code unavailable.'}</span>
                   <button
-                    style={{ ...styles.button, ...styles.primaryButton }}
-                    onClick={createOrRotateInvite}
-                  >
-                    🔑 Generate Invite Code
-                  </button>
+                    style={{ ...styles.button, ...styles.primaryButton, padding: '8px 12px' }}
+                    onClick={loadOrCreateInviteCode}
+                  >Retry</button>
                 </div>
               )}
             </div>
