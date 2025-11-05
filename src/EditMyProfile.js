@@ -97,26 +97,44 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     "Denmark", "Madagascar", "Morocco", "Algeria", "Tunisia", "Senegal"
   ];
 
+  // CIUP houses (47 total on campus). Curated list from official site.
   const availableHouses = [
+    // Fondations & résidences
     "Fondation Deutsch de la Meurthe",
     "Fondation des États-Unis",
+    "Fondation Avicenne",
+    "Fondation Biermans-Lapôtre",
+    "Fondation Suisse (Pavillon Le Corbusier)",
+    "Fondation Rosa Abreu de Grancher",
+    "Résidence André Honnorat",
+    "Maison Internationale",
+    // Maisons par pays / régions
+    "Collège d'Espagne",
+    "Collège Franco-Britannique",
     "Maison de l'Argentine",
     "Maison du Brésil",
     "Maison du Cambodge",
     "Maison du Canada",
     "Maison de la Chine",
-    "Collège d'Espagne",
+    "Maison de la Corée",
+    "Maison de l'Égypte",
     "Maison de la Grèce",
     "Maison de l'Inde",
-    "Maison Internationale",
+    "Maison de l'Île-de-France",
+    "Maison de l'Italie",
     "Maison du Japon",
     "Maison du Liban",
     "Maison du Maroc",
     "Maison du Mexique",
     "Maison de la Norvège",
+    "Maison du Portugal – André de Gouveia",
+    "Maison de la Suède",
+    "Maison Heinrich Heine (Allemagne)",
     "Maison des Provinces de France",
-    "Maison de la Tunisie",
-    "Other"
+    // Historic/region-focused (frequent on campus)
+    "Maison des étudiants de l’Asie du Sud-Est",
+    // Fallback
+    "Other",
   ];
 
   const languageLevels = ["Beginner", "Intermediate", "Advanced", "Fluent", "Native"];
