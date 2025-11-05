@@ -514,8 +514,8 @@ function SocialChat({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
           <h1 style={styles.eventTitle}>{event?.name || "Event"}</h1>
           
-          {/* Edit/Options Button - Only for host */}
-          {event?.host && event.host.name === currentUser && (
+          {/* Edit/Options Button - For host or admin */}
+          {((event?.host && event.host.name === currentUser) || (typeof currentUser === 'string' && currentUser.toLowerCase() === 'admin') || (typeof currentUser === 'object' && (currentUser?.username?.toLowerCase?.() === 'admin' || currentUser?.name === 'Admin')) || (event?.createdBy && String(event.createdBy).toLowerCase() === 'admin') || (event?.created_by && String(event.created_by).toLowerCase() === 'admin')) && (
             <div style={{ position: "relative" }}>
               <button
                 style={{

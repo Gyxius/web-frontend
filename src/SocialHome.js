@@ -2915,9 +2915,16 @@ function SocialHome({
               </button>
               
               {/* Admin Controls - Show for Admin user or in adminMode */}
-              {(currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin") && (
+              {/* Debug: Show for everyone temporarily */}
+              {(currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin" || userName === "admin" || true) && (
                 <button
-                  onClick={() => setShowAdminMenu(!showAdminMenu)}
+                  onClick={() => {
+                    console.log("Debug - currentUser:", currentUser);
+                    console.log("Debug - userName:", userName);
+                    console.log("Debug - adminMode:", adminMode);
+                    console.log("Debug - eventPreview:", eventPreview);
+                    setShowAdminMenu(!showAdminMenu);
+                  }}
                   style={{
                     background: "transparent",
                     border: "none",
@@ -2933,7 +2940,7 @@ function SocialHome({
             </div>
 
             {/* Admin Dropdown Menu */}
-            {showAdminMenu && (currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin") && (
+            {showAdminMenu && (
               <div style={{
                 position: "absolute",
                 top: 70,
