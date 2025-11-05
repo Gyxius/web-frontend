@@ -540,33 +540,21 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
         </div>
 
         <div style={styles.section}>
-          <label style={styles.label}>Short Description</label>
+          <label style={styles.label}>Short Bio</label>
           {isEditing ? (
             <input
               type="text"
               style={styles.input}
               value={editedProfile.desc}
               onChange={(e) => setEditedProfile({ ...editedProfile, desc: e.target.value })}
-              placeholder="e.g., Language enthusiast, Coffee lover"
+              placeholder="Write a short bio"
             />
           ) : (
             <div style={styles.value}>{profile.desc}</div>
           )}
         </div>
 
-        <div style={styles.section}>
-          <label style={styles.label}>Bio</label>
-          {isEditing ? (
-            <textarea
-              style={styles.textarea}
-              value={editedProfile.bio}
-              onChange={(e) => setEditedProfile({ ...editedProfile, bio: e.target.value })}
-              placeholder="Tell us about yourself..."
-            />
-          ) : (
-            <div style={styles.value}>{profile.bio || "No bio yet"}</div>
-          )}
-        </div>
+        {/* Removed full Bio section as per request */}
 
         <div style={styles.section}>
           <label style={styles.label}>Languages You Speak</label>

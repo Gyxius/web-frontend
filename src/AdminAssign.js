@@ -2161,12 +2161,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Short Description</div>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Short Bio</div>
                       <div style={{ fontSize: 15, color: theme.text }}>{merged.desc || '—'}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Bio</div>
-                      <div style={{ fontSize: 15, color: theme.text, whiteSpace: 'pre-wrap' }}>{merged.bio || '—'}</div>
                     </div>
                     <div>
                       <div style={{ fontWeight: 800, fontSize: 13, color: theme.textMuted }}>Languages</div>
