@@ -293,6 +293,8 @@ function App() {
             setShowEditProfile(true);
           } else {
             // Otherwise show the other user's profile
+            setShowChat(false);
+            setRouletteResult(null);
             setSelectedProfile(clickedUser);
           }
         }}
@@ -569,6 +571,8 @@ function App() {
             setShowEditProfile(true);
           } else {
             // Otherwise show the other user's profile
+            setShowChat(false);
+            setRouletteResult(null);
             setSelectedProfile(clickedUser);
           }
         }}
