@@ -786,7 +786,18 @@ function App() {
             setRouletteResult(event);
             setShowChat(true);
           }}
-          onUserClick={setSelectedProfile}
+          onUserClick={(clickedUser) => {
+            const currentUserKey = user?.username || user?.name;
+            const clickedUserKey = clickedUser?.username || clickedUser?.name;
+            
+            // If clicking on own profile, go to edit profile
+            if (currentUserKey === clickedUserKey) {
+              setShowEditProfile(true);
+            } else {
+              // Otherwise show the other user's profile
+              setSelectedProfile(clickedUser);
+            }
+          }}
           onLeaveEvent={async (evToRemove) => {
             const currentUserKey = user?.username || user?.name;
             try {
