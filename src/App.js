@@ -258,6 +258,7 @@ function App() {
         onBack={() => {
           setShowChat(false);
           setRouletteResult(null);
+          setSelectedProfile(null);
           // If admin opened it, go back to admin dashboard
           if ((user?.username || user?.name)?.toLowerCase() === 'admin') {
             setAdminOpenEventId(null);
@@ -266,6 +267,7 @@ function App() {
         onHome={() => {
           setShowChat(false);
           setRouletteResult(null);
+          setSelectedProfile(null);
           if ((user?.username || user?.name)?.toLowerCase() === 'admin') {
             setAdminOpenEventId(null);
           }
@@ -529,10 +531,12 @@ function App() {
         onBack={() => {
           setShowChat(false);
           setShowResult(true);
+          setSelectedProfile(null);
         }}
         onHome={() => {
           setShowChat(false);
           setRouletteResult(null);
+          setSelectedProfile(null);
         }}
         onUserClick={(clickedUser) => {
           const currentUserKey = user?.username || user?.name;
