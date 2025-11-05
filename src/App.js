@@ -427,6 +427,18 @@ function App() {
             alert("Failed to delete event: " + (error.message || "Unknown error"));
           }
         }}
+        onCreateHangout={(featuredEvent) => {
+          // Close chat and trigger create event flow with featured event as template
+          setShowChat(false);
+          setRouletteResult(null);
+          setTemplateEventToCreate(featuredEvent);
+        }}
+        onEventClick={(newEvent) => {
+          // Switch to viewing a different event
+          setRouletteResult(newEvent);
+          // Keep chat open to show the new event
+        }}
+        allUsers={users}
         onNotificationRead={refreshNotifications}
       />
     );
