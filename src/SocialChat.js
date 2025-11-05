@@ -111,7 +111,7 @@ function SocialChat({
       }
     };
     markAsRead();
-  }, [event?.id, currentUser, onNotificationRead]);
+  }, [event?.id, currentUser]); // Removed onNotificationRead to prevent infinite loop
 
   // 🟢 Duolingo-inspired theme (same palette direction as SocialHome)
   const theme = {
