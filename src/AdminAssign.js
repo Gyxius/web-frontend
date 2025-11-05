@@ -138,7 +138,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   
   const [selectedIdx, setSelectedIdx] = useState(null);
   // Only keep one selectedEvent state for event modal
-  const [activeTab, setActiveTab] = useState("requests");
+  // Default to All Events tab on load
+  const [activeTab, setActiveTab] = useState("events");
   const [selectedEventForModal, setSelectedEventForModal] = useState(null); // For viewing event details
   const [selectedProposalForModal, setSelectedProposalForModal] = useState(null); // For viewing auto‑proposal details
   const [removedBots, setRemovedBots] = useState(() => {
@@ -151,7 +152,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   const [selectedEventId, setSelectedEventId] = useState(""); // For assignment dropdown
   const [selectedUser, setSelectedUser] = useState(null);
   const [requestDetailIdx, setRequestDetailIdx] = useState(null);
-  const [showAllEvents, setShowAllEvents] = useState(false); // Toggle for showing all events vs suggested
+  // Show All Events by default instead of Suggested
+  const [showAllEvents, setShowAllEvents] = useState(true); // Toggle for showing all events vs suggested
   // Invitations state
   const [invites, setInvites] = useState(() => {
     try {
