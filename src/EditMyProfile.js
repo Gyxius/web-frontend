@@ -137,6 +137,13 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     setIsEditing(false);
     setSuccessMessage("✅ Profile updated successfully!");
     setTimeout(() => setSuccessMessage(""), 3000);
+    // Scroll back to top after saving changes
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    } catch {
+      // fallback
+      window.scrollTo(0, 0);
+    }
   };
 
   const handleCancel = () => {
