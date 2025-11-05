@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import SocialHome from "./SocialHome";
 
 const adminJoinedEvents = [
@@ -28,8 +28,11 @@ describe("SocialHome", () => {
         showDebug={true}
       />
     );
-    expect(screen.getByText(/Hi Admin/i)).toBeInTheDocument();
-    expect(screen.getByText(/Admin Event/i)).toBeInTheDocument();
+  expect(screen.getByText(/Hi Admin/i)).toBeInTheDocument();
+  // Switch to the Joined tab to see joined events
+  const joinedTab = screen.getByText(/Joined/i);
+  fireEvent.click(joinedTab);
+  expect(screen.getByText(/Admin Event/i)).toBeInTheDocument();
   // Label updated in UI to "The Residents:" with a drink emoji
   expect(screen.getByText(/The Residents:/i)).toBeInTheDocument();
     expect(screen.getByText(/Mitsu/i)).toBeInTheDocument();
