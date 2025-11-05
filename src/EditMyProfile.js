@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import * as api from "./api";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
 
 function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
@@ -48,14 +49,20 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
   useEffect(() => {
     if (startEditing) setIsEditing(true);
   }, [startEditing]);
-  // Invitation codes created by this user
-  const [myInvites, setMyInvites] = useState(() => {
-    try {
-      const raw = localStorage.getItem('lemi_invites');
-      const all = raw ? JSON.parse(raw) : [];
-      return Array.isArray(all) ? all.filter(i => (i.referrer || i.assignedTo) === userName) : [];
-    } catch { return []; }
-  });
+  // Single reusable invite code for this user
+  const [inviteCode, setInviteCode] = useState(null);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await api.getUserInviteCode(userName);
+        if (mounted) setInviteCode(res.invite_code || null);
+      } catch {
+        // no-op
+      }
+    })();
+    return () => { mounted = false; };
+  }, [userName]);
 
   const availableLanguages = [
     "English", "French", "Spanish", "German", "Italian", "Portuguese",
@@ -307,37 +314,15 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     },
   };
 
-  const genCode = () => {
-    const seg = () => Math.random().toString(36).slice(2, 6).toUpperCase();
-    return `LEMI-${seg()}-${seg()}`;
-  };
-
-  const createInvite = () => {
-    const code = genCode();
-    const entry = { code, referrer: userName, createdAt: Date.now() };
+  const createOrRotateInvite = async () => {
     try {
-      const raw = localStorage.getItem('lemi_invites');
-      const list = raw ? JSON.parse(raw) : [];
-      const updatedAll = Array.isArray(list) ? [entry, ...list] : [entry];
-      localStorage.setItem('lemi_invites', JSON.stringify(updatedAll));
-      setMyInvites(prev => [entry, ...prev]);
-      setSuccessMessage(`✅ New invite created: ${code}`);
+      const res = await api.createOrRotateInviteCode(userName);
+      setInviteCode(res.invite_code);
+      setSuccessMessage(`✅ Your invite code: ${res.invite_code}`);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch {
-      alert('Could not create invite.');
+      alert('Could not generate invite code.');
     }
-  };
-
-  const revokeInvite = (code) => {
-    try {
-      const raw = localStorage.getItem('lemi_invites');
-      const list = raw ? JSON.parse(raw) : [];
-      const target = list.find(i => i.code === code);
-      if (target?.usedBy) { alert('Cannot revoke a used invite.'); return; }
-      const updatedAll = list.filter(i => i.code !== code);
-      localStorage.setItem('lemi_invites', JSON.stringify(updatedAll));
-      setMyInvites(prev => prev.filter(i => i.code !== code));
-    } catch {}
   };
 
   return (
@@ -636,39 +621,34 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
           <div style={styles.section}>
             <label style={styles.label}>Invitations</label>
             <div style={{ display: 'grid', gap: 10 }}>
-              <div>
-                <button
-                  style={{ ...styles.button, ...styles.primaryButton }}
-                  onClick={createInvite}
-                >
-                  🔑 Generate Invite Code
-                </button>
-              </div>
-              {Array.isArray(myInvites) && myInvites.length > 0 ? (
+              {inviteCode ? (
                 <div style={{ display: 'grid', gap: 8 }}>
-                  {myInvites.map(inv => (
-                    <div key={inv.code} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 8, alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontWeight: 800, color: theme.text }}>{inv.code}</div>
-                        <div style={{ fontSize: 12.5, color: theme.textMuted }}>
-                          {inv.usedBy ? `Used by ${inv.usedBy}` : 'Unused'} · from you
-                        </div>
-                      </div>
-                      <button
-                        style={{ ...styles.button, ...styles.secondaryButton, padding: '8px 12px' }}
-                        onClick={async () => { try { await navigator.clipboard.writeText(inv.code); alert('Copied!'); } catch {} }}
-                      >Copy</button>
-                      {!inv.usedBy && (
-                        <button
-                          style={{ ...styles.button, background: '#EA2B2B', color: '#fff', padding: '8px 12px' }}
-                          onClick={() => revokeInvite(inv.code)}
-                        >Revoke</button>
-                      )}
+                  <div>
+                    <div style={{ fontWeight: 800, color: theme.text }}>{inviteCode}</div>
+                    <div style={{ fontSize: 12.5, color: theme.textMuted }}>
+                      Reusable · from you
                     </div>
-                  ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      style={{ ...styles.button, ...styles.secondaryButton, padding: '8px 12px' }}
+                      onClick={async () => { try { await navigator.clipboard.writeText(inviteCode); alert('Copied!'); } catch {} }}
+                    >Copy</button>
+                    <button
+                      style={{ ...styles.button, background: theme.accent, color: '#fff', padding: '8px 12px' }}
+                      onClick={createOrRotateInvite}
+                    >Rotate</button>
+                  </div>
                 </div>
               ) : (
-                <div style={{ fontSize: 13.5, color: theme.textMuted }}>You haven’t created any invites yet.</div>
+                <div>
+                  <button
+                    style={{ ...styles.button, ...styles.primaryButton }}
+                    onClick={createOrRotateInvite}
+                  >
+                    🔑 Generate Invite Code
+                  </button>
+                </div>
               )}
             </div>
           </div>

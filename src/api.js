@@ -176,6 +176,28 @@ export const registerUser = async (username, password) => {
   return response.json();
 };
 
+// ===== INVITE ENDPOINTS =====
+
+export const getUserInviteCode = async (username) => {
+  const res = await fetch(`${API_URL}/api/users/${encodeURIComponent(username)}/invite-code`);
+  if (!res.ok) throw new Error("Failed to get invite code");
+  return res.json(); // { invite_code }
+};
+
+export const createOrRotateInviteCode = async (username) => {
+  const res = await fetch(`${API_URL}/api/users/${encodeURIComponent(username)}/invite-code`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Failed to create invite code");
+  return res.json(); // { invite_code }
+};
+
+export const validateInviteCode = async (code) => {
+  const res = await fetch(`${API_URL}/api/invites/validate?code=${encodeURIComponent(code)}`);
+  if (!res.ok) throw new Error("Failed to validate invite code");
+  return res.json(); // { valid, inviter }
+};
+
 // ===== NOTIFICATION ENDPOINTS =====
 
 export const getNotifications = async (username) => {

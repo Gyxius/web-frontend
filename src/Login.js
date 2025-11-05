@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import * as api from "./api";
 
 function Login({ onLogin, onRegistered }) {
   const [userName, setUserName] = useState("");
@@ -137,29 +138,19 @@ function Login({ onLogin, onRegistered }) {
         setError("Password should be at least 3 characters.");
         return;
       }
-      // Invitation‑only gate
+      // Invitation‑only gate (server-side validation, per-user reusable codes)
       try {
-        const raw = localStorage.getItem('lemi_invites');
-        const invites = raw ? JSON.parse(raw) : [];
-        const code = inviteCode.trim();
+        const code = (inviteCode || "").trim();
         if (!code) {
           setError("Lemi is invitation‑only. Please enter your invite code.");
           return;
         }
-        const found = Array.isArray(invites) ? invites.find(i => (i.code || '').toLowerCase() === code.toLowerCase()) : null;
-        if (!found) {
-          setError("Invalid invite code. Ask an admin for a new invitation.");
+        const result = await api.validateInviteCode(code);
+        if (!result.valid) {
+          setError("Invalid invite code. Ask a friend to share their code.");
           return;
         }
-        if (found.usedBy) {
-          setError("This invite code has already been used.");
-          return;
-        }
-        if (found.assignedTo && found.assignedTo.toLowerCase() !== userName.trim().toLowerCase()) {
-          setError(`This invite code is assigned to ${found.assignedTo}.`);
-          return;
-        }
-      } catch {
+      } catch (e) {
         setError("Could not validate invite code. Try again or contact admin.");
         return;
       }
@@ -173,7 +164,7 @@ function Login({ onLogin, onRegistered }) {
       const response = await fetch(`${apiUrl}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Send password for both login and register; include inviteCode for future server-side enforcement
+        // Send password for both login and register; include inviteCode (server validates)
         body: JSON.stringify({ username: userName.trim(), password: password, inviteCode: inviteCode.trim() || undefined }),
       });
       
@@ -195,17 +186,7 @@ function Login({ onLogin, onRegistered }) {
                 countriesFrom: [],
               };
               localStorage.setItem(`userProfile_${data.username}`, JSON.stringify(profile));
-              // Mark invite code as used
-              try {
-                const raw = localStorage.getItem('lemi_invites');
-                const invites = raw ? JSON.parse(raw) : [];
-                const updated = Array.isArray(invites)
-                  ? invites.map(i => (i.code && inviteCode && i.code.toLowerCase() === inviteCode.trim().toLowerCase())
-                      ? { ...i, usedBy: data.username, usedAt: Date.now() }
-                      : i)
-                  : invites;
-                localStorage.setItem('lemi_invites', JSON.stringify(updated));
-              } catch {}
+              // No single-use logic anymore; codes are reusable per user
               // Let the app know we just registered so it can open the full profile setup
               if (typeof onRegistered === 'function') {
                 onRegistered(data.username);
