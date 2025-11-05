@@ -270,7 +270,20 @@ function App() {
             setAdminOpenEventId(null);
           }
         }}
-        onUserClick={setSelectedProfile}
+        onUserClick={(clickedUser) => {
+          const currentUserKey = user?.username || user?.name;
+          const clickedUserKey = clickedUser?.username || clickedUser?.name;
+          
+          // If clicking on own profile, go to edit profile
+          if (currentUserKey === clickedUserKey) {
+            setShowChat(false);
+            setRouletteResult(null);
+            setShowEditProfile(true);
+          } else {
+            // Otherwise show the other user's profile
+            setSelectedProfile(clickedUser);
+          }
+        }}
         onLeaveEvent={async (evToRemove) => {
           const currentUserKey = user?.username || user?.name;
           try {
@@ -521,7 +534,20 @@ function App() {
           setShowChat(false);
           setRouletteResult(null);
         }}
-        onUserClick={setSelectedProfile}
+        onUserClick={(clickedUser) => {
+          const currentUserKey = user?.username || user?.name;
+          const clickedUserKey = clickedUser?.username || clickedUser?.name;
+          
+          // If clicking on own profile, go to edit profile
+          if (currentUserKey === clickedUserKey) {
+            setShowChat(false);
+            setRouletteResult(null);
+            setShowEditProfile(true);
+          } else {
+            // Otherwise show the other user's profile
+            setSelectedProfile(clickedUser);
+          }
+        }}
         onLeaveEvent={async (evToRemove) => {
           const currentUserKey = user?.username || user?.name;
           try {
