@@ -955,7 +955,16 @@ function SocialChat({
             <div style={styles.sectionTitle}>👤 Hosted by</div>
             <div 
               style={styles.hostCard}
-              onClick={() => onUserClick && onUserClick(event.host)}
+              onClick={() => {
+                console.log("🖱️ Host clicked:", event.host);
+                console.log("📞 onUserClick exists:", !!onUserClick);
+                console.log("📊 Full event object:", event);
+                if (onUserClick) {
+                  onUserClick(event.host);
+                } else {
+                  console.error("❌ onUserClick is not defined!");
+                }
+              }}
               onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
               onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
             >
