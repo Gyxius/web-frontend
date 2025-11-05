@@ -539,6 +539,14 @@ function App() {
             const username = user?.username || user?.name;
             await api.deleteEvent(eventToDelete.id, username);
             
+            // Refresh public events from API
+            const allEvents = await api.getAllEvents();
+            setPublicEvents(allEvents);
+            
+            // Refresh user events from API
+            const userEventsData = await api.getUserEvents(username);
+            setUserEvents({ [username]: userEventsData });
+            
             // Remove from adminEvents localStorage
             const saved = localStorage.getItem("adminEvents");
             if (saved) {
@@ -547,7 +555,7 @@ function App() {
               localStorage.setItem("adminEvents", JSON.stringify(filteredEvents));
             }
             
-            // Remove from all users' joined events
+            // Remove from all users' joined events localStorage
             Object.keys(localStorage).forEach(key => {
               if (key.startsWith("joinedEvents_")) {
                 const joinedEvents = JSON.parse(localStorage.getItem(key) || "[]");
@@ -556,23 +564,16 @@ function App() {
               }
             });
             
-            // Remove from userEvents state
-            setUserEvents(prev => {
-              const newUserEvents = { ...prev };
-              Object.keys(newUserEvents).forEach(key => {
-                newUserEvents[key] = newUserEvents[key].filter(e => e.id !== eventToDelete.id);
-              });
-              return newUserEvents;
-            });
+            // Show success message
+            alert("🗑️ Event deleted successfully!");
             
             // Navigate back to home
             setShowChat(false);
+            setRouletteResult(null);
           } catch (error) {
             console.error("Failed to delete event:", error);
             alert("Failed to delete event: " + error.message);
           }
-          setRouletteResult(null);
-          alert("🗑️ Event deleted successfully!");
         }}
         onCreateHangout={(featuredEvent) => {
           // Close chat and trigger create event flow with featured event as template
