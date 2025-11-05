@@ -632,10 +632,22 @@ function SocialChat({
                         gap: 12,
                       }}
                       onClick={async () => {
-                        if (window.confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
+                        console.log("Delete button clicked");
+                        const confirmed = window.confirm("Are you sure you want to delete this event? This action cannot be undone.");
+                        console.log("User confirmed:", confirmed);
+                        if (confirmed) {
                           setShowOptionsMenu(false);
+                          console.log("Calling onDeleteEvent with:", event);
+                          console.log("onDeleteEvent exists:", !!onDeleteEvent);
                           if (onDeleteEvent) {
-                            await onDeleteEvent(event);
+                            try {
+                              await onDeleteEvent(event);
+                              console.log("onDeleteEvent completed");
+                            } catch (error) {
+                              console.error("Error in onDeleteEvent:", error);
+                            }
+                          } else {
+                            console.error("onDeleteEvent is not defined!");
                           }
                         }
                       }}
