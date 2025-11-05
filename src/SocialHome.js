@@ -23,6 +23,7 @@ function SocialHome({
   onRequestJoinEvent,
   friendRequestsIncoming = [],
   onAcceptFriendRequestFrom,
+  notificationCount = 0,
   onDeclineFriendRequestFrom,
   addPoints,
   getUserPoints,
@@ -582,9 +583,31 @@ function SocialHome({
                 display: "flex",
                 alignItems: "center",
                 color: theme.primary,
+                position: "relative",
               }}
             >
               <FaUserCircle size={28} />
+              {notificationCount > 0 && (
+                <div style={{
+                  position: "absolute",
+                  top: -4,
+                  right: -4,
+                  background: "#FF4444",
+                  color: "white",
+                  borderRadius: "50%",
+                  minWidth: 18,
+                  height: 18,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: "bold",
+                  padding: notificationCount > 9 ? "0 4px" : 0,
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                }}>
+                  {notificationCount > 99 ? "99+" : notificationCount}
+                </div>
+              )}
             </button>
           </div>
         </div>

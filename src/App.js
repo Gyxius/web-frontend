@@ -28,6 +28,7 @@ function App() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [templateEventToCreate, setTemplateEventToCreate] = useState(null);
   const [adminOpenEventId, setAdminOpenEventId] = useState(null);
+  const [notificationCount, setNotificationCount] = useState(0);
   
   // Load data from API when user logs in
   useEffect(() => {
@@ -92,7 +93,36 @@ function App() {
     openAdminEvent();
   }, [adminOpenEventId]);
 
-  // Refresh public events periodically
+  // Function to refresh notification count
+  const refreshNotifications = async () => {
+    if (!user) {
+      setNotificationCount(0);
+      return;
+    }
+    try {
+      const username = user?.username || user?.name;
+      const notifications = await api.getNotifications(username);
+      setNotificationCount(notifications.total_unread || 0);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  };
+
+  // Fetch notifications and poll every 30 seconds
+  useEffect(() => {
+    if (!user) {
+      setNotificationCount(0);
+      return;
+    }
+
+    // Fetch immediately
+    refreshNotifications();
+
+    // Set up polling every 30 seconds
+    const interval = setInterval(refreshNotifications, 30000);
+
+    return () => clearInterval(interval);
+  }, [user]);  // Refresh public events periodically
   useEffect(() => {
     const refreshEvents = async () => {
       try {
@@ -394,6 +424,7 @@ function App() {
             alert("Failed to delete event: " + (error.message || "Unknown error"));
           }
         }}
+        onNotificationRead={refreshNotifications}
       />
     );
   } else if ((user?.username || user?.name)?.toLowerCase() === "admin") {
@@ -695,6 +726,7 @@ function App() {
           // Keep chat open to show the new event
         }}
         allUsers={users}
+        onNotificationRead={refreshNotifications}
       />
     );
   } else if (showResult && rouletteResult) {
@@ -751,6 +783,7 @@ function App() {
           publicEvents={publicEvents}
           addPoints={addPoints}
           getUserPoints={getUserPoints}
+          notificationCount={notificationCount}
           onJoinPublicEvent={async (event) => {
             const currentUserKey = user?.username || user?.name;
             // Check if already joined

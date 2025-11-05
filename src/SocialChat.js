@@ -15,6 +15,7 @@ function SocialChat({
   onCreateHangout,
   onEventClick,
   allUsers = [],
+  onNotificationRead,
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
@@ -92,6 +93,25 @@ function SocialChat({
       box.scrollTop = box.scrollHeight;
     }
   }, [messages]);
+
+  // Mark notifications as read when opening this chat
+  useEffect(() => {
+    const markAsRead = async () => {
+      if (event?.id && currentUser) {
+        const username = currentUser?.username || currentUser?.name || currentUser;
+        try {
+          await api.markNotificationsRead(username, event.id);
+          // Trigger notification count refresh in parent
+          if (onNotificationRead) {
+            onNotificationRead();
+          }
+        } catch (error) {
+          console.error("Failed to mark notifications as read:", error);
+        }
+      }
+    };
+    markAsRead();
+  }, [event?.id, currentUser, onNotificationRead]);
 
   // 🟢 Duolingo-inspired theme (same palette direction as SocialHome)
   const theme = {
