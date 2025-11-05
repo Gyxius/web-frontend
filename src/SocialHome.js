@@ -87,7 +87,9 @@ function SocialHome({
 
   // Handle template event for "Create Hangout" feature
   useEffect(() => {
+    console.log("Template event effect triggered:", templateEventToCreate);
     if (templateEventToCreate) {
+      console.log("Setting up hangout creation with template:", templateEventToCreate);
       setNewEvent({
         name: "", // User customizes the hangout name
         location: templateEventToCreate.location || "cite",
@@ -105,6 +107,7 @@ function SocialHome({
       });
       setShowCreateEventModal(true);
       setCreateEventStep(1);
+      console.log("Modal should now be visible");
       // Notify parent that we've handled the template
       if (onTemplateEventHandled) {
         onTemplateEventHandled();

@@ -722,9 +722,11 @@ function SocialChat({
                 width: "100%",
               }}
               onClick={() => {
+                console.log("Create Hangout clicked!", { hasCallback: !!onCreateHangout, event });
                 if (onCreateHangout) {
                   onCreateHangout(event);
                 } else {
+                  console.log("No onCreateHangout callback, calling onHome instead");
                   onHome();
                 }
               }}
