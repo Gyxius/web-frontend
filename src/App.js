@@ -236,9 +236,19 @@ function App() {
         }
       });
     }
+    
+    // Enrich host object with full user details
+    let enrichedHost = rouletteResult.host;
+    if (rouletteResult.host && rouletteResult.host.name) {
+      const hostUserInfo = users.find(u => u.name === rouletteResult.host.name || u.username === rouletteResult.host.name);
+      if (hostUserInfo) {
+        enrichedHost = hostUserInfo;
+      }
+    }
+    
     mainContent = (
       <SocialChat
-        event={{ ...rouletteResult, crew_full }}
+        event={{ ...rouletteResult, crew_full, host: enrichedHost }}
         initialMessages={chatHistory[rouletteResult.id] || []}
         currentUser={user?.username || user?.name}
         onSendMessage={async (msg) => {
@@ -507,9 +517,19 @@ function App() {
         }
       });
     }
+    
+    // Enrich host object with full user details
+    let enrichedHost = rouletteResult.host;
+    if (rouletteResult.host && rouletteResult.host.name) {
+      const hostUserInfo = users.find(u => u.name === rouletteResult.host.name || u.username === rouletteResult.host.name);
+      if (hostUserInfo) {
+        enrichedHost = hostUserInfo;
+      }
+    }
+    
     mainContent = (
       <SocialChat
-        event={{ ...rouletteResult, crew_full }}
+        event={{ ...rouletteResult, crew_full, host: enrichedHost }}
         initialMessages={chatHistory[rouletteResult.id] || []}
         currentUser={user?.username || user?.name}
         onSendMessage={async (msg) => {
