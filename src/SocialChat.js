@@ -111,6 +111,7 @@ function SocialChat({
       }
     };
     markAsRead();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id, currentUser]); // Removed onNotificationRead to prevent infinite loop
 
   // 🟢 Duolingo-inspired theme (same palette direction as SocialHome)

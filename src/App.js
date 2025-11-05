@@ -125,7 +125,7 @@ function App() {
     const interval = setInterval(refreshNotifications, 30000);
 
     return () => clearInterval(interval);
-  }, [user]);  // Refresh public events periodically
+  }, [user, refreshNotifications]);  // Refresh public events periodically
   useEffect(() => {
     const refreshEvents = async () => {
       try {
