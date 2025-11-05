@@ -507,21 +507,20 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
         </div>
 
         <div style={styles.section}>
-          <label style={styles.label}>Country Flag</label>
+          <label style={styles.label}>Country</label>
           {isEditing ? (
-            <div style={styles.emojiPicker}>
-              {countryEmojis.map((flag) => (
-                <span
-                  key={flag}
-                  style={styles.emojiButton(editedProfile.country === flag)}
-                  onClick={() => setEditedProfile({ ...editedProfile, country: flag })}
-                >
-                  {flag}
-                </span>
+            <select
+              style={styles.input}
+              value={editedProfile.country || ""}
+              onChange={(e) => setEditedProfile({ ...editedProfile, country: e.target.value })}
+            >
+              <option value="">Select your country</option>
+              {availableCountries.map((c) => (
+                <option key={c} value={c}>{c}</option>
               ))}
-            </div>
+            </select>
           ) : (
-            <div style={styles.value}>{profile.country}</div>
+            <div style={styles.value}>{profile.country || "Not specified"}</div>
           )}
         </div>
 
