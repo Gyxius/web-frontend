@@ -573,7 +573,22 @@ function SocialHome({
             <img 
               src={`${API_URL}/static/assets/logo.png`} 
               alt="Logo" 
-              style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: "50%" }}
+              style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: "50%", cursor: 'pointer' }}
+              onClick={() => {
+                // Reset to default homepage state
+                setActiveBottomTab("events");
+                setViewMode("my");
+                setActiveTab("featured");
+                setShowExplore(false);
+                setShowCalendar(false);
+                setShowSearchModal(false);
+                setShowWhereModal(false);
+                setShowWhenModal(false);
+                setShowFiltersModal(false);
+                setEventPreview(null);
+                setShowCreateEventModal(false);
+                setShowNotificationsInbox(false);
+              }}
             />
           </div>
           <div style={{ fontSize: 20, fontWeight: 900, color: theme.text }}>
