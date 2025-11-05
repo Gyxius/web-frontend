@@ -32,10 +32,8 @@ describe("SocialHome", () => {
   // Switch to the Joined tab to see joined events
   const joinedTab = screen.getByText(/Joined/i);
   fireEvent.click(joinedTab);
-  expect(screen.getByText(/Admin Event/i)).toBeInTheDocument();
-  // Label updated in UI to "The Residents:" with a drink emoji
-  expect(screen.getByText(/The Residents:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Mitsu/i)).toBeInTheDocument();
-    expect(screen.getByText(/Zine/i)).toBeInTheDocument();
+    expect(screen.getByText(/Admin Event/i)).toBeInTheDocument();
+    // Joined events card shows attendees summary
+    expect(screen.getByText(/2 attendees/i)).toBeInTheDocument();
   });
 });
