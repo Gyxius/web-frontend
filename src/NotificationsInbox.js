@@ -24,7 +24,7 @@ function NotificationsInbox({
       const enriched = Object.entries(notifications.by_event).map(([eventId, count]) => {
         const event = allEvents.find(e => e.id === parseInt(eventId));
         return {
-          eventId: parseInt(eventId),
+          evetesntId: parseInt(eventId),
           count,
           eventName: event?.name || "Unknown Event",
           event: event,
@@ -48,6 +48,22 @@ function NotificationsInbox({
   };
 
   const styles = {
+    profileRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 12,
+    },
+    avatarSmall: {
+      width: 56,
+      height: 56,
+      borderRadius: 12,
+      background: "#EEE",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 26,
+    },
     overlay: {
       position: "fixed",
       top: 0,
@@ -263,6 +279,39 @@ function NotificationsInbox({
         >
           See My Profile
         </button>
+
+        {/* Quick profile preview */}
+        <div style={{ marginBottom: 12 }}>
+          {(() => {
+            const usernameKey = currentUser?.username || currentUser?.name || currentUser;
+            let localProfile = null;
+            try {
+              const raw = localStorage.getItem(`userProfile_${usernameKey}`);
+              if (raw) localProfile = JSON.parse(raw);
+            } catch (e) {
+              // ignore
+            }
+
+            const avatarSpec = localProfile?.avatar;
+            const avatarUrl = avatarSpec && avatarSpec.provider === 'dicebear'
+              ? `https://api.dicebear.com/6.x/${avatarSpec.style}/svg?seed=${encodeURIComponent(avatarSpec.seed)}`
+              : null;
+
+            return (
+              <div style={styles.profileRow}>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="avatar" style={styles.avatarSmall} />
+                ) : (
+                  <div style={styles.avatarSmall}>{localProfile?.emoji || '🙂'}</div>
+                )}
+                <div>
+                  <div style={{ fontWeight: 700, color: styles.header?.color || '#111' }}>{localProfile?.name || usernameKey}</div>
+                  <div style={{ color: theme.textMuted, fontSize: 13 }}>{localProfile?.homeCountries?.[0] || localProfile?.country || ''}</div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
 
         <button
           style={styles.signOutButton}
