@@ -1,4 +1,14 @@
 import React, { useEffect, useState, useCallback } from "react";
+// AVATAR_STYLES and hashString are module-level to keep identity stable across renders
+const AVATAR_STYLES = ['bottts','micah','adventurer','pixel-art','avataaars'];
+const hashString = (s) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h) + s.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+};
 import * as api from "./api";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
 
@@ -18,20 +28,11 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
   };
 
   // Helper: deterministic avatar spec generator for new users
-  const AVATAR_STYLES = ['bottts','micah','adventurer','pixel-art','avataaars'];
-  const hashString = (s) => {
-    let h = 0;
-    for (let i = 0; i < s.length; i++) {
-      h = ((h << 5) - h) + s.charCodeAt(i);
-      h |= 0;
-    }
-    return Math.abs(h);
-  };
   const generateDefaultAvatarSpec = useCallback((name) => {
     const seed = (name || 'guest').toString();
     const idx = hashString(seed) % AVATAR_STYLES.length;
     return { provider: 'dicebear', style: AVATAR_STYLES[idx], seed };
-  }, [AVATAR_STYLES]);
+  }, []);
 
   // Load user data from localStorage or use defaults
   const [profile, setProfile] = useState(() => {
@@ -92,7 +93,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     } finally {
       setInviteLoading(false);
     }
-  }, [userName, generateDefaultAvatarSpec]);
+  }, [userName]);
 
   useEffect(() => {
     let cancelled = false;
