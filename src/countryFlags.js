@@ -71,7 +71,7 @@ function normalizeCountryName(input) {
   // Remove flag emojis and most common surrounding symbols
   s = stripRegionalIndicators(s)
     .replace(/[\u200d\ufe0f]/g, "") // remove ZWJ/variation selectors
-  .replace(/[][()]/g, " ") // remove [ ] (and parentheses)
+    .replace(/[()[\]]/g, " ") // remove brackets and parentheses
     .replace(/\s{2,}/g, " ") // collapse spaces
     .trim();
   // Lowercase for key matching; preserve base letters only for robustness
