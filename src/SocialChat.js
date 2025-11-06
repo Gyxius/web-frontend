@@ -28,7 +28,7 @@ function SocialChat({
   const [relatedHangouts, setRelatedHangouts] = useState([]);
   
   // Load user profiles from localStorage to get homeCountry
-  const getUserProfile = (username) => {
+  const getLocalUserProfile = (username) => {
     if (!username) return null;
     try {
       const saved = localStorage.getItem(`userProfile_${username}`);
@@ -37,8 +37,10 @@ function SocialChat({
       return null;
     }
   };
+  // Server-fetched authoritative profiles (populated on mount/update)
+  const [serverProfiles, setServerProfiles] = useState({});
   
-  // Merge event host/attendee data with their localStorage profile
+  // Merge event host/attendee data with their profile (prefer server profile when available)
   const enrichUserWithProfile = (user) => {
     if (!user) return user;
     let username = null;
@@ -49,7 +51,8 @@ function SocialChat({
     }
     const base = typeof user === "object" && user ? user : (username ? { name: username } : {});
     if (!username) return base;
-    const profile = getUserProfile(username);
+    // Prefer server profile if we fetched it, otherwise fall back to localStorage
+    const profile = serverProfiles[username] || getLocalUserProfile(username);
     if (!profile) return base;
     // Ensure migration: support legacy homeCountry / countriesFrom -> homeCountries
     const migrated = { ...profile };
@@ -60,6 +63,53 @@ function SocialChat({
     }
     return { ...base, ...migrated };
   };
+
+  // Fetch server profiles for host + attendees when event changes and cache to localStorage
+  useEffect(() => {
+    let mounted = true;
+    const loadProfiles = async () => {
+      try {
+        const names = new Set();
+        if (event?.host && (event.host.name || event.host.username)) names.add(event.host.name || event.host.username);
+        // crew_full is set by parent; also consider event.participants array
+        const crew = event?.crew_full || event?.crew || [];
+        crew.forEach(c => {
+          const n = (typeof c === 'string') ? c : (c.name || c.username);
+          if (n) names.add(n);
+        });
+
+        if (names.size === 0) return;
+        const fetches = Array.from(names).map(async (username) => {
+          try {
+            const p = await api.getUserProfile(username);
+            if (p) {
+              // cache to localStorage for faster subsequent loads
+              try { localStorage.setItem(`userProfile_${username}`, JSON.stringify(p)); } catch {}
+              return [username, p];
+            }
+            return [username, null];
+          } catch (e) {
+            // ignore individual failures
+            return [username, null];
+          }
+        });
+
+        const results = await Promise.all(fetches);
+        if (!mounted) return;
+        const map = {};
+        results.forEach(([username, profile]) => {
+          if (profile) map[username] = profile;
+        });
+        // merge into state
+        setServerProfiles(prev => ({ ...prev, ...map }));
+      } catch (e) {
+        // ignore overall failures
+        console.error('Failed to fetch server profiles for event:', e);
+      }
+    };
+    loadProfiles();
+    return () => { mounted = false; };
+  }, [event?.id]);
   const [imageFile, setImageFile] = useState(null); // Store uploaded file for later upload
   const [editedEvent, setEditedEvent] = useState({
     name: event?.name || "",
@@ -1112,12 +1162,12 @@ function SocialChat({
                   {enrichedHost.name} {(enrichedHost.homeCountries || [enrichedHost.homeCountry || (enrichedHost.countriesFrom && enrichedHost.countriesFrom[0]) || enrichedHost.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                 </div>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
-                  {event.host.building && (
-                    <div>{event.host.building}</div>
+                  {enrichedHost.building && (
+                    <div>{enrichedHost.building}</div>
                   )}
-                  {event.host.languageLevels && (
+                  {enrichedHost.languageLevels && (
                     <div style={{ marginTop: 2 }}>
-                      {Object.entries(event.host.languageLevels).map(([lang, level], idx) => {
+                      {Object.entries(enrichedHost.languageLevels).map(([lang, level], idx) => {
                         const langName = lang.charAt(0).toUpperCase() + lang.slice(1);
                         const levelName = level.charAt(0).toUpperCase() + level.slice(1);
                         return (
