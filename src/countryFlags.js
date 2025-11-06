@@ -52,19 +52,61 @@ const COUNTRY_TO_CODE = {
  * @param {string} countryName - Full country name (e.g., "France", "United States")
  * @returns {string} - Flag emoji (e.g., "🇫🇷", "🇺🇸") or empty string if not found
  */
+// Build a case-insensitive normalized lookup for resilience
+const NORMALIZED_KEY_MAP = Object.fromEntries(
+  Object.keys(COUNTRY_TO_CODE).map((k) => [
+    normalizeCountryName(k),
+    COUNTRY_TO_CODE[k],
+  ])
+);
+
+function stripRegionalIndicators(str) {
+  // Remove any Unicode Regional Indicator Symbols (used by flag emojis)
+  return str.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "");
+}
+
+function normalizeCountryName(input) {
+  if (!input) return "";
+  let s = String(input).trim();
+  // Remove flag emojis and most common surrounding symbols
+  s = stripRegionalIndicators(s)
+    .replace(/[\u200d\ufe0f]/g, "") // remove ZWJ/variation selectors
+    .replace(/[()\[\]]/g, " ") // remove brackets
+    .replace(/\s{2,}/g, " ") // collapse spaces
+    .trim();
+  // Lowercase for key matching; preserve base letters only for robustness
+  const lower = s.toLowerCase();
+  // Basic aliases cleanup
+  const aliases = {
+    "united states of america": "united states",
+    "cote d’ivoire": "côte d'ivoire",
+    "cote d'ivoire": "côte d'ivoire",
+    "myanmar": "myanmar (burma)",
+    "burma": "myanmar (burma)",
+    "swaziland": "eswatini (fmr. swaziland)",
+    "eswatini": "eswatini (fmr. swaziland)",
+    "uk": "united kingdom",
+    "u.k.": "united kingdom",
+    "u.s.": "united states",
+    "u.s.a.": "united states",
+  };
+  return aliases[lower] || lower;
+}
+
 export function getCountryFlag(countryName) {
   if (!countryName) return "";
-  
-  // Normalize the input
-  const normalized = String(countryName).trim();
-  
-  // Look up the ISO code
-  const code = COUNTRY_TO_CODE[normalized];
-  if (!code) return ""; // Return empty if country not found
-  
+  // Try exact first
+  const exact = COUNTRY_TO_CODE[String(countryName).trim()];
+  let code = exact;
+  if (!code) {
+    // Try normalized, case-insensitive
+    const norm = normalizeCountryName(countryName);
+    code = NORMALIZED_KEY_MAP[norm];
+  }
+  if (!code) return "";
+
   // Convert ISO code to flag emoji using regional indicator symbols
-  // A = U+1F1E6, B = U+1F1E7, ..., Z = U+1F1FF
-  const codePoints = [...code].map(char => 0x1F1E6 + (char.charCodeAt(0) - 65));
+  const codePoints = [...code].map((char) => 0x1F1E6 + (char.charCodeAt(0) - 65));
   return String.fromCodePoint(...codePoints);
 }
 
