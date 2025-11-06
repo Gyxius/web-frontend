@@ -241,13 +241,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     setEditedProfile({ ...editedProfile, languageLevels: updatedLevels });
   };
 
-  const handleCountryToggle = (country) => {
-    const countriesFrom = editedProfile.countriesFrom || [];
-    const updated = countriesFrom.includes(country)
-      ? countriesFrom.filter(c => c !== country)
-      : [...countriesFrom, country];
-    setEditedProfile({ ...editedProfile, countriesFrom: updated });
-  };
+  // Removed legacy handleCountryToggle; Countries From now uses add/remove helpers below.
 
   // Countries From: searchable multi-select state and helpers
   const [countryFromInput, setCountryFromInput] = useState("");
