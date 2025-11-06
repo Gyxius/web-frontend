@@ -19,16 +19,41 @@
 <body>
   <div class="card">
     <div id="content">
-      <div class="title">Loading...</div>
-      <div class="meta" id="meta"></div>
-      <div id="desc"></div>
-      <div class="section">
-        <strong>Attendees</strong>
-        <div id="attendees"></div>
-      </div>
-      <div class="section">
-        <a id="appLink" class="btn" href="#">Open in App</a>
-        <span class="copy" id="copied"></span>
+      <div id="eventView">
+        <div class="title">Loading...</div>
+        <div class="meta" id="meta"></div>
+        <div id="desc"></div>
+
+        <div class="section" id="languagesSection" style="display:none">
+          <strong>🗣️ Languages</strong>
+          <div id="languages" style="margin-top:8px"></div>
+        </div>
+
+        <div class="section" id="basedOn" style="display:none">
+          <strong>✨ Based on Main Event</strong>
+          <div id="basedContent" style="margin-top:8px"></div>
+        </div>
+
+        <div class="section">
+          <strong>👤 Hosted by</strong>
+          <div id="host" style="margin-top:8px"></div>
+        </div>
+
+        <div class="section">
+          <strong>🧃 Attendees</strong>
+          <div id="attendees"></div>
+        </div>
+
+        <div class="section">
+          <strong>💬 Group Chat</strong>
+          <div id="chat" style="margin-top:8px"></div>
+        </div>
+
+        <div class="section">
+          <a id="appLink" class="btn" href="#">Open in App</a>
+          <button id="copyBtn" class="btn" style="background:#3B82F6;margin-left:8px">Copy link</button>
+          <span class="copy" id="copied"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -51,16 +76,54 @@
     return;
   }
 
+  function avatarForLocal(local) {
+    if (!local) return null;
+    if (local.avatar && local.avatar.provider === 'dicebear') return `https://api.dicebear.com/6.x/${local.avatar.style}/svg?seed=${encodeURIComponent(local.avatar.seed)}`;
+    const emoji = local.emoji || '🙂';
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23EEE'/><text x='50%' y='50%' font-size='28' dominant-baseline='middle' text-anchor='middle'>${emoji}</text></svg>`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+  }
+
   async function load() {
     try {
       const res = await fetch(`${API_URL}/api/events/${encodeURIComponent(id)}`);
       if (!res.ok) throw new Error('Not found');
       const ev = await res.json();
+
       titleEl.textContent = ev.name || 'Event';
-      metaEl.textContent = `${ev.date || ''} ${ev.time || ''} • ${ev.venue || ev.location || ''} ${ev.address || ''}`;
+      metaEl.textContent = `${ev.date || ''} ${ev.time || ''} • ${ev.venue || ev.location || ''}`;
       descEl.innerHTML = `<p>${ev.description || ''}</p>`;
 
-      // attendees list
+      // languages
+      const langEl = document.getElementById('languages');
+      if (ev.languages && ev.languages.length > 0) {
+        document.getElementById('languagesSection').style.display = 'block';
+        langEl.innerHTML = ev.languages.map(l => `<span style="display:inline-block;background:#EFEFEF;padding:6px 10px;border-radius:999px;margin-right:8px;font-weight:700">${l}</span>`).join('');
+      }
+
+      // based on
+      if (ev.templateEventName) {
+        document.getElementById('basedOn').style.display = 'block';
+        document.getElementById('basedContent').innerHTML = `<div style="font-weight:700">${ev.templateEventName}</div><div style="color:#666;font-size:13px">${ev.templateEventVenue || ''} · ${ev.templateEventDate || ''}</div>`;
+      }
+
+      // host
+      const hostEl = document.getElementById('host');
+      const hostName = ev.host || (ev.host && ev.host.name) || ev.created_by || ev.createdBy || '';
+      let hostLocal = null;
+      try { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } catch(e) {}
+      const hostRow = document.createElement('div');
+      hostRow.className = 'attendee';
+      const hostAvatar = document.createElement('img');
+      hostAvatar.className = 'avatar';
+      hostAvatar.src = avatarForLocal(hostLocal) || '';
+      const hostInfo = document.createElement('div');
+      hostInfo.innerHTML = `<strong>${(hostLocal && hostLocal.name) || hostName}</strong><div style='color:#666;font-size:13px'>${(hostLocal && (hostLocal.homeCountries && hostLocal.homeCountries.join(' '))) || (hostLocal && hostLocal.country) || ''}</div>`;
+      hostRow.appendChild(hostAvatar);
+      hostRow.appendChild(hostInfo);
+      hostEl.appendChild(hostRow);
+
+      // attendees
       attendeesEl.innerHTML = '';
       const participants = ev.participants || [];
       if (participants.length === 0) {
@@ -71,47 +134,50 @@
           row.className = 'attendee';
           const avatar = document.createElement('img');
           avatar.className = 'avatar';
-          // try to fetch cached local profile from localStorage via key userProfile_<name>
           let local = null;
           try { local = localStorage.getItem('userProfile_' + p); local = local ? JSON.parse(local) : null; } catch(e) {}
-          if (local && local.avatar && local.avatar.provider === 'dicebear') {
-            avatar.src = `https://api.dicebear.com/6.x/${local.avatar.style}/svg?seed=${encodeURIComponent(local.avatar.seed)}`;
-          } else {
-            // fallback to emoji rendered as svg text via data URI
-            const emoji = (local && local.emoji) ? local.emoji : '🙂';
-            const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23EEE'/><text x='50%' y='50%' font-size='28' dominant-baseline='middle' text-anchor='middle'>${emoji}</text></svg>`;
-            avatar.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-          }
+          avatar.src = avatarForLocal(local) || '';
           const name = document.createElement('div');
-          name.innerHTML = `<strong>${(local && local.name) || p}</strong><div style='color:#666;font-size:13px'>${(local && (local.homeCountries && local.homeCountries.join(', '))) || (local && local.country) || ''}</div>`;
+          const levels = (local && local.languageLevels) ? Object.entries(local.languageLevels).map(([k,v]) => `${k}: ${v}`).join(' · ') : '';
+          name.innerHTML = `<strong>${(local && local.name) || p}</strong><div style='color:#666;font-size:13px'>${levels}</div>`;
           row.appendChild(avatar);
           row.appendChild(name);
           attendeesEl.appendChild(row);
         });
       }
 
-  // share link
-  const shareUrl = window.location.href;
-  // Open in app should navigate to the app root and include the event id so the app can open the event
-  appLink.href = `/?event=${encodeURIComponent(id)}`;
-  appLink.textContent = 'Open in App';
-
-      // copy to clipboard automatically when clicking
-      const copyBtn = document.createElement('button');
-      copyBtn.textContent = 'Copy link';
-      copyBtn.className = 'btn';
-      copyBtn.style.marginLeft = '12px';
-      copyBtn.onclick = async () => {
-        try {
-          await navigator.clipboard.writeText(shareUrl);
-          copied.textContent = 'Copied to clipboard';
-          setTimeout(() => copied.textContent = '', 2000);
-        } catch (e) {
-          copied.textContent = 'Could not copy';
-          setTimeout(() => copied.textContent = '', 2000);
+      // chat (read-only)
+      const chatEl = document.getElementById('chat');
+      chatEl.innerHTML = '';
+      try {
+        const chatRes = await fetch(`${API_URL}/api/chat/${encodeURIComponent(id)}`);
+        if (chatRes.ok) {
+          const chatMsgs = await chatRes.json();
+          if (Array.isArray(chatMsgs) && chatMsgs.length > 0) {
+            chatMsgs.forEach(m => {
+              const msgRow = document.createElement('div');
+              msgRow.style.padding = '8px 10px';
+              msgRow.style.borderBottom = '1px solid #F2F2F2';
+              msgRow.innerHTML = `<div style='font-weight:700;margin-bottom:4px'>${m.username}</div><div style='color:#111'>${m.message}</div>`;
+              chatEl.appendChild(msgRow);
+            });
+          } else {
+            chatEl.textContent = 'No messages yet';
+          }
+        } else {
+          chatEl.textContent = 'No messages yet';
         }
+      } catch (e) {
+        chatEl.textContent = 'No messages yet';
+      }
+
+      // share link and open in app
+      const shareUrl = window.location.href;
+      appLink.href = `/?event=${encodeURIComponent(id)}`;
+      appLink.textContent = 'Open in App';
+      document.getElementById('copyBtn').onclick = async () => {
+        try { await navigator.clipboard.writeText(shareUrl); copied.textContent = 'Copied to clipboard'; setTimeout(() => copied.textContent = '', 2000); } catch { copied.textContent = 'Could not copy'; setTimeout(() => copied.textContent = '', 2000); }
       };
-      document.querySelector('.section').appendChild(copyBtn);
 
     } catch (e) {
       titleEl.textContent = 'Event not found';
