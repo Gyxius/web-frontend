@@ -45,6 +45,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
       age: "",
       university: "",
       degree: "",
+      major: "",
       emoji: "😊",
       // For new users, generate a quick deterministic avatar (can be changed later)
       avatar: generateDefaultAvatarSpec(userName),
@@ -118,6 +119,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
             age: "",
             university: "",
             degree: "",
+            major: "",
             emoji: "😊",
             country: "🇫🇷",
             homeCountries: ["France"],
@@ -288,6 +290,14 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
   ];
 
   const languageLevels = ["Beginner", "Intermediate", "Advanced", "Fluent", "Native"];
+
+  // Common majors for datalist suggestions
+  const commonMajors = [
+    "Computer Science", "Economics", "Business", "Engineering", "Mathematics",
+    "Physics", "Chemistry", "Biology", "Political Science", "Psychology",
+    "Literature", "Philosophy", "Law", "Medicine", "Sociology",
+    "Art", "Design", "Architecture", "History", "Finance"
+  ];
 
   const availableInterests = [
     "Sports", "Music", "Art", "Movies", "Books", "Gaming",
@@ -678,15 +688,35 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
         <div style={styles.section}>
           <label style={styles.label}>Degree</label>
           {isEditing ? (
-            <input
-              type="text"
-              style={styles.input}
-              value={editedProfile.degree}
-              onChange={(e) => setEditedProfile({ ...editedProfile, degree: e.target.value })}
-              placeholder="Enter your degree (e.g., Bachelor's in Computer Science)"
-            />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <select
+                style={{ ...styles.input, padding: 10 }}
+                value={editedProfile.degree || ""}
+                onChange={(e) => setEditedProfile({ ...editedProfile, degree: e.target.value })}
+              >
+                <option value="">Select degree</option>
+                <option value="Bachelor">Bachelor</option>
+                <option value="Master">Master</option>
+                <option value="PHD">PHD</option>
+                <option value="Researcher">Researcher</option>
+              </select>
+
+              <div>
+                <input
+                  type="text"
+                  list="major-list"
+                  style={styles.input}
+                  value={editedProfile.major || ""}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, major: e.target.value })}
+                  placeholder="Enter your major (e.g., Computer Science)"
+                />
+                <datalist id="major-list">
+                  {commonMajors.map(m => <option key={m} value={m} />)}
+                </datalist>
+              </div>
+            </div>
           ) : (
-            <div style={styles.value}>{profile.degree || "Not specified"}</div>
+            <div style={styles.value}>{(profile.degree ? profile.degree : "Not specified")}{profile.major ? ` — ${profile.major}` : ''}</div>
           )}
         </div>
 
