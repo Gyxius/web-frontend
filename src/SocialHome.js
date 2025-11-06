@@ -526,6 +526,39 @@ function SocialHome({
       border: "1px solid #EEF2F7",
     },
   };
+
+  // Helper: build DiceBear preview URL from an avatar spec
+  const dicebearPreviewUrl = (spec, fallbackSeed) => {
+    try {
+      if (!spec || spec.provider !== 'dicebear') return null;
+      const style = spec.style || 'bottts';
+      const seed = spec.seed || fallbackSeed || '';
+      return `https://api.dicebear.com/6.x/${style}/svg?seed=${encodeURIComponent(seed)}`;
+    } catch {
+      return null;
+    }
+  };
+
+  const getCurrentUserAvatarUrl = () => {
+    try {
+      // Prefer avatar from currentUser object if present
+      if (currentUser && currentUser.avatar && currentUser.avatar.provider === 'dicebear') {
+        return dicebearPreviewUrl(currentUser.avatar, userName);
+      }
+      // Next, try localStorage cached profile
+      const raw = localStorage.getItem(`userProfile_${userName}`);
+      if (raw) {
+        const prof = JSON.parse(raw);
+        if (prof && prof.avatar && prof.avatar.provider === 'dicebear') {
+          return dicebearPreviewUrl(prof.avatar, userName);
+        }
+        // fallback: maybe emoji stored
+      }
+    } catch (e) {
+      // ignore
+    }
+    return null;
+  };
   const API_URL = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
 
   return (
@@ -610,7 +643,15 @@ function SocialHome({
                 position: "relative",
               }}
             >
-              <FaUserCircle size={28} />
+              {(() => {
+                const avatarUrl = getCurrentUserAvatarUrl();
+                if (avatarUrl) {
+                  return (
+                    <img src={avatarUrl} alt="avatar" style={{ width: 36, height: 36, borderRadius: 999, display: 'block' }} />
+                  );
+                }
+                return <FaUserCircle size={28} />;
+              })()}
               {(notificationCount + (followRequestsIncoming?.length || 0)) > 0 && (
                 <div style={{
                   position: "absolute",
