@@ -31,7 +31,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
       degree: "",
       emoji: "😊",
       country: "🇫🇷",
-      countriesFrom: ["France"],
+  homeCountries: ["France"],
       city: "Paris",
       house: "",
       desc: "Language enthusiast",
@@ -101,7 +101,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
             degree: "",
             emoji: "😊",
             country: "🇫🇷",
-            countriesFrom: ["France"],
+            homeCountries: ["France"],
             city: "Paris",
             house: "",
             desc: "Language enthusiast",
@@ -121,6 +121,17 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     })();
     return () => { cancelled = true; };
   }, [userName]);
+
+  // For multi-country input (move hooks to top level)
+  const [countryInput, setCountryInput] = useState("");
+
+  // Canonicalize country name
+  const canonicalizeCountry = (val) => {
+    if (!val) return "";
+    const trimmed = String(val).trim();
+    const match = fullCountries.find(c => c.toLowerCase() === trimmed.toLowerCase());
+    return match || trimmed;
+  };
 
   // Full language list for suggestions (broad coverage of official/common languages)
   const fullLanguages = [
@@ -657,29 +668,60 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
         </div>
 
         <div style={styles.section}>
-          <label style={styles.label}>Home Country</label>
+          <label style={styles.label}>Home Countries</label>
           {isEditing ? (
             <div>
               <input
                 type="text"
                 list="country-list"
                 style={styles.input}
-                value={editedProfile.homeCountry ?? ((editedProfile.countriesFrom || [])[0] || "")}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setEditedProfile({
-                    ...editedProfile,
-                    homeCountry: v,
-                    countriesFrom: v ? [v] : [],
-                  });
+                value={countryInput || ""}
+                onChange={(e) => setCountryInput(e.target.value)}
+                placeholder="Type a country and press Enter"
+                aria-label="Add home country"
+                autoComplete="off"
+                onKeyDown={(e) => {
+                  if ((e.key === 'Enter' || e.key === ',') && countryInput) {
+                    e.preventDefault();
+                    const canonical = canonicalizeCountry(countryInput);
+                    if (canonical && !editedProfile.homeCountries.includes(canonical)) {
+                      setEditedProfile({
+                        ...editedProfile,
+                        homeCountries: [...editedProfile.homeCountries, canonical],
+                      });
+                    }
+                    setCountryInput("");
+                  }
                 }}
-                placeholder="Start typing your home country..."
-                aria-label="Home Country"
-                autoComplete="country-name"
               />
+              <datalist id="country-list">
+                {fullCountries.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+              <div style={styles.chipContainer}>
+                {(editedProfile.homeCountries || []).map(country => (
+                  <span key={country} style={styles.chip(true)}>
+                    {country}
+                    <button
+                      type="button"
+                      onClick={() => setEditedProfile({
+                        ...editedProfile,
+                        homeCountries: editedProfile.homeCountries.filter(c => c !== country)
+                      })}
+                      aria-label={`Remove ${country}`}
+                      style={{ marginLeft: 8, background: 'transparent', border: 'none', color: '#6B7280', cursor: 'pointer', fontWeight: 700 }}
+                    >×</button>
+                  </span>
+                ))}
+              </div>
             </div>
           ) : (
-            <div style={styles.value}>{profile.homeCountry || ((profile.countriesFrom || [])[0]) || "Not specified"}</div>
+            <div style={styles.value}>
+              {(profile.homeCountries && profile.homeCountries.length > 0)
+                ? profile.homeCountries.join(", ")
+                : "Not specified"}
+            </div>
           )}
         </div>
 

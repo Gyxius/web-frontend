@@ -50,7 +50,15 @@ function SocialChat({
     const base = typeof user === "object" && user ? user : (username ? { name: username } : {});
     if (!username) return base;
     const profile = getUserProfile(username);
-    return profile ? { ...base, ...profile } : base;
+    if (!profile) return base;
+    // Ensure migration: support legacy homeCountry / countriesFrom -> homeCountries
+    const migrated = { ...profile };
+    if (!Array.isArray(migrated.homeCountries)) {
+      if (migrated.homeCountry) migrated.homeCountries = [migrated.homeCountry];
+      else if (Array.isArray(migrated.countriesFrom) && migrated.countriesFrom.length > 0) migrated.homeCountries = [...migrated.countriesFrom];
+      else migrated.homeCountries = [];
+    }
+    return { ...base, ...migrated };
   };
   const [imageFile, setImageFile] = useState(null); // Store uploaded file for later upload
   const [editedEvent, setEditedEvent] = useState({
@@ -1044,7 +1052,7 @@ function SocialChat({
               </div>
               <div style={styles.hostInfo}>
                 <div style={styles.hostName}>
-                  {enrichedHost.name} {getCountryFlag(enrichedHost.homeCountry || (enrichedHost.countriesFrom && enrichedHost.countriesFrom[0]) || enrichedHost.country)}
+                  {enrichedHost.name} {(enrichedHost.homeCountries || [enrichedHost.homeCountry || (enrichedHost.countriesFrom && enrichedHost.countriesFrom[0]) || enrichedHost.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                 </div>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                   {event.host.building && (
@@ -1091,7 +1099,7 @@ function SocialChat({
                   </div>
                   <div style={styles.hostInfo}>
                     <div style={styles.hostName}>
-                      {enrichedCoHost.name} {getCountryFlag(enrichedCoHost.homeCountry || (enrichedCoHost.countriesFrom && enrichedCoHost.countriesFrom[0]) || enrichedCoHost.country)}
+                      {enrichedCoHost.name} {(enrichedCoHost.homeCountries || [enrichedCoHost.homeCountry || (enrichedCoHost.countriesFrom && enrichedCoHost.countriesFrom[0]) || enrichedCoHost.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                     </div>
                     <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                       {enrichedCoHost.building && (
@@ -1144,7 +1152,7 @@ function SocialChat({
                     </div>
                     <div style={styles.hostInfo}>
                       <div style={styles.hostName}>
-                        {enrichedItem.name} {getCountryFlag(enrichedItem.homeCountry || (enrichedItem.countriesFrom && enrichedItem.countriesFrom[0]) || enrichedItem.country)}
+                        {enrichedItem.name} {(enrichedItem.homeCountries || [enrichedItem.homeCountry || (enrichedItem.countriesFrom && enrichedItem.countriesFrom[0]) || enrichedItem.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                       </div>
                       <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                         {enrichedItem.building && (

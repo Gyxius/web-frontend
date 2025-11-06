@@ -119,9 +119,14 @@ export function getUserDisplayName(user) {
   if (!user) return "";
   const name = user.name || user.username || "";
   
-  // Try homeCountry first (new field), then countriesFrom[0], then old country field
-  const homeCountry = user.homeCountry || (user.countriesFrom && user.countriesFrom[0]) || user.country;
-  const flag = getCountryFlag(homeCountry);
-  
-  return flag ? `${name} ${flag}` : name;
+  // Show all homeCountries if array exists, else fallback
+  let flags = [];
+  if (Array.isArray(user.homeCountries) && user.homeCountries.length > 0) {
+    flags = user.homeCountries.map(getCountryFlag).filter(Boolean);
+  } else {
+    const homeCountry = user.homeCountry || (user.countriesFrom && user.countriesFrom[0]) || user.country;
+    const flag = getCountryFlag(homeCountry);
+    if (flag) flags = [flag];
+  }
+  return flags.length ? `${name} ${flags.join(' ')}` : name;
 }
