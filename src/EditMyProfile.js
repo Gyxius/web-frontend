@@ -94,7 +94,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     } finally {
       setInviteLoading(false);
     }
-  }, [userName, generateDefaultAvatarSpec]);
+  }, [userName]);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,7 +158,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [userName]);
+  }, [userName, generateDefaultAvatarSpec]);
 
   // For multi-country input (move hooks to top level)
   const [countryInput, setCountryInput] = useState("");
