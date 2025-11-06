@@ -13,6 +13,18 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, is
     }
   }
 
+  // Merge any locally cached profile (saved by EditMyProfile) so clicking attendees shows full details
+  try {
+    const lookupKey = fullUser.username || fullUser.name;
+    const raw = lookupKey ? localStorage.getItem(`userProfile_${lookupKey}`) : null;
+    if (raw) {
+      const localProfile = JSON.parse(raw);
+      fullUser = { ...fullUser, ...localProfile };
+    }
+  } catch (e) {
+    // ignore parse errors
+  }
+
   // Get real-time points from localStorage
   const realPoints = getUserPoints ? getUserPoints(fullUser.name || fullUser.username) : fullUser.points || 0;
   
@@ -25,8 +37,18 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, is
     <div style={styles.container}>
       <button style={styles.backBtn} onClick={onBack}>← Back</button>
       <div style={styles.card}>
-        <div style={styles.emoji}>{fullUser.emoji}</div>
-        <div style={styles.name}>{fullUser.name} ({fullUser.country})</div>
+        <div style={styles.emoji}>
+          {fullUser.avatar && fullUser.avatar.provider === 'dicebear' ? (
+            <img
+              src={`https://api.dicebear.com/6.x/${fullUser.avatar.style}/svg?seed=${encodeURIComponent(fullUser.avatar.seed)}`}
+              alt="avatar"
+              style={{ width: 72, height: 72, borderRadius: 12 }}
+            />
+          ) : (
+            fullUser.emoji
+          )}
+        </div>
+        <div style={styles.name}>{fullUser.name} {fullUser.homeCountries ? fullUser.homeCountries.map((c, i) => <span key={i} style={{marginLeft:6}}>{c}</span>) : `(${fullUser.country || ''})`}</div>
         <div style={styles.type}>Type: {fullUser.type}</div>
         <div style={styles.desc}>{fullUser.desc || fullUser.bio}</div>
         
@@ -43,9 +65,14 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, is
         </div>
         
         <div style={styles.info}><b>Age:</b> {fullUser.age}</div>
-        <div style={styles.info}><b>House:</b> {fullUser.house}</div>
+  <div style={styles.info}><b>House:</b> {fullUser.house}</div>
+  <div style={styles.info}><b>Degree:</b> {fullUser.degree}</div>
+  <div style={styles.info}><b>Major:</b> {fullUser.major}</div>
         <div style={styles.info}><b>Points:</b> {realPoints}</div>
         <div style={styles.info}><b>Languages:</b> {fullUser.languages?.join ? fullUser.languages.join(", ") : fullUser.languages}</div>
+        {fullUser.languageLevels && (
+          <div style={styles.info}><b>Language levels:</b> {Object.entries(fullUser.languageLevels).map(([l, lvl]) => `${l}: ${lvl}`).join(', ')}</div>
+        )}
         <div style={styles.info}><b>Interests:</b> {fullUser.interests?.join ? fullUser.interests.join(", ") : fullUser.interests}</div>
         {!isOwnProfile && !isFollowing && !hasPendingRequest && !incomingRequest && (
           <button style={styles.friendBtn} onClick={() => onAddFollow && onAddFollow(user)}>
