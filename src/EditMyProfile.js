@@ -266,6 +266,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     }
     // Also save online (best-effort)
     try {
+      console.log("💾 Saving profile to server:", editedProfile);
       await api.saveUserProfile(userName, editedProfile);
       console.log("✅ Profile saved to server successfully");
     } catch (e) {
