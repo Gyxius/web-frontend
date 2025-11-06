@@ -85,6 +85,27 @@ function App() {
     }
   }, [user]);
 
+  // If the app is opened with ?event=ID in the URL, open that event directly (useful for share links)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const evId = params.get('event') || params.get('id');
+      if (!evId) return;
+      const openSharedEvent = async () => {
+        try {
+          const ev = await api.getEventById(evId);
+          if (ev) {
+            setRouletteResult(ev);
+            setShowChat(true);
+          }
+        } catch (e) {
+          console.error('Failed to open shared event', evId, e);
+        }
+      };
+      openSharedEvent();
+    } catch (e) {}
+  }, []);
+
   // When admin selects an event, open the same detailed chat view users see
   useEffect(() => {
     const openAdminEvent = async () => {

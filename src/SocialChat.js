@@ -604,7 +604,8 @@ function SocialChat({
             <button
               onClick={async () => {
                 try {
-                  const shareUrl = `${window.location.origin}/public/public-event.html?event=${encodeURIComponent(event?.id)}`;
+                  // public static files are copied to the build root as `/public-event.html` (not `/public/public-event.html`)
+                  const shareUrl = `${window.location.origin}/public-event.html?event=${encodeURIComponent(event?.id)}`;
                   await navigator.clipboard.writeText(shareUrl);
                   alert('Share link copied to clipboard!');
                 } catch (e) {

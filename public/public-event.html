@@ -90,10 +90,11 @@
         });
       }
 
-      // share link
-      const shareUrl = window.location.href;
-      appLink.href = '/';
-      appLink.textContent = 'Open the App';
+  // share link
+  const shareUrl = window.location.href;
+  // Open in app should navigate to the app root and include the event id so the app can open the event
+  appLink.href = `/?event=${encodeURIComponent(id)}`;
+  appLink.textContent = 'Open in App';
 
       // copy to clipboard automatically when clicking
       const copyBtn = document.createElement('button');
