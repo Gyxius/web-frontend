@@ -369,6 +369,25 @@ function SocialChat({
       display: "flex",
       width: "100%",
     },
+    // avatar shown next to each message
+    avatarWrapper: {
+      width: 36,
+      height: 36,
+      borderRadius: 999,
+      overflow: 'hidden',
+      marginRight: 8,
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#fff',
+      border: `1px solid ${theme.border}`,
+    },
+    avatarImg: {
+      width: 36,
+      height: 36,
+      display: 'block',
+    },
     rowRight: { justifyContent: "flex-end" },
     bubble: {
       maxWidth: "78%",
@@ -1199,11 +1218,27 @@ function SocialChat({
           <div style={styles.chatBox} ref={chatBoxRef}>
             {messages.map((m, i) => {
               const mine = m.from === currentUser;
+              const sender = enrichUserWithProfile(m.from);
+              const avatarUrl = sender && sender.avatar && sender.avatar.provider === 'dicebear'
+                ? `https://api.dicebear.com/6.x/${sender.avatar.style}/svg?seed=${encodeURIComponent(sender.avatar.seed || sender.name || sender.username)}`
+                : null;
+              const displayName = mine ? 'You' : (sender && sender.name) || m.from;
               return (
                 <div
                   key={i}
                   style={{ ...styles.row, ...(mine ? styles.rowRight : {}) }}
                 >
+                  {/* Avatar on the left for others, on the right for me */}
+                  {!mine && (
+                    <div style={styles.avatarWrapper}>
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="avatar" style={styles.avatarImg} />
+                      ) : (
+                        <div style={{ fontSize: 18 }}>{(sender && sender.emoji) || '🙂'}</div>
+                      )}
+                    </div>
+                  )}
+
                   <div
                     style={{
                       ...styles.bubble,
@@ -1216,10 +1251,20 @@ function SocialChat({
                         ...(mine ? styles.bubbleNameMe : {}),
                       }}
                     >
-                      {mine ? "You" : m.from}
+                      {displayName}
                     </span>
                     {m.text}
                   </div>
+
+                  {mine && (
+                    <div style={{ ...styles.avatarWrapper, marginLeft: 8 }}>
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="avatar" style={styles.avatarImg} />
+                      ) : (
+                        <div style={{ fontSize: 18 }}>{(sender && sender.emoji) || '🙂'}</div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
