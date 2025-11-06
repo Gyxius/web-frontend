@@ -198,6 +198,31 @@ export const validateInviteCode = async (code) => {
   return res.json(); // { valid, inviter }
 };
 
+// ===== USER PROFILE ENDPOINTS =====
+
+export const getUserProfile = async (username) => {
+  const url = `${API_URL}/api/users/${encodeURIComponent(username)}/profile`;
+  const res = await fetch(url);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Failed to fetch user profile");
+  return res.json();
+};
+
+export const saveUserProfile = async (username, profile) => {
+  const url = `${API_URL}/api/users/${encodeURIComponent(username)}/profile`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data: profile }),
+  });
+  if (!res.ok) {
+    let msg = "Failed to save profile";
+    try { const e = await res.json(); msg = e.detail || msg; } catch {}
+    throw new Error(msg);
+  }
+  return res.json(); // { ok: true }
+};
+
 // ===== NOTIFICATION ENDPOINTS =====
 
 export const getNotifications = async (username) => {

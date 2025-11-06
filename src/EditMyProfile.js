@@ -84,6 +84,24 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     return () => { cancelled = true; };
   }, [loadOrCreateInviteCode]);
 
+  // Try loading server-saved profile on mount (and cache locally)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const serverProfile = await api.getUserProfile(userName);
+        if (!cancelled && serverProfile) {
+          setProfile(serverProfile);
+          setEditedProfile(serverProfile);
+          localStorage.setItem(`userProfile_${userName}`, JSON.stringify(serverProfile));
+        }
+      } catch (e) {
+        // No server profile yet is fine; keep local
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userName]);
+
   // Full language list for suggestions (broad coverage of official/common languages)
   const fullLanguages = [
     "Afrikaans","Akan","Albanian","Amharic","Arabic","Armenian","Assamese","Aymara",
@@ -213,7 +231,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
 
   // Note: Replaced emoji grid with a country dropdown; emoji list removed.
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setProfile(editedProfile);
     localStorage.setItem(`userProfile_${userName}`, JSON.stringify(editedProfile));
     setIsEditing(false);
@@ -225,6 +243,12 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     } catch {
       // fallback
       window.scrollTo(0, 0);
+    }
+    // Also save online (best-effort)
+    try {
+      await api.saveUserProfile(userName, editedProfile);
+    } catch (e) {
+      console.warn("Profile saved locally, but online save failed:", e?.message || e);
     }
   };
 
