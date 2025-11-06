@@ -158,8 +158,22 @@
         console.warn('fetchEvent: missing DOM refs', { titleEl: !!titleElLocal, metaEl: !!metaElLocal, descEl: !!descElLocal, attendeesEl: !!attendeesElLocal });
         return;
       }
+      // show a friendly loading state while we fetch
+      titleElLocal.textContent = 'Loading…';
+      metaElLocal.textContent = '';
+
       const res = await fetch(`${API_URL}/api/events/${encodeURIComponent(id)}`);
-      if (!res.ok) throw new Error('Not found');
+      if (!res.ok) {
+        // show a clear message for a 404, otherwise surface a generic network error
+        if (res.status === 404) {
+          titleElLocal.textContent = 'Event not found';
+          metaElLocal.textContent = '';
+          descElLocal.textContent = '';
+          attendeesElLocal.textContent = '';
+          return;
+        }
+        throw new Error('Network error: ' + res.status);
+      }
       const ev = await res.json();
       // If event changed (or first load), update relevant UI parts
       // Simple change detection by comparing JSON string - sufficient here
@@ -252,7 +266,10 @@
       document.getElementById('shareBtnHeader').onclick = async () => { try { await navigator.clipboard.writeText(shareUrl); alert('Share link copied to clipboard!'); } catch { alert('Could not copy link'); } };
       document.getElementById('gearBtn').onclick = () => { window.location.href = '/'; };
     } catch (e) {
-      titleEl.textContent = 'Event not found'; metaEl.textContent = ''; descEl.textContent = ''; attendeesEl.textContent = '';
+      console.warn('fetchEvent failed', e);
+      // show a gentle error message (distinct from "Event not found") for network/other failures
+      try { titleElLocal.textContent = 'Could not load event'; } catch(_) {}
+      try { metaElLocal.textContent = ''; } catch(_) {}
     }
   }
 
