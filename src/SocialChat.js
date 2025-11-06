@@ -129,12 +129,29 @@ function SocialChat({
     fetchRelatedHangouts();
   }, [event?.id, event?.isFeatured]);
 
-  const sendMsg = () => {
+  const sendMsg = async () => {
     if (!input.trim()) return;
-    const msg = { from: currentUser, text: input.trim() };
+    const username = currentUser;
+    const messageText = input.trim();
+    const msg = { from: username, text: messageText };
+
+    // Optimistic UI update
     setMessages((m) => [...m, msg]);
     setInput("");
-    onSendMessage && onSendMessage(msg);
+
+    try {
+      // Send to backend from here to ensure correct payload shape
+      if (event?.id) {
+        await api.sendChatMessage(event.id, username, messageText);
+      }
+
+      // Notify parent to update its chatHistory (parent should not re-send to API)
+      onSendMessage && onSendMessage(msg);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      alert("Failed to send message. Please try again.");
+      // Optionally: remove optimistic message or mark as failed. Keep optimistic for now.
+    }
   };
 
   useEffect(() => {

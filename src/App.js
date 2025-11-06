@@ -292,19 +292,14 @@ function App() {
         event={{ ...rouletteResult, crew_full, host: enrichedHost }}
         initialMessages={chatHistory[rouletteResult.id] || []}
         currentUser={user?.username || user?.name}
-        onSendMessage={async (msg) => {
-          try {
-            await api.sendChatMessage(rouletteResult.id, msg.from, msg.text);
-            const key = rouletteResult.id;
-            setChatHistory((prev) => {
-              const list = prev[key] || [];
-              const withTs = { ...msg, ts: Date.now() };
-              return { ...prev, [key]: [...list, withTs] };
-            });
-          } catch (error) {
-            console.error("Failed to send message:", error);
-            alert("Failed to send message. Please try again.");
-          }
+        onSendMessage={(msg) => {
+          // Parent: just persist message to app-level chatHistory (component sends to API)
+          const key = rouletteResult.id;
+          setChatHistory((prev) => {
+            const list = prev[key] || [];
+            const withTs = { ...msg, ts: Date.now() };
+            return { ...prev, [key]: [...list, withTs] };
+          });
         }}
         onBack={() => {
           setShowChat(false);
@@ -598,21 +593,14 @@ function App() {
         event={{ ...rouletteResult, crew_full, host: enrichedHost }}
         initialMessages={chatHistory[rouletteResult.id] || []}
         currentUser={user?.username || user?.name}
-        onSendMessage={async (msg) => {
-          try {
-            // Save message to backend database
-            await api.sendChatMessage(rouletteResult.id, msg.from, msg.text);
-            // Also update local state for immediate display
-            const key = rouletteResult.id;
-            setChatHistory((prev) => {
-              const list = prev[key] || [];
-              const withTs = { ...msg, ts: Date.now() };
-              return { ...prev, [key]: [...list, withTs] };
-            });
-          } catch (error) {
-            console.error("Failed to send message:", error);
-            alert("Failed to send message. Please try again.");
-          }
+        onSendMessage={(msg) => {
+          // Parent: just persist message to app-level chatHistory (component sends to API)
+          const key = rouletteResult.id;
+          setChatHistory((prev) => {
+            const list = prev[key] || [];
+            const withTs = { ...msg, ts: Date.now() };
+            return { ...prev, [key]: [...list, withTs] };
+          });
         }}
         onBack={() => {
           setShowChat(false);
