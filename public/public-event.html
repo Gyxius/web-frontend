@@ -119,6 +119,8 @@
   document.addEventListener('DOMContentLoaded', function(){
   (async function(){
   let currentEvent = null;
+  // track whether this is the initial load so we don't show a big "Loading…" on every poll
+  let initialLoad = true;
   let map = null;
   let marker = null;
 
@@ -155,9 +157,11 @@
         console.warn('fetchEvent: missing DOM refs', { titleEl: !!titleElLocal, metaEl: !!metaElLocal, descEl: !!descElLocal, attendeesEl: !!attendeesElLocal });
         return;
       }
-      // show a friendly loading state while we fetch
-      titleElLocal.textContent = 'Loading…';
-      metaElLocal.textContent = '';
+      // show a friendly loading state only on the first load (avoid layout jumps on polling)
+      if (initialLoad) {
+        titleElLocal.textContent = 'Loading…';
+        metaElLocal.textContent = '';
+      }
 
       const res = await fetch(`${API_URL}/api/events/${encodeURIComponent(id)}`);
       if (!res.ok) {
@@ -177,7 +181,9 @@
       const prev = JSON.stringify(currentEvent);
       const now = JSON.stringify(ev);
       if (prev === now && currentEvent !== null) return; // no change
-      currentEvent = ev;
+  currentEvent = ev;
+  // mark that we've completed the initial load — subsequent polls shouldn't replace the title
+  initialLoad = false;
 
       // title/banner
   titleElLocal.textContent = ev.name || 'Event';
