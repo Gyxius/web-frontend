@@ -27,11 +27,11 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     }
     return Math.abs(h);
   };
-  const generateDefaultAvatarSpec = (name) => {
+  const generateDefaultAvatarSpec = useCallback((name) => {
     const seed = (name || 'guest').toString();
     const idx = hashString(seed) % AVATAR_STYLES.length;
     return { provider: 'dicebear', style: AVATAR_STYLES[idx], seed };
-  };
+  }, [AVATAR_STYLES]);
 
   // Load user data from localStorage or use defaults
   const [profile, setProfile] = useState(() => {
@@ -92,7 +92,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     } finally {
       setInviteLoading(false);
     }
-  }, [userName]);
+  }, [userName, generateDefaultAvatarSpec]);
 
   useEffect(() => {
     let cancelled = false;
