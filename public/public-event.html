@@ -21,6 +21,10 @@
     .host-info {font-weight:700}
     .host-sub { color:var(--muted); font-size:13px; margin-top:4px }
     .language-badge{display:inline-block;background:#F3F4F6;padding:6px 10px;border-radius:999px;margin-right:8px;font-weight:700}
+  /* languages green panel */
+  #languagesSection { padding:12px; border-radius:12px; }
+  #languagesSection .lang-panel { background: linear-gradient(135deg, var(--primary), #37B300); padding:14px; border-radius:12px; }
+  #languagesSection .lang-panel .language-badge{background:white; color:var(--text); margin-right:8px}
     .chat { border:1px solid var(--border); border-radius:12px; padding:8px; background:#FFF; }
     .chat-msg { padding:10px; border-bottom:1px solid #F3F4F6 }
     .chat-msg .who{font-weight:800;margin-bottom:6px;color:var(--muted)}
@@ -90,10 +94,13 @@
   }
 
   function avatarForLocal(local) {
-    if (!local) return null;
-    if (local.avatar && local.avatar.provider === 'dicebear') return `https://api.dicebear.com/6.x/${local.avatar.style}/svg?seed=${encodeURIComponent(local.avatar.seed)}`;
-    const emoji = local.emoji || '🙂';
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23EEE'/><text x='50%' y='50%' font-size='28' dominant-baseline='middle' text-anchor='middle'>${emoji}</text></svg>`;
+    // Always return a usable image data URL. If local has a dicebear avatar, use it.
+    if (local && local.avatar && local.avatar.provider === 'dicebear') return `https://api.dicebear.com/6.x/${local.avatar.style}/svg?seed=${encodeURIComponent(local.avatar.seed)}`;
+    // If local has an emoji set, use it; otherwise return a simple initial-based SVG so images never break.
+    const emoji = (local && local.emoji) ? local.emoji : null;
+    let label = emoji || (local && local.name ? String(local.name)[0].toUpperCase() : '?');
+    // If label is a letter, show it; else show emoji
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23EEE'/><text x='50%' y='50%' font-size='28' dominant-baseline='middle' text-anchor='middle'>${label}</text></svg>`;
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
   }
 
@@ -108,12 +115,12 @@
   descEl.className = 'desc';
   descEl.innerHTML = `<div class="desc">${ev.description || ''}</div>`;
 
-      // languages
-      const langEl = document.getElementById('languages');
-      if (ev.languages && ev.languages.length > 0) {
-        document.getElementById('languagesSection').style.display = 'block';
-        langEl.innerHTML = ev.languages.map(l => `<span class="language-badge">${l}</span>`).join('');
-      }
+          // languages (render inside a green panel like the app)
+          const langEl = document.getElementById('languages');
+          if (ev.languages && ev.languages.length > 0) {
+            document.getElementById('languagesSection').style.display = 'block';
+            langEl.innerHTML = `<div class="lang-panel">${ev.languages.map(l => `<span class="language-badge">${l}</span>`).join('')}</div>`;
+          }
 
       // based on
       if (ev.templateEventName) {
@@ -123,14 +130,15 @@
 
       // host
   const hostEl = document.getElementById('host');
-  const hostName = ev.host || (ev.host && ev.host.name) || ev.created_by || ev.createdBy || '';
+  // ev.host can be a string or an object; prefer string name if present
+  const hostName = (typeof ev.host === 'string') ? ev.host : (ev.host && typeof ev.host.name === 'string') ? ev.host.name : (ev.created_by || ev.createdBy || '');
   let hostLocal = null;
-  try { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } catch(e) {}
+  try { if (hostName) { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } } catch(e) {}
   const hostRow = document.createElement('div');
   hostRow.className = 'host-card';
   const hostAvatar = document.createElement('img');
   hostAvatar.className = 'avatar';
-  hostAvatar.src = avatarForLocal(hostLocal) || '';
+  hostAvatar.src = avatarForLocal(hostLocal);
   const hostInfo = document.createElement('div');
   const hostNameText = (hostLocal && hostLocal.name) || hostName || '';
   // display languages / levels if available
@@ -156,7 +164,7 @@
           avatar.className = 'avatar';
           let local = null;
           try { local = localStorage.getItem('userProfile_' + p); local = local ? JSON.parse(local) : null; } catch(e) {}
-          avatar.src = avatarForLocal(local) || '';
+          avatar.src = avatarForLocal(local);
           const name = document.createElement('div');
           const levels = (local && local.languageLevels) ? Object.entries(local.languageLevels).map(([k,v]) => `${k}: ${v}`).join(' · ') : '';
           name.innerHTML = `<strong>${(local && local.name) || p}</strong><div class='host-sub'>${levels}</div>`;
