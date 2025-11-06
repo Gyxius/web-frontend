@@ -1,4 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
+import * as api from "./api";
+import { FaArrowLeft, FaSave } from "react-icons/fa";
+
 // AVATAR_STYLES and hashString are module-level to keep identity stable across renders
 const AVATAR_STYLES = ['bottts','micah','adventurer','pixel-art','avataaars'];
 const hashString = (s) => {
@@ -9,8 +12,6 @@ const hashString = (s) => {
   }
   return Math.abs(h);
 };
-import * as api from "./api";
-import { FaArrowLeft, FaSave } from "react-icons/fa";
 
 function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
   const theme = {
