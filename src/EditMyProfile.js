@@ -90,12 +90,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     "Hindi", "Turkish", "Polish", "Swedish", "Norwegian", "Danish"
   ];
 
-  const availableCountries = [
-    "France", "United Kingdom", "United States", "Spain", "Germany", "Italy",
-    "Portugal", "Netherlands", "Russia", "China", "Japan", "South Korea",
-    "Saudi Arabia", "India", "Turkey", "Poland", "Sweden", "Norway",
-    "Denmark", "Madagascar", "Morocco", "Algeria", "Tunisia", "Senegal"
-  ];
+  // Note: replaced the old fixed Countries From chips with a searchable multi-select below.
 
   // Full country list for searchable suggestions (ISO-like names)
   const fullCountries = [
@@ -252,6 +247,32 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
       ? countriesFrom.filter(c => c !== country)
       : [...countriesFrom, country];
     setEditedProfile({ ...editedProfile, countriesFrom: updated });
+  };
+
+  // Countries From: searchable multi-select state and helpers
+  const [countryFromInput, setCountryFromInput] = useState("");
+
+  const canonicalizeCountry = (val) => {
+    if (!val) return "";
+    const trimmed = String(val).trim();
+    const match = fullCountries.find(c => c.toLowerCase() === trimmed.toLowerCase());
+    return match || trimmed;
+  };
+
+  const addCountryFrom = () => {
+    const canonical = canonicalizeCountry(countryFromInput);
+    if (!canonical) return;
+    const current = editedProfile.countriesFrom || [];
+    const exists = current.some(c => c.toLowerCase() === canonical.toLowerCase());
+    if (!exists) {
+      setEditedProfile({ ...editedProfile, countriesFrom: [...current, canonical] });
+    }
+    setCountryFromInput("");
+  };
+
+  const removeCountryFrom = (country) => {
+    const current = editedProfile.countriesFrom || [];
+    setEditedProfile({ ...editedProfile, countriesFrom: current.filter(c => c !== country) });
   };
 
   const handleInterestToggle = (interest) => {
@@ -592,16 +613,55 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
         <div style={styles.section}>
           <label style={styles.label}>Countries From</label>
           {isEditing ? (
-            <div style={styles.chipContainer}>
-              {availableCountries.map(country => (
-                <span
-                  key={country}
-                  style={styles.chip((editedProfile.countriesFrom || []).includes(country))}
-                  onClick={() => handleCountryToggle(country)}
-                >
-                  {country}
-                </span>
-              ))}
+            <div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                <input
+                  type="text"
+                  list="countries-from-list"
+                  style={{ ...styles.input, flex: 1 }}
+                  value={countryFromInput}
+                  onChange={(e) => setCountryFromInput(e.target.value)}
+                  placeholder="Type a country and press Enter"
+                  aria-label="Add country of origin"
+                  autoComplete="off"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                      e.preventDefault();
+                      addCountryFrom();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  style={{ ...styles.button, ...styles.primaryButton, padding: '10px 14px', whiteSpace: 'nowrap' }}
+                  onClick={addCountryFrom}
+                >Add</button>
+              </div>
+              <datalist id="countries-from-list">
+                {fullCountries.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+              <div style={styles.chipContainer}>
+                {(editedProfile.countriesFrom || []).map(country => (
+                  <span key={country} style={styles.chip(true)}>
+                    {country}
+                    <button
+                      type="button"
+                      onClick={() => removeCountryFrom(country)}
+                      aria-label={`Remove ${country}`}
+                      style={{
+                        marginLeft: 8,
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#6B7280',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                      }}
+                    >×</button>
+                  </span>
+                ))}
+              </div>
             </div>
           ) : (
             <div style={styles.chipContainer}>
