@@ -32,6 +32,8 @@
   .chat { background:var(--card); padding:16px; border-radius:16px; margin-bottom:12px; border:1px solid var(--border); }
   .chat-msg { padding:12px 10px; border-bottom:1px solid #F3F4F6 }
   .chat-msg .who{font-weight:800;margin-bottom:6px;color:var(--muted); font-size:14px}
+  .chat-avatar { width:36px; height:36px; border-radius:50%; flex-shrink:0 }
+  .message-text { margin-top:4px; color:var(--text); font-size:14px }
   .btn { display:inline-block; padding:10px 16px; border-radius:12px; background:var(--primary); color:white; text-decoration:none; font-weight:900; border:none; box-shadow:0 6px 16px rgba(88,204,2,0.28) }
     .btn.secondary { background:#3B82F6 }
     .copy { margin-left:12px; font-size:13px; color:var(--muted) }
@@ -340,7 +342,37 @@
       if (chatRes.ok) {
         const chatMsgs = await chatRes.json();
         if (Array.isArray(chatMsgs) && chatMsgs.length > 0) {
-          chatMsgs.forEach(m => { const msgRow = document.createElement('div'); msgRow.className = 'chat-msg'; msgRow.innerHTML = `<div class='who'>${m.username}</div><div>${m.message}</div>`; chatEl.appendChild(msgRow); });
+          chatMsgs.forEach(m => {
+            const msgRow = document.createElement('div');
+            msgRow.className = 'chat-msg';
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.gap = '8px';
+            wrapper.style.alignItems = 'flex-start';
+
+            // attempt to load local profile to show avatar/emoji
+            let profile = null;
+            try { const raw = localStorage.getItem('userProfile_' + m.username); profile = raw ? JSON.parse(raw) : null; } catch(e) { profile = null; }
+
+            const avatarImg = document.createElement('img');
+            avatarImg.className = 'chat-avatar';
+            avatarImg.src = avatarForLocal(profile);
+
+            const body = document.createElement('div');
+            const whoDiv = document.createElement('div');
+            whoDiv.className = 'who';
+            whoDiv.textContent = m.username;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message-text';
+            msgDiv.textContent = m.message;
+
+            body.appendChild(whoDiv);
+            body.appendChild(msgDiv);
+            wrapper.appendChild(avatarImg);
+            wrapper.appendChild(body);
+            msgRow.appendChild(wrapper);
+            chatEl.appendChild(msgRow);
+          });
         } else { chatEl.textContent = 'No messages yet'; }
       } else { chatEl.textContent = 'No messages yet'; }
     } catch (e) { chatEl.textContent = 'No messages yet'; }
