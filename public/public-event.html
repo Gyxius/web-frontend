@@ -92,6 +92,17 @@
 
   async function fetchEvent() {
     try {
+      // re-query DOM refs in case the DOM changed (prevents null errors)
+      const titleElLocal = document.querySelector('.title');
+      const metaElLocal = document.getElementById('meta');
+      const descElLocal = document.getElementById('desc');
+      const attendeesElLocal = document.getElementById('attendees');
+      const appLinkLocal = document.getElementById('appLink');
+      const copiedLocal = document.getElementById('copied');
+      if (!titleElLocal || !metaElLocal || !descElLocal || !attendeesElLocal) {
+        console.warn('fetchEvent: missing DOM refs', { titleEl: !!titleElLocal, metaEl: !!metaElLocal, descEl: !!descElLocal, attendeesEl: !!attendeesElLocal });
+        return;
+      }
       const res = await fetch(`${API_URL}/api/events/${encodeURIComponent(id)}`);
       if (!res.ok) throw new Error('Not found');
       const ev = await res.json();
@@ -103,9 +114,9 @@
       currentEvent = ev;
 
       // title/banner
-      titleEl.textContent = ev.name || 'Event';
+  titleElLocal.textContent = ev.name || 'Event';
       const banner = document.getElementById('banner');
-      if (ev.imageUrl) { banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url(${ev.imageUrl})`; banner.style.display = 'block'; }
+  if (ev.imageUrl && banner) { banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url(${ev.imageUrl})`; banner.style.display = 'block'; }
 
       // clear/insert city/venue/address if they changed
       // remove existing helpers then re-insert
@@ -119,7 +130,9 @@
       // description
       const aboutSection = document.getElementById('aboutSection');
       const aboutContent = document.getElementById('aboutContent');
-      if (ev.description) { aboutSection.style.display = 'block'; aboutContent.innerHTML = `<div>${ev.description}</div>`; } else { aboutSection.style.display = 'none'; }
+      if (aboutSection && aboutContent) {
+        if (ev.description) { aboutSection.style.display = 'block'; aboutContent.innerHTML = `<div>${ev.description}</div>`; } else { aboutSection.style.display = 'none'; }
+      }
 
       // languages
       const langEl = document.getElementById('languages');
@@ -133,7 +146,7 @@
       if (ev.templateEventName) { document.getElementById('basedOn').style.display = 'block'; document.getElementById('basedContent').innerHTML = `<div style="font-weight:700">${ev.templateEventName}</div><div style="color:#666;font-size:13px">${ev.templateEventVenue || ''} · ${ev.templateEventDate || ''}</div>`; } else { document.getElementById('basedOn').style.display = 'none'; }
 
       // host
-      const hostEl = document.getElementById('host'); hostEl.innerHTML = '';
+  const hostEl = document.getElementById('host'); if (!hostEl) { console.warn('fetchEvent: host element missing'); } else { hostEl.innerHTML = ''; }
       const hostName = (typeof ev.host === 'string') ? ev.host : (ev.host && typeof ev.host.name === 'string') ? ev.host.name : (ev.created_by || ev.createdBy || '');
       let hostLocal = null;
       try { if (hostName) { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } } catch(e) {}
@@ -149,16 +162,16 @@
       const hostCardWrap = document.createElement('div'); hostCardWrap.className = 'card-white'; hostCardWrap.appendChild(hostRow); hostEl.appendChild(hostCardWrap);
 
       // attendees: re-render
-      attendeesEl.innerHTML = '';
+      attendeesElLocal.innerHTML = '';
       const participants = ev.participants || [];
-      if (participants.length === 0) { attendeesEl.textContent = 'No attendees yet'; } else {
+      if (participants.length === 0) { attendeesElLocal.textContent = 'No attendees yet'; } else {
         const countHeader = document.createElement('div'); countHeader.style.fontWeight = '800'; countHeader.style.marginBottom = '8px'; countHeader.textContent = `Attendees (${participants.length})`; attendeesEl.appendChild(countHeader);
         participants.forEach(p => {
           const rowWrap = document.createElement('div'); rowWrap.className = 'attendee-card'; const avatar = document.createElement('img'); avatar.className = 'avatar'; let local = null; try { local = localStorage.getItem('userProfile_' + p); local = local ? JSON.parse(local) : null; } catch(e) {}
           avatar.src = avatarForLocal(local);
           const name = document.createElement('div'); const levels = (local && local.languageLevels) ? Object.entries(local.languageLevels).map(([k,v]) => `${k}: ${v}`).join(' · ') : '';
           name.innerHTML = `<strong>${(local && local.name) || p}</strong><div class='host-sub'>${levels}</div>`;
-          rowWrap.appendChild(avatar); rowWrap.appendChild(name); attendeesEl.appendChild(rowWrap);
+          rowWrap.appendChild(avatar); rowWrap.appendChild(name); attendeesElLocal.appendChild(rowWrap);
         });
       }
 
@@ -191,6 +204,7 @@
   // fetch chat and re-render messages (read-only)
   async function fetchChat() {
     const chatEl = document.getElementById('chat');
+    if (!chatEl) { console.warn('fetchChat: chat element not found'); return; }
     chatEl.innerHTML = '';
     try {
       const chatRes = await fetch(`${API_URL}/api/chat/${encodeURIComponent(id)}`);
