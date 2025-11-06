@@ -235,15 +235,19 @@
     hostAvatar.src = avatarForLocal(hostLocal);
     const hostInfo = document.createElement('div');
     const hostNameText = (hostLocal && hostLocal.name) || hostName || '';
-    // display languages / levels if available
-    const hostLangs = (hostLocal && hostLocal.languageLevels) ? Object.entries(hostLocal.languageLevels).map(([k,v]) => `${k}: ${v}`).join(' · ') : '';
+    // display languages / levels if available (human-readable: "Native French, Fluent Spanish")
+    const hostLangs = (hostLocal && hostLocal.languageLevels) ? Object.entries(hostLocal.languageLevels).map(([lang,level]) => {
+      const cap = String(level).charAt(0).toUpperCase() + String(level).slice(1);
+      return `${cap} ${lang}`;
+    }).join(', ') : '';
     const hostSub = [];
     if (hostLocal && hostLocal.university) hostSub.push(hostLocal.university);
     if (hostLangs) hostSub.push(hostLangs);
     // Render country flags if homeCountries available using a small map
     const countryFlagMap = { 'France':'🇫🇷', 'Madagascar':'🇲🇬', 'Poland':'🇵🇱', 'United Kingdom':'🇬🇧', 'England':'🇬🇧' };
     const flags = (hostLocal && hostLocal.homeCountries) ? hostLocal.homeCountries.map(c => countryFlagMap[c] || c).join(' ') : '';
-    hostInfo.innerHTML = `<div class="host-info">${hostNameText} ${flags}</div><div class="host-sub">${hostSub.join(' · ')}</div>`;
+  // show name+flags, then university on its own line, then language levels as a human-readable phrase
+  hostInfo.innerHTML = `<div class="host-info">${hostNameText} ${flags}</div><div class="host-sub">${hostLocal && hostLocal.university ? hostLocal.university : ''}</div><div class="host-sub">${hostLangs}</div>`;
     // append avatar and info into the host row so it renders like the app
     hostRow.appendChild(hostAvatar);
     hostRow.appendChild(hostInfo);
