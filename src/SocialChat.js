@@ -26,6 +26,27 @@ function SocialChat({
   const [showEditModal, setShowEditModal] = useState(false);
   const [templateEvent, setTemplateEvent] = useState(null);
   const [relatedHangouts, setRelatedHangouts] = useState([]);
+  
+  // Load user profiles from localStorage to get homeCountry
+  const getUserProfile = (username) => {
+    if (!username) return null;
+    try {
+      const saved = localStorage.getItem(`userProfile_${username}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
+  
+  // Merge event host/attendee data with their localStorage profile
+  const enrichUserWithProfile = (user) => {
+    if (!user || !user.name) return user;
+    const profile = getUserProfile(user.name);
+    if (profile) {
+      return { ...user, ...profile }; // Profile data takes precedence
+    }
+    return user;
+  };
   const [imageFile, setImageFile] = useState(null); // Store uploaded file for later upload
   const [editedEvent, setEditedEvent] = useState({
     name: event?.name || "",
@@ -993,7 +1014,9 @@ function SocialChat({
         )}
 
         {/* Host Section */}
-        {event?.host && (
+        {event?.host && (() => {
+          const enrichedHost = enrichUserWithProfile(event.host);
+          return (
           <div style={styles.section}>
             <div style={styles.sectionTitle}>👤 Hosted by</div>
             <div 
@@ -1012,11 +1035,11 @@ function SocialChat({
               onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
             >
               <div style={styles.hostAvatar}>
-                {event.host.emoji}
+                {enrichedHost.emoji}
               </div>
               <div style={styles.hostInfo}>
                 <div style={styles.hostName}>
-                  {event.host.name} {getCountryFlag(event.host.homeCountry || (event.host.countriesFrom && event.host.countriesFrom[0]) || event.host.country)}
+                  {enrichedHost.name} {getCountryFlag(enrichedHost.homeCountry || (enrichedHost.countriesFrom && enrichedHost.countriesFrom[0]) || enrichedHost.country)}
                 </div>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                   {event.host.building && (
@@ -1040,14 +1063,17 @@ function SocialChat({
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* Co-Hosts Section */}
         {event?.coHosts && event.coHosts.length > 0 && (
           <div style={styles.section}>
             <div style={styles.sectionTitle}>👥 Co-Hosts ({event.coHosts.length})</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {event.coHosts.map((coHost, i) => (
+              {event.coHosts.map((coHost, i) => {
+                const enrichedCoHost = enrichUserWithProfile(coHost);
+                return (
                 <div
                   key={i}
                   style={styles.hostCard}
@@ -1056,19 +1082,19 @@ function SocialChat({
                   onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
                 >
                   <div style={styles.hostAvatar}>
-                    {coHost.emoji}
+                    {enrichedCoHost.emoji}
                   </div>
                   <div style={styles.hostInfo}>
                     <div style={styles.hostName}>
-                      {coHost.name} {getCountryFlag(coHost.homeCountry || (coHost.countriesFrom && coHost.countriesFrom[0]) || coHost.country)}
+                      {enrichedCoHost.name} {getCountryFlag(enrichedCoHost.homeCountry || (enrichedCoHost.countriesFrom && enrichedCoHost.countriesFrom[0]) || enrichedCoHost.country)}
                     </div>
                     <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
-                      {coHost.building && (
-                        <div>{coHost.building}</div>
+                      {enrichedCoHost.building && (
+                        <div>{enrichedCoHost.building}</div>
                       )}
-                      {coHost.languageLevels && (
+                      {enrichedCoHost.languageLevels && (
                         <div style={{ marginTop: 2 }}>
-                          {Object.entries(coHost.languageLevels).map(([lang, level], idx) => {
+                          {Object.entries(enrichedCoHost.languageLevels).map(([lang, level], idx) => {
                             const langName = lang.charAt(0).toUpperCase() + lang.slice(1);
                             const levelName = level.charAt(0).toUpperCase() + level.slice(1);
                             return (
@@ -1083,7 +1109,8 @@ function SocialChat({
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         )}
@@ -1097,7 +1124,9 @@ function SocialChat({
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {(event?.crew_full || event?.crew || [])
                 .filter(item => !event?.host || item.name !== event.host.name)
-                .map((item, i) => (
+                .map((item, i) => {
+                  const enrichedItem = enrichUserWithProfile(item);
+                  return (
                   <div
                     key={i}
                     style={styles.hostCard}
@@ -1106,19 +1135,19 @@ function SocialChat({
                     onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
                   >
                     <div style={styles.hostAvatar}>
-                      {item.emoji}
+                      {enrichedItem.emoji}
                     </div>
                     <div style={styles.hostInfo}>
                       <div style={styles.hostName}>
-                        {item.name} {getCountryFlag(item.homeCountry || (item.countriesFrom && item.countriesFrom[0]) || item.country)}
+                        {enrichedItem.name} {getCountryFlag(enrichedItem.homeCountry || (enrichedItem.countriesFrom && enrichedItem.countriesFrom[0]) || enrichedItem.country)}
                       </div>
                       <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
-                        {item.building && (
-                          <div>{item.building}</div>
+                        {enrichedItem.building && (
+                          <div>{enrichedItem.building}</div>
                         )}
-                        {item.languageLevels && (
+                        {enrichedItem.languageLevels && (
                           <div style={{ marginTop: 2 }}>
-                            {Object.entries(item.languageLevels).map(([lang, level], idx) => {
+                            {Object.entries(enrichedItem.languageLevels).map(([lang, level], idx) => {
                               const langName = lang.charAt(0).toUpperCase() + lang.slice(1);
                               const levelName = level.charAt(0).toUpperCase() + level.slice(1);
                               return (
@@ -1133,7 +1162,8 @@ function SocialChat({
                       </div>
                     </div>
                   </div>
-                ))}
+                );
+                })}
             </div>
           </div>
         )}
