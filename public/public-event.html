@@ -5,15 +5,28 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Event — Public View</title>
   <style>
-    body { font-family: Inter, Roboto, Arial, sans-serif; background:#f7f7f5; color:#111; padding:20px; }
-    .card { background:white; border-radius:12px; padding:20px; max-width:800px; margin:20px auto; box-shadow:0 6px 24px rgba(0,0,0,0.08);} 
-    .title { font-size:22px; font-weight:700; margin-bottom:8px; }
-    .meta { color:#666; margin-bottom:12px; }
-    .section { margin-top:16px; }
-    .avatar { width:56px; height:56px; border-radius:12px; display:inline-block; vertical-align:middle; margin-right:12px; }
-    .attendee { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid #f0f0f0 }
-    .btn { display:inline-block; padding:8px 12px; border-radius:8px; background:#58CC02; color:white; text-decoration:none; font-weight:600; }
-    .copy { margin-left:8px; font-size:13px; color:#666 }
+    :root{
+      --bg:#F7F7F5; --card:#FFFFFF; --text:#111827; --muted:#6B7280; --primary:#58CC02; --accent:#1CB0F6; --border:#EEF2F7;
+    }
+    body { font-family: Inter, Roboto, 'Nunito Sans', Arial, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif; background:var(--bg); color:var(--text); padding:22px; }
+    .card { background:var(--card); border-radius:14px; padding:22px; max-width:820px; margin:20px auto; box-shadow:0 10px 30px rgba(2,6,23,0.06);} 
+    .title { font-size:28px; font-weight:900; margin-bottom:6px; color:var(--text); }
+    .meta { color:var(--muted); margin-bottom:10px; font-size:14px }
+    .desc { color:var(--text); line-height:1.45; margin-top:6px }
+    .section { margin-top:18px; }
+    .section strong { display:block; font-weight:800; margin-bottom:8px }
+    .avatar { width:56px; height:56px; border-radius:12px; display:inline-block; vertical-align:middle; margin-right:12px; object-fit:cover }
+    .attendee { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #F3F4F6 }
+    .host-card{display:flex;align-items:center;gap:12px;padding:8px 0}
+    .host-info {font-weight:700}
+    .host-sub { color:var(--muted); font-size:13px; margin-top:4px }
+    .language-badge{display:inline-block;background:#F3F4F6;padding:6px 10px;border-radius:999px;margin-right:8px;font-weight:700}
+    .chat { border:1px solid var(--border); border-radius:12px; padding:8px; background:#FFF; }
+    .chat-msg { padding:10px; border-bottom:1px solid #F3F4F6 }
+    .chat-msg .who{font-weight:800;margin-bottom:6px;color:var(--muted)}
+    .btn { display:inline-block; padding:8px 12px; border-radius:10px; background:var(--primary); color:white; text-decoration:none; font-weight:700; border:none; }
+    .btn.secondary { background:#3B82F6 }
+    .copy { margin-left:12px; font-size:13px; color:var(--muted) }
   </style>
 </head>
 <body>
@@ -90,15 +103,16 @@
       if (!res.ok) throw new Error('Not found');
       const ev = await res.json();
 
-      titleEl.textContent = ev.name || 'Event';
-      metaEl.textContent = `${ev.date || ''} ${ev.time || ''} • ${ev.venue || ev.location || ''}`;
-      descEl.innerHTML = `<p>${ev.description || ''}</p>`;
+  titleEl.textContent = ev.name || 'Event';
+  metaEl.textContent = `${ev.date || ''} ${ev.time ? 'at ' + ev.time : ''} • ${ev.venue || ev.location || ''}`;
+  descEl.className = 'desc';
+  descEl.innerHTML = `<div class="desc">${ev.description || ''}</div>`;
 
       // languages
       const langEl = document.getElementById('languages');
       if (ev.languages && ev.languages.length > 0) {
         document.getElementById('languagesSection').style.display = 'block';
-        langEl.innerHTML = ev.languages.map(l => `<span style="display:inline-block;background:#EFEFEF;padding:6px 10px;border-radius:999px;margin-right:8px;font-weight:700">${l}</span>`).join('');
+        langEl.innerHTML = ev.languages.map(l => `<span class="language-badge">${l}</span>`).join('');
       }
 
       // based on
@@ -108,20 +122,26 @@
       }
 
       // host
-      const hostEl = document.getElementById('host');
-      const hostName = ev.host || (ev.host && ev.host.name) || ev.created_by || ev.createdBy || '';
-      let hostLocal = null;
-      try { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } catch(e) {}
-      const hostRow = document.createElement('div');
-      hostRow.className = 'attendee';
-      const hostAvatar = document.createElement('img');
-      hostAvatar.className = 'avatar';
-      hostAvatar.src = avatarForLocal(hostLocal) || '';
-      const hostInfo = document.createElement('div');
-      hostInfo.innerHTML = `<strong>${(hostLocal && hostLocal.name) || hostName}</strong><div style='color:#666;font-size:13px'>${(hostLocal && (hostLocal.homeCountries && hostLocal.homeCountries.join(' '))) || (hostLocal && hostLocal.country) || ''}</div>`;
-      hostRow.appendChild(hostAvatar);
-      hostRow.appendChild(hostInfo);
-      hostEl.appendChild(hostRow);
+  const hostEl = document.getElementById('host');
+  const hostName = ev.host || (ev.host && ev.host.name) || ev.created_by || ev.createdBy || '';
+  let hostLocal = null;
+  try { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } catch(e) {}
+  const hostRow = document.createElement('div');
+  hostRow.className = 'host-card';
+  const hostAvatar = document.createElement('img');
+  hostAvatar.className = 'avatar';
+  hostAvatar.src = avatarForLocal(hostLocal) || '';
+  const hostInfo = document.createElement('div');
+  const hostNameText = (hostLocal && hostLocal.name) || hostName || '';
+  // display languages / levels if available
+  const hostLangs = (hostLocal && hostLocal.languageLevels) ? Object.entries(hostLocal.languageLevels).map(([k,v]) => `${k}: ${v}`).join(' · ') : '';
+  const hostSub = [];
+  if (hostLocal && hostLocal.university) hostSub.push(hostLocal.university);
+  if (hostLangs) hostSub.push(hostLangs);
+  hostInfo.innerHTML = `<div class="host-info">${hostNameText} ${hostLocal && hostLocal.homeCountries ? hostLocal.homeCountries.map(c=>` ${c}`).join('') : ''}</div><div class="host-sub">${hostSub.join(' · ')}</div>`;
+  hostRow.appendChild(hostAvatar);
+  hostRow.appendChild(hostInfo);
+  hostEl.appendChild(hostRow);
 
       // attendees
       attendeesEl.innerHTML = '';
@@ -139,7 +159,7 @@
           avatar.src = avatarForLocal(local) || '';
           const name = document.createElement('div');
           const levels = (local && local.languageLevels) ? Object.entries(local.languageLevels).map(([k,v]) => `${k}: ${v}`).join(' · ') : '';
-          name.innerHTML = `<strong>${(local && local.name) || p}</strong><div style='color:#666;font-size:13px'>${levels}</div>`;
+          name.innerHTML = `<strong>${(local && local.name) || p}</strong><div class='host-sub'>${levels}</div>`;
           row.appendChild(avatar);
           row.appendChild(name);
           attendeesEl.appendChild(row);
