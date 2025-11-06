@@ -273,31 +273,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
 
   // Removed legacy handleCountryToggle; Countries From now uses add/remove helpers below.
 
-  // Countries From: searchable multi-select state and helpers
-  const [countryFromInput, setCountryFromInput] = useState("");
-
-  const canonicalizeCountry = (val) => {
-    if (!val) return "";
-    const trimmed = String(val).trim();
-    const match = fullCountries.find(c => c.toLowerCase() === trimmed.toLowerCase());
-    return match || trimmed;
-  };
-
-  const addCountryFrom = () => {
-    const canonical = canonicalizeCountry(countryFromInput);
-    if (!canonical) return;
-    const current = editedProfile.countriesFrom || [];
-    const exists = current.some(c => c.toLowerCase() === canonical.toLowerCase());
-    if (!exists) {
-      setEditedProfile({ ...editedProfile, countriesFrom: [...current, canonical] });
-    }
-    setCountryFromInput("");
-  };
-
-  const removeCountryFrom = (country) => {
-    const current = editedProfile.countriesFrom || [];
-    setEditedProfile({ ...editedProfile, countriesFrom: current.filter(c => c !== country) });
-  };
+  // Home Country uses the same country datalist as Current Country; changes sync to countriesFrom
 
   const handleInterestToggle = (interest) => {
     const updated = editedProfile.interests.includes(interest)
@@ -577,7 +553,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
         </div>
 
         <div style={styles.section}>
-          <label style={styles.label}>Country</label>
+          <label style={styles.label}>Current Country</label>
           {isEditing ? (
             <div>
               <input
@@ -602,7 +578,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
         </div>
 
         <div style={styles.section}>
-          <label style={styles.label}>City</label>
+          <label style={styles.label}>Current City</label>
           {isEditing ? (
             <input
               type="text"
@@ -635,68 +611,29 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
         </div>
 
         <div style={styles.section}>
-          <label style={styles.label}>Countries From</label>
+          <label style={styles.label}>Home Country</label>
           {isEditing ? (
             <div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-                <input
-                  type="text"
-                  list="countries-from-list"
-                  style={{ ...styles.input, flex: 1 }}
-                  value={countryFromInput}
-                  onChange={(e) => setCountryFromInput(e.target.value)}
-                  placeholder="Type a country and press Enter"
-                  aria-label="Add country of origin"
-                  autoComplete="off"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ',') {
-                      e.preventDefault();
-                      addCountryFrom();
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  style={{ ...styles.button, ...styles.primaryButton, padding: '10px 14px', whiteSpace: 'nowrap' }}
-                  onClick={addCountryFrom}
-                >Add</button>
-              </div>
-              <datalist id="countries-from-list">
-                {fullCountries.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-              <div style={styles.chipContainer}>
-                {(editedProfile.countriesFrom || []).map(country => (
-                  <span key={country} style={styles.chip(true)}>
-                    {country}
-                    <button
-                      type="button"
-                      onClick={() => removeCountryFrom(country)}
-                      aria-label={`Remove ${country}`}
-                      style={{
-                        marginLeft: 8,
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#6B7280',
-                        cursor: 'pointer',
-                        fontWeight: 700,
-                      }}
-                    >×</button>
-                  </span>
-                ))}
-              </div>
+              <input
+                type="text"
+                list="country-list"
+                style={styles.input}
+                value={editedProfile.homeCountry ?? ((editedProfile.countriesFrom || [])[0] || "")}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setEditedProfile({
+                    ...editedProfile,
+                    homeCountry: v,
+                    countriesFrom: v ? [v] : [],
+                  });
+                }}
+                placeholder="Start typing your home country..."
+                aria-label="Home Country"
+                autoComplete="country-name"
+              />
             </div>
           ) : (
-            <div style={styles.chipContainer}>
-              {(profile.countriesFrom || []).length > 0 ? (
-                (profile.countriesFrom || []).map(country => (
-                  <span key={country} style={styles.chip(true)}>{country}</span>
-                ))
-              ) : (
-                <div style={styles.value}>No countries specified</div>
-              )}
-            </div>
+            <div style={styles.value}>{profile.homeCountry || ((profile.countriesFrom || [])[0]) || "Not specified"}</div>
           )}
         </div>
 
