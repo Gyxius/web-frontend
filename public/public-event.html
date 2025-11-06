@@ -41,6 +41,14 @@
   .attendee .avatar { width:56px; height:56px; border-radius:12px }
   /* attendee card style */
   .attendee { background:var(--card); border-radius:10px; padding:12px; margin-bottom:10px }
+  .card-white { background:white; border-radius:12px; padding:14px; border:1px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:12px }
+  .meta-row { display:flex; gap:12px; align-items:center; color:var(--muted); margin-top:8px }
+  .meta-badge { display:inline-flex; align-items:center; gap:8px; background:#F3F4F6; padding:8px 12px; border-radius:12px; font-weight:700 }
+  .addr { color:var(--muted); font-size:13px; margin-top:6px }
+  .attendee-card { display:flex; gap:12px; align-items:center; padding:12px; background:white; border-radius:12px; border:1px solid var(--border); margin-bottom:10px }
+  .chat-input-row { display:flex; gap:8px; margin-top:12px; align-items:center }
+  .chat-input { flex:1; padding:10px 12px; border-radius:999px; border:1px solid var(--border); }
+  .small-flag { font-size:18px; margin-right:8px }
   /* header bar */
   #headerBar a { font-size:20px }
   #headerBar .btn { padding:8px 12px }
@@ -152,11 +160,13 @@
     aboutContent.innerHTML = `<div>${ev.description}</div>`;
   }
 
-          // languages (render inside a green panel like the app)
+              // languages (render inside a green panel like the app)
           const langEl = document.getElementById('languages');
           if (ev.languages && ev.languages.length > 0) {
             document.getElementById('languagesSection').style.display = 'block';
-            langEl.innerHTML = `<div class="lang-panel">${ev.languages.map(l => `<span class="language-badge">${l}</span>`).join('')}</div>`;
+                // map some language names to flags
+                const langFlag = { 'French':'🇫🇷', 'English':'🇬🇧', 'Polish':'🇵🇱', 'Spanish':'🇪🇸' };
+                langEl.innerHTML = `<div class="lang-panel">${ev.languages.map(l => `<span class="language-badge"><span class="small-flag">${langFlag[l] || ''}</span>${l}</span>`).join('')}</div>`;
           }
 
       // based on
@@ -172,7 +182,23 @@
         banner.style.display = 'block';
       }
 
-    // host
+      // address and place line (render under title like the app)
+      const addrLine = ev.address || ev.venue || ev.location || '';
+      if (addrLine) {
+        const metaWrap = document.createElement('div');
+        metaWrap.className = 'meta-row';
+        const place = document.createElement('div');
+        place.className = 'meta-badge';
+        place.innerHTML = `📍 ${ev.location || ''}`;
+        const venue = document.createElement('div');
+        venue.className = 'addr';
+        venue.textContent = addrLine;
+        metaEl.parentNode.insertBefore(metaWrap, metaEl.nextSibling);
+        metaWrap.appendChild(place);
+        metaWrap.appendChild(venue);
+      }
+
+  // host
     const hostEl = document.getElementById('host');
     // ev.host can be a string or an object; prefer string name if present
     const hostName = (typeof ev.host === 'string') ? ev.host : (ev.host && typeof ev.host.name === 'string') ? ev.host.name : (ev.created_by || ev.createdBy || '');
@@ -194,9 +220,11 @@
     const countryFlagMap = { 'France':'🇫🇷', 'Madagascar':'🇲🇬', 'Poland':'🇵🇱', 'United Kingdom':'🇬🇧', 'England':'🇬🇧' };
     const flags = (hostLocal && hostLocal.homeCountries) ? hostLocal.homeCountries.map(c => countryFlagMap[c] || c).join(' ') : '';
     hostInfo.innerHTML = `<div class="host-info">${hostNameText} ${flags}</div><div class="host-sub">${hostSub.join(' · ')}</div>`;
-    hostRow.appendChild(hostAvatar);
-    hostRow.appendChild(hostInfo);
-    hostEl.appendChild(hostRow);
+  // put host in a white card to match app
+  const hostCardWrap = document.createElement('div');
+  hostCardWrap.className = 'card-white';
+  hostCardWrap.appendChild(hostRow);
+  hostEl.appendChild(hostCardWrap);
 
       // attendees
       attendeesEl.innerHTML = '';
@@ -211,8 +239,8 @@
         countHeader.textContent = `Attendees (${participants.length})`;
         attendeesEl.appendChild(countHeader);
         participants.forEach(p => {
-          const row = document.createElement('div');
-          row.className = 'attendee';
+          const rowWrap = document.createElement('div');
+          rowWrap.className = 'attendee-card';
           const avatar = document.createElement('img');
           avatar.className = 'avatar';
           let local = null;
@@ -221,9 +249,9 @@
           const name = document.createElement('div');
           const levels = (local && local.languageLevels) ? Object.entries(local.languageLevels).map(([k,v]) => `${k}: ${v}`).join(' · ') : '';
           name.innerHTML = `<strong>${(local && local.name) || p}</strong><div class='host-sub'>${levels}</div>`;
-          row.appendChild(avatar);
-          row.appendChild(name);
-          attendeesEl.appendChild(row);
+          rowWrap.appendChild(avatar);
+          rowWrap.appendChild(name);
+          attendeesEl.appendChild(rowWrap);
         });
       }
 
