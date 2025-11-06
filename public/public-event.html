@@ -12,8 +12,8 @@
       --bg:#F7F7F5; --card:#FFFFFF; --text:#111827; --muted:#6B7280; --primary:#58CC02; --accent:#1CB0F6; --border:#EEF2F7;
     }
   body { font-family: Inter, Roboto, 'Nunito Sans', Arial, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif; background:var(--bg); color:var(--text); padding:22px; }
-  .card { background:var(--card); border-radius:16px; padding:20px; max-width:820px; margin:20px auto; box-shadow:0 6px 24px rgba(2,6,23,0.06);} 
-  .title { font-size:32px; font-weight:900; margin-bottom:6px; color:var(--text); }
+  .card { background:var(--card); border-radius:16px; padding:22px 20px 20px; max-width:820px; margin:8px auto; box-shadow:0 6px 24px rgba(2,6,23,0.06);} 
+  .title { font-size:44px; font-weight:900; margin-bottom:6px; color:var(--text); line-height:1; }
   .meta { color:var(--muted); margin-bottom:10px; font-size:16px }
   .desc { color:var(--text); line-height:1.45; margin-top:6px }
   .section { margin-top:18px; }
@@ -52,6 +52,14 @@
   /* header bar */
   #headerBar a { font-size:20px }
   #headerBar .btn { padding:8px 12px }
+  /* banner and top layout tweaks */
+  #banner { height:260px; border-radius:14px; margin-bottom: -18px; max-width:820px; }
+  .city { font-size:18px; font-weight:800; color:var(--muted); margin-top:8px }
+  .venue { font-size:15px; color:var(--muted); margin-top:6px }
+  .fulladdr { color:var(--muted); font-size:13px; margin-top:6px; line-height:1.35 }
+  .date-row { display:flex; align-items:center; gap:10px; color:var(--muted); margin-top:12px }
+  #mapWrap { max-width:820px; margin:18px auto 40px; display:none }
+  #map { height:220px; border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
   </style>
 </head>
 <body>
@@ -150,8 +158,47 @@
       const ev = await res.json();
 
       titleEl.textContent = ev.name || 'Event';
-  metaEl.textContent = `${ev.date || ''} ${ev.time ? 'at ' + ev.time : ''} • ${ev.venue || ev.location || ''}`;
+  // Clear the simple meta field — we'll render city / venue / address / date rows separately to match the app header
+  metaEl.textContent = '';
   descEl.className = 'desc';
+  // city / venue / address
+  const cityText = ev.city || (ev.location ? String(ev.location).split(',')[0] : '');
+  if (cityText) {
+    const cityEl = document.createElement('div');
+    cityEl.className = 'city';
+    cityEl.textContent = cityText;
+    titleEl.parentNode.insertBefore(cityEl, titleEl.nextSibling);
+  }
+  if (ev.venue) {
+    const venueEl = document.createElement('div');
+    venueEl.className = 'venue';
+    venueEl.textContent = ev.venue;
+    // insert right after city (or after title)
+    const after = titleEl.nextSibling || titleEl;
+    after.parentNode.insertBefore(venueEl, after.nextSibling);
+  }
+  const addrLine = ev.address || ev.venue || ev.location || '';
+  if (addrLine) {
+    const addrEl = document.createElement('div');
+    addrEl.className = 'fulladdr';
+    addrEl.textContent = addrLine;
+    // append after the last of city/venue
+    const ref = document.querySelector('.venue') || document.querySelector('.city') || titleEl;
+    ref.parentNode.insertBefore(addrEl, ref.nextSibling);
+  }
+  // date row (calendar icon + date/time)
+  if (ev.date || ev.time) {
+    const dateRow = document.createElement('div');
+    dateRow.className = 'date-row';
+    const cal = document.createElement('div'); cal.textContent = '📅';
+    const when = document.createElement('div');
+    when.textContent = `${ev.date || ''}${ev.time ? ' at ' + ev.time : ''}`;
+    dateRow.appendChild(cal);
+    dateRow.appendChild(when);
+    // insert after address if present, otherwise under title
+    const ref2 = document.querySelector('.fulladdr') || document.querySelector('.venue') || document.querySelector('.city') || titleEl;
+    ref2.parentNode.insertBefore(dateRow, ref2.nextSibling);
+  }
   // Put description into the About section for parity with the app
   const aboutSection = document.getElementById('aboutSection');
   const aboutContent = document.getElementById('aboutContent');
@@ -182,21 +229,7 @@
         banner.style.display = 'block';
       }
 
-      // address and place line (render under title like the app)
-      const addrLine = ev.address || ev.venue || ev.location || '';
-      if (addrLine) {
-        const metaWrap = document.createElement('div');
-        metaWrap.className = 'meta-row';
-        const place = document.createElement('div');
-        place.className = 'meta-badge';
-        place.innerHTML = `📍 ${ev.location || ''}`;
-        const venue = document.createElement('div');
-        venue.className = 'addr';
-        venue.textContent = addrLine;
-        metaEl.parentNode.insertBefore(metaWrap, metaEl.nextSibling);
-        metaWrap.appendChild(place);
-        metaWrap.appendChild(venue);
-      }
+      
 
   // host
     const hostEl = document.getElementById('host');
