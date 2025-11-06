@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Event — Public View</title>
+  <style>
+    body { font-family: Inter, Roboto, Arial, sans-serif; background:#f7f7f5; color:#111; padding:20px; }
+    .card { background:white; border-radius:12px; padding:20px; max-width:800px; margin:20px auto; box-shadow:0 6px 24px rgba(0,0,0,0.08);} 
+    .title { font-size:22px; font-weight:700; margin-bottom:8px; }
+    .meta { color:#666; margin-bottom:12px; }
+    .section { margin-top:16px; }
+    .avatar { width:56px; height:56px; border-radius:12px; display:inline-block; vertical-align:middle; margin-right:12px; }
+    .attendee { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid #f0f0f0 }
+    .btn { display:inline-block; padding:8px 12px; border-radius:8px; background:#58CC02; color:white; text-decoration:none; font-weight:600; }
+    .copy { margin-left:8px; font-size:13px; color:#666 }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div id="content">
+      <div class="title">Loading...</div>
+      <div class="meta" id="meta"></div>
+      <div id="desc"></div>
+      <div class="section">
+        <strong>Attendees</strong>
+        <div id="attendees"></div>
+      </div>
+      <div class="section">
+        <a id="appLink" class="btn" href="#">Open in App</a>
+        <span class="copy" id="copied"></span>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const API_URL = 'https://fast-api-backend-qlyb.onrender.com';
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('event') || params.get('id');
+  const titleEl = document.querySelector('.title');
+  const metaEl = document.getElementById('meta');
+  const descEl = document.getElementById('desc');
+  const attendeesEl = document.getElementById('attendees');
+  const appLink = document.getElementById('appLink');
+  const copied = document.getElementById('copied');
+
+  if (!id) {
+    titleEl.textContent = 'No event specified';
+    metaEl.textContent = 'Open link like ?event=123';
+    return;
+  }
+
+  async function load() {
+    try {
+      const res = await fetch(`${API_URL}/api/events/${encodeURIComponent(id)}`);
+      if (!res.ok) throw new Error('Not found');
+      const ev = await res.json();
+      titleEl.textContent = ev.name || 'Event';
+      metaEl.textContent = `${ev.date || ''} ${ev.time || ''} • ${ev.venue || ev.location || ''} ${ev.address || ''}`;
+      descEl.innerHTML = `<p>${ev.description || ''}</p>`;
+
+      // attendees list
+      attendeesEl.innerHTML = '';
+      const participants = ev.participants || [];
+      if (participants.length === 0) {
+        attendeesEl.textContent = 'No attendees yet';
+      } else {
+        participants.forEach(p => {
+          const row = document.createElement('div');
+          row.className = 'attendee';
+          const avatar = document.createElement('img');
+          avatar.className = 'avatar';
+          // try to fetch cached local profile from localStorage via key userProfile_<name>
+          let local = null;
+          try { local = localStorage.getItem('userProfile_' + p); local = local ? JSON.parse(local) : null; } catch(e) {}
+          if (local && local.avatar && local.avatar.provider === 'dicebear') {
+            avatar.src = `https://api.dicebear.com/6.x/${local.avatar.style}/svg?seed=${encodeURIComponent(local.avatar.seed)}`;
+          } else {
+            // fallback to emoji rendered as svg text via data URI
+            const emoji = (local && local.emoji) ? local.emoji : '🙂';
+            const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23EEE'/><text x='50%' y='50%' font-size='28' dominant-baseline='middle' text-anchor='middle'>${emoji}</text></svg>`;
+            avatar.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+          }
+          const name = document.createElement('div');
+          name.innerHTML = `<strong>${(local && local.name) || p}</strong><div style='color:#666;font-size:13px'>${(local && (local.homeCountries && local.homeCountries.join(', '))) || (local && local.country) || ''}</div>`;
+          row.appendChild(avatar);
+          row.appendChild(name);
+          attendeesEl.appendChild(row);
+        });
+      }
+
+      // share link
+      const shareUrl = window.location.href;
+      appLink.href = '/';
+      appLink.textContent = 'Open the App';
+
+      // copy to clipboard automatically when clicking
+      const copyBtn = document.createElement('button');
+      copyBtn.textContent = 'Copy link';
+      copyBtn.className = 'btn';
+      copyBtn.style.marginLeft = '12px';
+      copyBtn.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          copied.textContent = 'Copied to clipboard';
+          setTimeout(() => copied.textContent = '', 2000);
+        } catch (e) {
+          copied.textContent = 'Could not copy';
+          setTimeout(() => copied.textContent = '', 2000);
+        }
+      };
+      document.querySelector('.section').appendChild(copyBtn);
+
+    } catch (e) {
+      titleEl.textContent = 'Event not found';
+      metaEl.textContent = '';
+      descEl.textContent = '';
+      attendeesEl.textContent = '';
+    }
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

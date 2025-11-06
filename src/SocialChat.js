@@ -600,6 +600,22 @@ function SocialChat({
         {/* Event Title with Edit Button */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
           <h1 style={styles.eventTitle}>{event?.name || "Event"}</h1>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={async () => {
+                try {
+                  const shareUrl = `${window.location.origin}/public/public-event.html?event=${encodeURIComponent(event?.id)}`;
+                  await navigator.clipboard.writeText(shareUrl);
+                  alert('Share link copied to clipboard!');
+                } catch (e) {
+                  alert('Could not copy share link.');
+                }
+              }}
+              style={{ padding: '8px 12px', borderRadius: 10, background: '#58CC02', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+            >
+              Share
+            </button>
+          </div>
           
           {/* Edit/Options Button - For host or admin */}
           {((event?.host && event.host.name === currentUser) || (typeof currentUser === 'string' && currentUser.toLowerCase() === 'admin') || (typeof currentUser === 'object' && (currentUser?.username?.toLowerCase?.() === 'admin' || currentUser?.name === 'Admin')) || (event?.createdBy && String(event.createdBy).toLowerCase() === 'admin') || (event?.created_by && String(event.created_by).toLowerCase() === 'admin')) && (
