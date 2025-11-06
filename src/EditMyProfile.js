@@ -94,7 +94,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     } finally {
       setInviteLoading(false);
     }
-  }, [userName]);
+  }, [userName, generateDefaultAvatarSpec]);
 
   useEffect(() => {
     let cancelled = false;
