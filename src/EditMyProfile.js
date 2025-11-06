@@ -17,6 +17,22 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     shadow: "0 4px 14px rgba(0,0,0,0.08)",
   };
 
+  // Helper: deterministic avatar spec generator for new users
+  const AVATAR_STYLES = ['bottts','micah','adventurer','pixel-art','avataaars'];
+  const hashString = (s) => {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) {
+      h = ((h << 5) - h) + s.charCodeAt(i);
+      h |= 0;
+    }
+    return Math.abs(h);
+  };
+  const generateDefaultAvatarSpec = (name) => {
+    const seed = (name || 'guest').toString();
+    const idx = hashString(seed) % AVATAR_STYLES.length;
+    return { provider: 'dicebear', style: AVATAR_STYLES[idx], seed };
+  };
+
   // Load user data from localStorage or use defaults
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem(`userProfile_${userName}`);
@@ -30,6 +46,8 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
       university: "",
       degree: "",
       emoji: "😊",
+      // For new users, generate a quick deterministic avatar (can be changed later)
+      avatar: generateDefaultAvatarSpec(userName),
       country: "🇫🇷",
   homeCountries: ["France"],
       city: "Paris",
@@ -112,6 +130,21 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
             interests: [],
             ...serverProfile // Server values override defaults
           };
+          // If server profile doesn't include an avatar, generate a quick default and persist it
+          if (!mergedProfile.avatar) {
+            try {
+              const defaultAvatar = generateDefaultAvatarSpec(userName);
+              mergedProfile.avatar = defaultAvatar;
+              // Best-effort save to server so other devices see it
+              api.saveUserProfile(userName, mergedProfile).then(() => {
+                console.log('💾 Default avatar saved to server');
+              }).catch((e) => {
+                console.warn('Could not save default avatar to server:', e?.message || e);
+              });
+            } catch (e) {
+              // ignore
+            }
+          }
           setProfile(mergedProfile);
           setEditedProfile(mergedProfile);
           localStorage.setItem(`userProfile_${userName}`, JSON.stringify(mergedProfile));
