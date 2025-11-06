@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as api from "./api";
+import { getCountryFlag } from "./countryFlags";
 
 function SocialChat({
   event,
@@ -1015,7 +1016,7 @@ function SocialChat({
               </div>
               <div style={styles.hostInfo}>
                 <div style={styles.hostName}>
-                  {event.host.name} {event.host.country}
+                  {event.host.name} {getCountryFlag(event.host.homeCountry || (event.host.countriesFrom && event.host.countriesFrom[0]) || event.host.country)}
                 </div>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                   {event.host.building && (
@@ -1059,7 +1060,7 @@ function SocialChat({
                   </div>
                   <div style={styles.hostInfo}>
                     <div style={styles.hostName}>
-                      {coHost.name} {coHost.country}
+                      {coHost.name} {getCountryFlag(coHost.homeCountry || (coHost.countriesFrom && coHost.countriesFrom[0]) || coHost.country)}
                     </div>
                     <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                       {coHost.building && (
@@ -1109,7 +1110,7 @@ function SocialChat({
                     </div>
                     <div style={styles.hostInfo}>
                       <div style={styles.hostName}>
-                        {item.name} {item.country}
+                        {item.name} {getCountryFlag(item.homeCountry || (item.countriesFrom && item.countriesFrom[0]) || item.country)}
                       </div>
                       <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                         {item.building && (
