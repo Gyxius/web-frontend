@@ -53,319 +53,133 @@
   #headerBar a { font-size:20px }
   #headerBar .btn { padding:8px 12px }
   /* banner and top layout tweaks */
-  #banner { height:260px; border-radius:0; margin-bottom: 0; max-width:100%; }
-  .city { font-size:18px; font-weight:800; color:var(--muted); margin-top:8px }
-  .venue { font-size:15px; color:var(--muted); margin-top:6px }
-  .fulladdr { color:var(--muted); font-size:13px; margin-top:6px; line-height:1.35 }
-  .date-row { display:flex; align-items:center; gap:10px; color:var(--muted); margin-top:12px }
-  #mapWrap { max-width:820px; margin:18px auto 40px; display:none }
-  #map { height:220px; border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
-  </style>
-</head>
-<body>
-  <div id="banner" style="height:200px;background-size:cover;background-position:center;margin:0 auto;max-width:100%;display:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px;overflow:hidden"></div>
-  <div class="card">
-    <div id="headerBar" style="width:100%;display:flex;align-items:center;gap:12px;justify-content:flex-end">
-      <div style="margin-right:auto;display:flex;align-items:center;gap:12px;padding-left:18px"><a href="/" style="text-decoration:none;color:var(--text);font-weight:700;display:flex;align-items:center;gap:8px">←</a><div style="font-weight:800">Event</div></div>
-      <div style="display:flex;gap:8px;padding-right:18px">
-        <button id="shareBtnHeader" class="btn" style="background:#58CC02;padding:8px 10px;font-weight:700">Share</button>
-        <button id="gearBtn" class="btn" style="background:white;color:var(--text);border:1px solid var(--border);box-shadow:none">⚙️</button>
-      </div>
-    </div>
-    <div id="content">
-      <div id="eventView">
-        <div class="title">Loading...</div>
-        <div class="meta" id="meta"></div>
-        <div id="desc"></div>
+  // We'll refresh the event and chat periodically so the shared page stays live.
+  let currentEvent = null;
+  let map = null;
+  let marker = null;
 
-        <!-- Map will appear before the languages panel (matches app layout) -->
-        <div id="mapWrap" style="display:none;margin-top:12px">
-          <div id="map" style="height:220px;border-radius:12px;overflow:hidden"></div>
-        </div>
-
-        <div class="section" id="languagesSection" style="display:none">
-          <strong>🗣️ Languages</strong>
-          <div id="languages" style="margin-top:8px"></div>
-        </div>
-
-        <div class="section" id="basedOn" style="display:none">
-          <strong>✨ Based on Main Event</strong>
-          <div id="basedContent" style="margin-top:8px"></div>
-        </div>
-        <div class="section" id="aboutSection" style="display:none">
-          <strong>📝 About this hangout</strong>
-          <div id="aboutContent" style="margin-top:8px"></div>
-        </div>
-
-        
-
-        <div class="section">
-          <strong>👤 Hosted by</strong>
-          <div id="host" style="margin-top:8px"></div>
-        </div>
-
-        <div class="section">
-          <strong>🧃 Attendees</strong>
-          <div id="attendees"></div>
-        </div>
-
-        <div class="section">
-          <strong>💬 Group Chat</strong>
-          <div id="chat" style="margin-top:8px"></div>
-        </div>
-
-        <div class="section">
-          <a id="appLink" class="btn" href="#">Open in App</a>
-          <button id="copyBtn" class="btn" style="background:#3B82F6;margin-left:8px">Copy link</button>
-          <span class="copy" id="copied"></span>
-        </div>
-      </div>
-    </div>
-  </div>
-
- 
-
-<script>
-(function(){
-  const API_URL = 'https://fast-api-backend-qlyb.onrender.com';
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('event') || params.get('id');
-  const titleEl = document.querySelector('.title');
-  const metaEl = document.getElementById('meta');
-  const descEl = document.getElementById('desc');
-  const attendeesEl = document.getElementById('attendees');
-  const appLink = document.getElementById('appLink');
-  const copied = document.getElementById('copied');
-
-  if (!id) {
-    titleEl.textContent = 'No event specified';
-    metaEl.textContent = 'Open link like ?event=123';
-    return;
-  }
-
-  function avatarForLocal(local) {
-    // Always return a usable image data URL. If local has a dicebear avatar, use it.
-    if (local && local.avatar && local.avatar.provider === 'dicebear') return `https://api.dicebear.com/6.x/${local.avatar.style}/svg?seed=${encodeURIComponent(local.avatar.seed)}`;
-    // If local has an emoji set, use it; otherwise return a simple initial-based SVG so images never break.
-    const emoji = (local && local.emoji) ? local.emoji : null;
-    let label = emoji || (local && local.name ? String(local.name)[0].toUpperCase() : '?');
-    // If label is a letter, show it; else show emoji
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23EEE'/><text x='50%' y='50%' font-size='28' dominant-baseline='middle' text-anchor='middle'>${label}</text></svg>`;
-    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-  }
-
-  async function load() {
+  async function fetchEvent() {
     try {
       const res = await fetch(`${API_URL}/api/events/${encodeURIComponent(id)}`);
       if (!res.ok) throw new Error('Not found');
       const ev = await res.json();
+      // If event changed (or first load), update relevant UI parts
+      // Simple change detection by comparing JSON string - sufficient here
+      const prev = JSON.stringify(currentEvent);
+      const now = JSON.stringify(ev);
+      if (prev === now && currentEvent !== null) return; // no change
+      currentEvent = ev;
 
+      // title/banner
       titleEl.textContent = ev.name || 'Event';
-  // Clear the simple meta field — we'll render city / venue / address / date rows separately to match the app header
-  metaEl.textContent = '';
-  descEl.className = 'desc';
-  // city / venue / address
-  const cityText = ev.city || (ev.location ? String(ev.location).split(',')[0] : '');
-  if (cityText) {
-    const cityEl = document.createElement('div');
-    cityEl.className = 'city';
-    cityEl.textContent = cityText;
-    titleEl.parentNode.insertBefore(cityEl, titleEl.nextSibling);
-  }
-  if (ev.venue) {
-    const venueEl = document.createElement('div');
-    venueEl.className = 'venue';
-    venueEl.textContent = ev.venue;
-    // insert right after city (or after title)
-    const after = titleEl.nextSibling || titleEl;
-    after.parentNode.insertBefore(venueEl, after.nextSibling);
-  }
-  const addrLine = ev.address || ev.venue || ev.location || '';
-  if (addrLine) {
-    const addrEl = document.createElement('div');
-    addrEl.className = 'fulladdr';
-    addrEl.textContent = addrLine;
-    // append after the last of city/venue
-    const ref = document.querySelector('.venue') || document.querySelector('.city') || titleEl;
-    ref.parentNode.insertBefore(addrEl, ref.nextSibling);
-  }
-  // (date row will be rendered after the map to match the app layout)
-  // Put description into the About section for parity with the app
-  const aboutSection = document.getElementById('aboutSection');
-  const aboutContent = document.getElementById('aboutContent');
-  if (ev.description) {
-    aboutSection.style.display = 'block';
-    aboutContent.innerHTML = `<div>${ev.description}</div>`;
-  }
+      const banner = document.getElementById('banner');
+      if (ev.imageUrl) { banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url(${ev.imageUrl})`; banner.style.display = 'block'; }
 
-              // languages (render inside a green panel like the app)
-          const langEl = document.getElementById('languages');
-          if (ev.languages && ev.languages.length > 0) {
-            document.getElementById('languagesSection').style.display = 'block';
-                // map some language names to flags
-                const langFlag = { 'French':'🇫🇷', 'English':'🇬🇧', 'Polish':'🇵🇱', 'Spanish':'🇪🇸' };
-                langEl.innerHTML = `<div class="lang-panel">${ev.languages.map(l => `<span class="language-badge"><span class="small-flag">${langFlag[l] || ''}</span>${l}</span>`).join('')}</div>`;
-          }
+      // clear/insert city/venue/address if they changed
+      // remove existing helpers then re-insert
+      ['city','venue','fulladdr'].forEach(c => { const el = document.querySelector('.' + c); if (el) el.remove(); });
+      const cityText = ev.city || (ev.location ? String(ev.location).split(',')[0] : '');
+      if (cityText) { const cityEl = document.createElement('div'); cityEl.className = 'city'; cityEl.textContent = cityText; titleEl.parentNode.insertBefore(cityEl, titleEl.nextSibling); }
+      if (ev.venue) { const venueEl = document.createElement('div'); venueEl.className = 'venue'; venueEl.textContent = ev.venue; const after = titleEl.nextSibling || titleEl; after.parentNode.insertBefore(venueEl, after.nextSibling); }
+      const addrLine2 = ev.address || ev.venue || ev.location || '';
+      if (addrLine2) { const addrEl = document.createElement('div'); addrEl.className = 'fulladdr'; addrEl.textContent = addrLine2; const ref = document.querySelector('.venue') || document.querySelector('.city') || titleEl; ref.parentNode.insertBefore(addrEl, ref.nextSibling); }
+
+      // description
+      const aboutSection = document.getElementById('aboutSection');
+      const aboutContent = document.getElementById('aboutContent');
+      if (ev.description) { aboutSection.style.display = 'block'; aboutContent.innerHTML = `<div>${ev.description}</div>`; } else { aboutSection.style.display = 'none'; }
+
+      // languages
+      const langEl = document.getElementById('languages');
+      if (ev.languages && ev.languages.length > 0) {
+        document.getElementById('languagesSection').style.display = 'block';
+        const langFlag = { 'French':'🇫🇷', 'English':'🇬🇧', 'Polish':'🇵🇱', 'Spanish':'🇪🇸' };
+        langEl.innerHTML = `<div class="lang-panel">${ev.languages.map(l => `<span class="language-badge"><span class="small-flag">${langFlag[l] || ''}</span>${l}</span>`).join('')}</div>`;
+      } else { document.getElementById('languagesSection').style.display = 'none'; }
 
       // based on
-      if (ev.templateEventName) {
-        document.getElementById('basedOn').style.display = 'block';
-        document.getElementById('basedContent').innerHTML = `<div style="font-weight:700">${ev.templateEventName}</div><div style="color:#666;font-size:13px">${ev.templateEventVenue || ''} · ${ev.templateEventDate || ''}</div>`;
-      }
+      if (ev.templateEventName) { document.getElementById('basedOn').style.display = 'block'; document.getElementById('basedContent').innerHTML = `<div style="font-weight:700">${ev.templateEventName}</div><div style="color:#666;font-size:13px">${ev.templateEventVenue || ''} · ${ev.templateEventDate || ''}</div>`; } else { document.getElementById('basedOn').style.display = 'none'; }
 
-      // banner image
-      if (ev.imageUrl) {
-        const banner = document.getElementById('banner');
-        banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url(${ev.imageUrl})`;
-        banner.style.display = 'block';
-      }
+      // host
+      const hostEl = document.getElementById('host'); hostEl.innerHTML = '';
+      const hostName = (typeof ev.host === 'string') ? ev.host : (ev.host && typeof ev.host.name === 'string') ? ev.host.name : (ev.created_by || ev.createdBy || '');
+      let hostLocal = null;
+      try { if (hostName) { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } } catch(e) {}
+      const hostRow = document.createElement('div'); hostRow.className = 'host-card';
+      const hostAvatar = document.createElement('img'); hostAvatar.className = 'avatar'; hostAvatar.src = avatarForLocal(hostLocal);
+      const hostInfo = document.createElement('div');
+      const hostNameText = (hostLocal && hostLocal.name) || hostName || '';
+      const hostLangs = (hostLocal && hostLocal.languageLevels) ? Object.entries(hostLocal.languageLevels).map(([lang,level]) => { const cap = String(level).charAt(0).toUpperCase() + String(level).slice(1); return `${cap} ${lang}`; }).join(', ') : '';
+      const countryFlagMap = { 'France':'🇫🇷', 'Madagascar':'🇲🇬', 'Poland':'🇵🇱', 'United Kingdom':'🇬🇧', 'England':'🇬🇧' };
+      const flags = (hostLocal && hostLocal.homeCountries) ? hostLocal.homeCountries.map(c => countryFlagMap[c] || c).join(' ') : '';
+      hostInfo.innerHTML = `<div class="host-info">${hostNameText} ${flags}</div><div class="host-sub">${hostLocal && hostLocal.university ? hostLocal.university : ''}</div><div class="host-sub">${hostLangs}</div>`;
+      hostRow.appendChild(hostAvatar); hostRow.appendChild(hostInfo);
+      const hostCardWrap = document.createElement('div'); hostCardWrap.className = 'card-white'; hostCardWrap.appendChild(hostRow); hostEl.appendChild(hostCardWrap);
 
-      
-
-  // host
-    const hostEl = document.getElementById('host');
-    // ev.host can be a string or an object; prefer string name if present
-    const hostName = (typeof ev.host === 'string') ? ev.host : (ev.host && typeof ev.host.name === 'string') ? ev.host.name : (ev.created_by || ev.createdBy || '');
-    let hostLocal = null;
-    try { if (hostName) { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } } catch(e) {}
-    const hostRow = document.createElement('div');
-    hostRow.className = 'host-card';
-    const hostAvatar = document.createElement('img');
-    hostAvatar.className = 'avatar';
-    hostAvatar.src = avatarForLocal(hostLocal);
-    const hostInfo = document.createElement('div');
-    const hostNameText = (hostLocal && hostLocal.name) || hostName || '';
-    // display languages / levels if available (human-readable: "Native French, Fluent Spanish")
-    const hostLangs = (hostLocal && hostLocal.languageLevels) ? Object.entries(hostLocal.languageLevels).map(([lang,level]) => {
-      const cap = String(level).charAt(0).toUpperCase() + String(level).slice(1);
-      return `${cap} ${lang}`;
-    }).join(', ') : '';
-    const hostSub = [];
-    if (hostLocal && hostLocal.university) hostSub.push(hostLocal.university);
-    if (hostLangs) hostSub.push(hostLangs);
-    // Render country flags if homeCountries available using a small map
-    const countryFlagMap = { 'France':'🇫🇷', 'Madagascar':'🇲🇬', 'Poland':'🇵🇱', 'United Kingdom':'🇬🇧', 'England':'🇬🇧' };
-    const flags = (hostLocal && hostLocal.homeCountries) ? hostLocal.homeCountries.map(c => countryFlagMap[c] || c).join(' ') : '';
-  // show name+flags, then university on its own line, then language levels as a human-readable phrase
-  hostInfo.innerHTML = `<div class="host-info">${hostNameText} ${flags}</div><div class="host-sub">${hostLocal && hostLocal.university ? hostLocal.university : ''}</div><div class="host-sub">${hostLangs}</div>`;
-    // append avatar and info into the host row so it renders like the app
-    hostRow.appendChild(hostAvatar);
-    hostRow.appendChild(hostInfo);
-  // put host in a white card to match app
-  const hostCardWrap = document.createElement('div');
-  hostCardWrap.className = 'card-white';
-  hostCardWrap.appendChild(hostRow);
-  hostEl.appendChild(hostCardWrap);
-
-      // attendees
+      // attendees: re-render
       attendeesEl.innerHTML = '';
       const participants = ev.participants || [];
-      if (participants.length === 0) {
-        attendeesEl.textContent = 'No attendees yet';
-      } else {
-        // show count header
-        const countHeader = document.createElement('div');
-        countHeader.style.fontWeight = '800';
-        countHeader.style.marginBottom = '8px';
-        countHeader.textContent = `Attendees (${participants.length})`;
-        attendeesEl.appendChild(countHeader);
+      if (participants.length === 0) { attendeesEl.textContent = 'No attendees yet'; } else {
+        const countHeader = document.createElement('div'); countHeader.style.fontWeight = '800'; countHeader.style.marginBottom = '8px'; countHeader.textContent = `Attendees (${participants.length})`; attendeesEl.appendChild(countHeader);
         participants.forEach(p => {
-          const rowWrap = document.createElement('div');
-          rowWrap.className = 'attendee-card';
-          const avatar = document.createElement('img');
-          avatar.className = 'avatar';
-          let local = null;
-          try { local = localStorage.getItem('userProfile_' + p); local = local ? JSON.parse(local) : null; } catch(e) {}
+          const rowWrap = document.createElement('div'); rowWrap.className = 'attendee-card'; const avatar = document.createElement('img'); avatar.className = 'avatar'; let local = null; try { local = localStorage.getItem('userProfile_' + p); local = local ? JSON.parse(local) : null; } catch(e) {}
           avatar.src = avatarForLocal(local);
-          const name = document.createElement('div');
-          const levels = (local && local.languageLevels) ? Object.entries(local.languageLevels).map(([k,v]) => `${k}: ${v}`).join(' · ') : '';
+          const name = document.createElement('div'); const levels = (local && local.languageLevels) ? Object.entries(local.languageLevels).map(([k,v]) => `${k}: ${v}`).join(' · ') : '';
           name.innerHTML = `<strong>${(local && local.name) || p}</strong><div class='host-sub'>${levels}</div>`;
-          rowWrap.appendChild(avatar);
-          rowWrap.appendChild(name);
-          attendeesEl.appendChild(rowWrap);
+          rowWrap.appendChild(avatar); rowWrap.appendChild(name); attendeesEl.appendChild(rowWrap);
         });
       }
 
-      // chat (read-only)
-      const chatEl = document.getElementById('chat');
-      chatEl.innerHTML = '';
-      try {
-        const chatRes = await fetch(`${API_URL}/api/chat/${encodeURIComponent(id)}`);
-        if (chatRes.ok) {
-          const chatMsgs = await chatRes.json();
-          if (Array.isArray(chatMsgs) && chatMsgs.length > 0) {
-              chatMsgs.forEach(m => {
-                const msgRow = document.createElement('div');
-                msgRow.className = 'chat-msg';
-                msgRow.innerHTML = `<div class='who'>${m.username}</div><div>${m.message}</div>`;
-                chatEl.appendChild(msgRow);
-              });
-          } else {
-            chatEl.textContent = 'No messages yet';
-          }
-        } else {
-          chatEl.textContent = 'No messages yet';
-        }
-      } catch (e) {
-        chatEl.textContent = 'No messages yet';
-      }
-
-      // share link and open in app
-      const shareUrl = window.location.href;
-      appLink.href = `/?event=${encodeURIComponent(id)}`;
-      appLink.textContent = 'Open in App';
-      document.getElementById('copyBtn').onclick = async () => {
-        try { await navigator.clipboard.writeText(shareUrl); copied.textContent = 'Copied to clipboard'; setTimeout(() => copied.textContent = '', 2000); } catch { copied.textContent = 'Could not copy'; setTimeout(() => copied.textContent = '', 2000); }
-      };
-      // header share button copies link too
-      document.getElementById('shareBtnHeader').onclick = async () => {
-        try { await navigator.clipboard.writeText(shareUrl); alert('Share link copied to clipboard!'); } catch { alert('Could not copy link'); }
-      };
-      // gear button goes to app root
-      document.getElementById('gearBtn').onclick = () => { window.location.href = '/'; };
-
-      // map (if coordinates available)
+      // map: initialize once, update marker position if coordinates present
       if (ev.coordinates && (ev.coordinates.lat || ev.coordinates.latitude)) {
         const coords = ev.coordinates.lat ? { lat: ev.coordinates.lat, lng: ev.coordinates.lng } : { lat: ev.coordinates.latitude, lng: ev.coordinates.longitude };
         try {
-          const mapWrap = document.getElementById('mapWrap');
-          mapWrap.style.display = 'block';
-          const map = L.map('map').setView([coords.lat, coords.lng], 15);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-          }).addTo(map);
-          L.marker([coords.lat, coords.lng]).addTo(map);
-        } catch (e) {
-          // Leaflet might not be available — ignore silently
-          console.warn('Leaflet init failed', e);
-        }
+          const mapWrap = document.getElementById('mapWrap'); mapWrap.style.display = 'block';
+          if (!map) {
+            map = L.map('map').setView([coords.lat, coords.lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+            marker = L.marker([coords.lat, coords.lng]).addTo(map);
+          } else {
+            marker.setLatLng([coords.lat, coords.lng]);
+            map.setView([coords.lat, coords.lng]);
+          }
+        } catch (e) { console.warn('Leaflet init failed', e); }
       }
 
-      // render date row AFTER the map so it appears underneath (or under the address if no map)
-      if (ev.date || ev.time) {
-        const dateRow = document.createElement('div');
-        dateRow.className = 'date-row';
-        const cal = document.createElement('div'); cal.textContent = '📅';
-        const when = document.createElement('div');
-        when.textContent = `${ev.date || ''}${ev.time ? ' at ' + ev.time : ''}`;
-        dateRow.appendChild(cal);
-        dateRow.appendChild(when);
-        // prefer to insert after the map if visible
-        const mapWrapEl = document.getElementById('mapWrap');
-        const anchor = (mapWrapEl && mapWrapEl.style.display === 'block') ? mapWrapEl : (document.querySelector('.fulladdr') || document.querySelector('.venue') || document.querySelector('.city') || titleEl);
-        anchor.parentNode.insertBefore(dateRow, anchor.nextSibling);
-      }
-
+      // share link and open in app (static handlers)
+      const shareUrl = window.location.href; appLink.href = `/?event=${encodeURIComponent(id)}`; appLink.textContent = 'Open in App';
+      document.getElementById('copyBtn').onclick = async () => { try { await navigator.clipboard.writeText(shareUrl); copied.textContent = 'Copied to clipboard'; setTimeout(() => copied.textContent = '', 2000); } catch { copied.textContent = 'Could not copy'; setTimeout(() => copied.textContent = '', 2000); } };
+      document.getElementById('shareBtnHeader').onclick = async () => { try { await navigator.clipboard.writeText(shareUrl); alert('Share link copied to clipboard!'); } catch { alert('Could not copy link'); } };
+      document.getElementById('gearBtn').onclick = () => { window.location.href = '/'; };
     } catch (e) {
-      titleEl.textContent = 'Event not found';
-      metaEl.textContent = '';
-      descEl.textContent = '';
-      attendeesEl.textContent = '';
+      titleEl.textContent = 'Event not found'; metaEl.textContent = ''; descEl.textContent = ''; attendeesEl.textContent = '';
     }
   }
 
-  load();
+  // fetch chat and re-render messages (read-only)
+  async function fetchChat() {
+    const chatEl = document.getElementById('chat');
+    chatEl.innerHTML = '';
+    try {
+      const chatRes = await fetch(`${API_URL}/api/chat/${encodeURIComponent(id)}`);
+      if (chatRes.ok) {
+        const chatMsgs = await chatRes.json();
+        if (Array.isArray(chatMsgs) && chatMsgs.length > 0) {
+          chatMsgs.forEach(m => { const msgRow = document.createElement('div'); msgRow.className = 'chat-msg'; msgRow.innerHTML = `<div class='who'>${m.username}</div><div>${m.message}</div>`; chatEl.appendChild(msgRow); });
+        } else { chatEl.textContent = 'No messages yet'; }
+      } else { chatEl.textContent = 'No messages yet'; }
+    } catch (e) { chatEl.textContent = 'No messages yet'; }
+  }
+
+  // initial load and polling intervals
+  fetchEvent(); fetchChat();
+  // refresh event every 10s, chat every 3s for near-real-time
+  setInterval(fetchEvent, 10000);
+  setInterval(fetchChat, 3000);
+
+  // expose a manual refresh (optional) - not necessary but helpful for debugging
+  window.__fetchEvent = fetchEvent; window.__fetchChat = fetchChat;
+
 })();
 </script>
 </body>
