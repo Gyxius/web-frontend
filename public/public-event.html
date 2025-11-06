@@ -60,6 +60,7 @@
 
   <!-- We'll refresh the event and chat periodically so the shared page stays live. -->
   <script>
+  document.addEventListener('DOMContentLoaded', function(){
   (async function(){
   let currentEvent = null;
   let map = null;
@@ -211,7 +212,8 @@
   // expose a manual refresh (optional) - not necessary but helpful for debugging
   window.__fetchEvent = fetchEvent; window.__fetchChat = fetchChat;
 
-})();
+  })();
+  });
 </script>
 </body>
 </html>
