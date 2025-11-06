@@ -220,6 +220,29 @@
         const hostName = (typeof ev.host === 'string') ? ev.host : (ev.host && typeof ev.host.name === 'string') ? ev.host.name : (ev.created_by || ev.createdBy || '');
         let hostLocal = null;
         try { if (hostName) { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } } catch(e) {}
+        // If we don't have a local profile, try to fetch a public profile from the backend and cache it
+        async function fetchProfileIfMissing(username) {
+          if (!username) return null;
+          try {
+            const cached = localStorage.getItem('userProfile_' + username);
+            if (cached) return JSON.parse(cached);
+          } catch(e) {}
+          try {
+            const resp = await fetch(`${API_URL}/api/users/${encodeURIComponent(username)}/profile`);
+            if (resp.ok) {
+              const json = await resp.json();
+              try { localStorage.setItem('userProfile_' + username, JSON.stringify(json)); } catch(e) {}
+              return json;
+            }
+          } catch(e) {
+            // ignore network errors
+          }
+          return null;
+        }
+        if (!hostLocal) {
+          // await the fetch fallback (this is inside async fetchEvent)
+          try { hostLocal = await fetchProfileIfMissing(hostName); } catch(e) {}
+        }
 
         const countryFlagMap = { 'France':'🇫🇷', 'Madagascar':'🇲🇬', 'Poland':'🇵🇱', 'United Kingdom':'🇬🇧', 'England':'🇬🇧' };
 
@@ -262,9 +285,17 @@
         countHeader.textContent = `🧃 Attendees (${participants.length})`;
         attendeesElLocal.appendChild(countHeader);
 
-        participants.forEach(p => {
+        // Resolve attendee profiles (use cached localStorage when available, otherwise fetch from backend)
+        const profilePromises = participants.map(async p => {
           let local = null;
           try { local = localStorage.getItem('userProfile_' + p); local = local ? JSON.parse(local) : null; } catch(e) {}
+          if (!local) {
+            try { local = await fetchProfileIfMissing(p); } catch(e) { local = null; }
+          }
+          return { username: p, profile: local };
+        });
+        const resolved = await Promise.all(profilePromises);
+        resolved.forEach(({ username, profile: local }) => {
           const levelsFormatted = humanLangs(local && local.languageLevels);
           const flags = (local && local.homeCountries) ? (local.homeCountries.map(c => countryFlagMap[c] || c).join(' ')) : '';
 
@@ -273,7 +304,7 @@
           item.innerHTML = `
             <img class="avatar" src="${avatarForLocal(local)}" />
             <div>
-              <div style="font-weight:800">${(local && local.name) || p} ${flags}</div>
+              <div style="font-weight:800">${(local && local.name) || username} ${flags}</div>
               <div class="host-sub">${local && local.university ? local.university : ''}</div>
               <div class="host-sub">${levelsFormatted}</div>
             </div>
