@@ -225,7 +225,12 @@
           if (!username) return null;
           try {
             const cached = localStorage.getItem('userProfile_' + username);
-            if (cached) return JSON.parse(cached);
+            if (cached) {
+              const parsed = JSON.parse(cached);
+              // if cached profile is missing key fields, try server to enrich it
+              if (parsed.university && parsed.languageLevels) return parsed;
+              // otherwise fall through to try fetching the full profile
+            }
           } catch(e) {}
           try {
             const resp = await fetch(`${API_URL}/api/users/${encodeURIComponent(username)}/profile`);
@@ -237,7 +242,8 @@
           } catch(e) {
             // ignore network errors
           }
-          return null;
+          // if server didn't return a profile, return cached (even if incomplete) or null
+          try { return JSON.parse(localStorage.getItem('userProfile_' + username)); } catch(e) { return null; }
         }
         if (!hostLocal) {
           // await the fetch fallback (this is inside async fetchEvent)
