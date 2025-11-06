@@ -323,14 +323,32 @@
       if (ev.coordinates && (ev.coordinates.lat || ev.coordinates.latitude)) {
         const coords = ev.coordinates.lat ? { lat: ev.coordinates.lat, lng: ev.coordinates.lng } : { lat: ev.coordinates.latitude, lng: ev.coordinates.longitude };
         try {
-          const mapWrap = document.getElementById('mapWrap'); mapWrap.style.display = 'block';
+          const mapWrap = document.getElementById('mapWrap');
+          // reveal map without stealing focus or causing browser scroll
+          mapWrap.style.display = 'block';
           if (!map) {
-            map = L.map('map').setView([coords.lat, coords.lng], 15);
+            // disable keyboard interactions so the map doesn't grab focus/scroll
+            map = L.map('map', { keyboard: false, tap: false }).setView([coords.lat, coords.lng], 15, { animate: false });
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
             marker = L.marker([coords.lat, coords.lng]).addTo(map);
+            // ensure the map container is not focusable which can cause the browser to scroll to it
+            try { map.getContainer().tabIndex = -1; } catch (e) {}
           } else {
+            // update marker position without animating the map (avoid panning/scrolling)
             marker.setLatLng([coords.lat, coords.lng]);
-            map.setView([coords.lat, coords.lng]);
+            try {
+              const cur = map.getCenter();
+              const lat = Number(cur.lat || 0), lng = Number(cur.lng || 0);
+              const dLat = Math.abs(lat - Number(coords.lat));
+              const dLng = Math.abs(lng - Number(coords.lng));
+              // only reset view if location changed noticeably
+              if (dLat > 0.0001 || dLng > 0.0001) {
+                map.setView([coords.lat, coords.lng], map.getZoom(), { animate: false });
+              }
+            } catch (e) {
+              // fallback: set view silently
+              try { map.setView([coords.lat, coords.lng], map.getZoom(), { animate: false }); } catch (e) {}
+            }
           }
         } catch (e) { console.warn('Leaflet init failed', e); }
       }
