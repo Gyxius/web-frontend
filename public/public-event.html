@@ -58,6 +58,61 @@
 </head>
 <body>
 
+  <!-- Page content required by the live-update script -->
+  <div class="card" id="headerCard">
+    <div id="headerBar" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button id="shareBtnHeader" class="btn secondary">Share</button>
+        <a id="appLink" class="btn" href="/">Open in App</a>
+        <span class="copy" id="copied"></span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button id="gearBtn" class="btn">Home</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="banner" style="display:none; background-size:cover; background-position:center; height:160px; border-radius:12px; margin-bottom:14px;"></div>
+    <div>
+      <div class="title">Event</div>
+      <div id="meta" class="meta">Location · Venue · Date</div>
+      <div id="desc" class="desc" style="margin-top:12px;">Short event description</div>
+    </div>
+
+    <div id="mapWrap" style="display:none; margin-top:16px;">
+      <div id="map"></div>
+    </div>
+
+    <div id="aboutSection" class="section" style="display:none;">
+      <div class="sectionTitle">About</div>
+      <div id="aboutContent"></div>
+    </div>
+
+    <div id="languagesSection" style="display:none; margin-top:12px;">
+      <div id="languages"></div>
+    </div>
+
+    <div id="basedOn" style="display:none; margin-top:12px;">
+      <div id="basedContent"></div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="sectionTitle">Hosted by</div>
+      <div id="host"></div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="sectionTitle">Attendees</div>
+      <div id="attendees"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectionTitle">Group Chat</div>
+    <div id="chat" class="chat">Loading chat…</div>
+  </div>
+
   <!-- We'll refresh the event and chat periodically so the shared page stays live. -->
   <script>
   document.addEventListener('DOMContentLoaded', function(){
