@@ -84,10 +84,26 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     return () => { cancelled = true; };
   }, [loadOrCreateInviteCode]);
 
-  const availableLanguages = [
-    "English", "French", "Spanish", "German", "Italian", "Portuguese",
-    "Dutch", "Russian", "Chinese", "Japanese", "Korean", "Arabic",
-    "Hindi", "Turkish", "Polish", "Swedish", "Norwegian", "Danish"
+  // Full language list for suggestions (broad coverage of official/common languages)
+  const fullLanguages = [
+    "Afrikaans","Akan","Albanian","Amharic","Arabic","Armenian","Assamese","Aymara",
+    "Azerbaijani","Bambara","Basque","Belarusian","Bengali","Berber","Bosnian","Breton",
+    "Bulgarian","Burmese","Catalan","Cebuano","Chichewa","Chinese","Mandarin Chinese","Cantonese",
+    "Corsican","Croatian","Czech","Danish","Dari","Dhivehi","Dutch","Dzongkha","English",
+    "Esperanto","Estonian","Faroese","Fijian","Filipino","Finnish","French","Galician",
+    "Georgian","German","Greek","Greenlandic","Guarani","Gujarati","Haitian Creole","Hausa",
+    "Hebrew","Hindi","Hiri Motu","Hungarian","Icelandic","Igbo","Ilocano","Indonesian",
+    "Irish","Italian","Japanese","Javanese","Kannada","Kazakh","Khmer","Kinyarwanda",
+    "Kirghiz","Kirundi","Konkani","Korean","Kurdish","Kyrgyz","Lao","Latvian","Lingala",
+    "Lithuanian","Luxembourgish","Macedonian","Malagasy","Malay","Malayalam","Maltese","Maori",
+    "Marathi","Marshallese","Moldovan","Mongolian","Montenegrin","Nepali","Northern Ndebele",
+    "Norwegian","Nyanja","Odia","Oromo","Ossetian","Papiamento","Pashto","Persian (Farsi)",
+    "Polish","Portuguese","Punjabi","Quechua","Romanian","Russian","Samoan","Sango",
+    "Sanskrit","Scottish Gaelic","Serbian","Shona","Sindhi","Sinhala","Slovak","Slovenian",
+    "Somali","Sotho","Spanish","Swahili","Swati","Swedish","Tagalog","Tajik","Tamil",
+    "Telugu","Tetum","Thai","Tibetan","Tigrinya","Tok Pisin","Tonga","Tsonga","Tswana",
+    "Turkish","Turkmen","Ukrainian","Urdu","Uzbek","Venda","Vietnamese","Wallisian",
+    "Welsh","Wolof","Xhosa","Yiddish","Yoruba","Zulu"
   ];
 
   // Note: replaced the old fixed Countries From chips with a searchable multi-select below.
@@ -217,21 +233,35 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     setIsEditing(false);
   };
 
-  const handleLanguageToggle = (lang) => {
-    const updated = editedProfile.languages.includes(lang)
-      ? editedProfile.languages.filter(l => l !== lang)
-      : [...editedProfile.languages, lang];
-    
-    // Initialize language level if not exists
+  // Languages: helpers for searchable multi-select + level bookkeeping
+  const [languageInput, setLanguageInput] = useState("");
+
+  const canonicalizeLanguage = (val) => {
+    if (!val) return "";
+    const trimmed = String(val).trim();
+    const match = fullLanguages.find(l => l.toLowerCase() === trimmed.toLowerCase());
+    return match || trimmed;
+  };
+
+  const addLanguage = () => {
+    const canonical = canonicalizeLanguage(languageInput);
+    if (!canonical) return;
+    const current = editedProfile.languages || [];
+    const exists = current.some(l => l.toLowerCase() === canonical.toLowerCase());
+    if (!exists) {
+      const updated = [...current, canonical];
+      const updatedLevels = { ...(editedProfile.languageLevels || {}) };
+      if (!updatedLevels[canonical]) updatedLevels[canonical] = "Beginner";
+      setEditedProfile({ ...editedProfile, languages: updated, languageLevels: updatedLevels });
+    }
+    setLanguageInput("");
+  };
+
+  const removeLanguage = (lang) => {
+    const current = editedProfile.languages || [];
+    const updated = current.filter(l => l !== lang);
     const updatedLevels = { ...(editedProfile.languageLevels || {}) };
-    if (!editedProfile.languages.includes(lang) && !updatedLevels[lang]) {
-      updatedLevels[lang] = "Beginner";
-    }
-    // Remove level if language unchecked
-    if (editedProfile.languages.includes(lang)) {
-      delete updatedLevels[lang];
-    }
-    
+    if (updatedLevels[lang]) delete updatedLevels[lang];
     setEditedProfile({ ...editedProfile, languages: updated, languageLevels: updatedLevels });
   };
 
@@ -689,23 +719,64 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
 
         <div style={styles.section}>
           <label style={styles.label}>Languages You Speak</label>
-          <div style={styles.chipContainer}>
-            {isEditing ? (
-              availableLanguages.map(lang => (
-                <span
-                  key={lang}
-                  style={styles.chip(editedProfile.languages.includes(lang))}
-                  onClick={() => handleLanguageToggle(lang)}
-                >
-                  {lang}
-                </span>
-              ))
-            ) : (
-              profile.languages.map(lang => (
+          {isEditing ? (
+            <div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                <input
+                  type="text"
+                  list="language-list"
+                  style={{ ...styles.input, flex: 1 }}
+                  value={languageInput}
+                  onChange={(e) => setLanguageInput(e.target.value)}
+                  placeholder="Type a language and press Enter"
+                  aria-label="Add language you speak"
+                  autoComplete="off"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                      e.preventDefault();
+                      addLanguage();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  style={{ ...styles.button, ...styles.primaryButton, padding: '10px 14px', whiteSpace: 'nowrap' }}
+                  onClick={addLanguage}
+                >Add</button>
+              </div>
+              <datalist id="language-list">
+                {fullLanguages.map((l) => (
+                  <option key={l} value={l} />
+                ))}
+              </datalist>
+              <div style={styles.chipContainer}>
+                {(editedProfile.languages || []).map(lang => (
+                  <span key={lang} style={styles.chip(true)}>
+                    {lang}
+                    <button
+                      type="button"
+                      onClick={() => removeLanguage(lang)}
+                      aria-label={`Remove ${lang}`}
+                      style={{
+                        marginLeft: 8,
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#6B7280',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                      }}
+                    >×</button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={styles.chipContainer}>
+              {(profile.languages || []).map(lang => (
                 <span key={lang} style={styles.chip(true)}>{lang}</span>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Language Proficiency Levels */}
