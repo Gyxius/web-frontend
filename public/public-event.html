@@ -59,18 +59,7 @@
 <body>
 
   <!-- Page content required by the live-update script -->
-  <div class="card" id="headerCard">
-    <div id="headerBar" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <button id="shareBtnHeader" class="btn secondary">Share</button>
-        <a id="appLink" class="btn" href="/">Open in App</a>
-        <span class="copy" id="copied"></span>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button id="gearBtn" class="btn">Home</button>
-      </div>
-    </div>
-  </div>
+  <!-- header intentionally minimal for public page (no share/open-in-app/home) -->
 
   <div class="card">
     <div id="banner" style="display:none; background-size:cover; background-position:center; height:160px; border-radius:12px; margin-bottom:14px;"></div>
@@ -126,8 +115,6 @@
   const metaEl = document.getElementById('meta');
   const descEl = document.getElementById('desc');
   const attendeesEl = document.getElementById('attendees');
-  const appLink = document.getElementById('appLink');
-  const copied = document.getElementById('copied');
 
   if (!id) {
     titleEl.textContent = 'No event specified';
@@ -146,12 +133,10 @@
   async function fetchEvent() {
     try {
       // re-query DOM refs in case the DOM changed (prevents null errors)
-      const titleElLocal = document.querySelector('.title');
-      const metaElLocal = document.getElementById('meta');
-      const descElLocal = document.getElementById('desc');
-      const attendeesElLocal = document.getElementById('attendees');
-      const appLinkLocal = document.getElementById('appLink');
-      const copiedLocal = document.getElementById('copied');
+  const titleElLocal = document.querySelector('.title');
+  const metaElLocal = document.getElementById('meta');
+  const descElLocal = document.getElementById('desc');
+  const attendeesElLocal = document.getElementById('attendees');
       if (!titleElLocal || !metaElLocal || !descElLocal || !attendeesElLocal) {
         console.warn('fetchEvent: missing DOM refs', { titleEl: !!titleElLocal, metaEl: !!metaElLocal, descEl: !!descElLocal, attendeesEl: !!attendeesElLocal });
         return;
@@ -336,11 +321,7 @@
         } catch (e) { console.warn('Leaflet init failed', e); }
       }
 
-      // share link and open in app (static handlers)
-      const shareUrl = window.location.href; appLink.href = `/?event=${encodeURIComponent(id)}`; appLink.textContent = 'Open in App';
-      document.getElementById('copyBtn').onclick = async () => { try { await navigator.clipboard.writeText(shareUrl); copied.textContent = 'Copied to clipboard'; setTimeout(() => copied.textContent = '', 2000); } catch { copied.textContent = 'Could not copy'; setTimeout(() => copied.textContent = '', 2000); } };
-      document.getElementById('shareBtnHeader').onclick = async () => { try { await navigator.clipboard.writeText(shareUrl); alert('Share link copied to clipboard!'); } catch { alert('Could not copy link'); } };
-      document.getElementById('gearBtn').onclick = () => { window.location.href = '/'; };
+  // No share/open-in-app/home controls on the public page
     } catch (e) {
       console.warn('fetchEvent failed', e);
       // show a gentle error message (distinct from "Event not found") for network/other failures
