@@ -91,6 +91,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
       try {
         const serverProfile = await api.getUserProfile(userName);
         if (!cancelled && serverProfile) {
+          console.log("📥 Loaded profile from server:", serverProfile);
           // Merge server profile with defaults to ensure all properties exist
           const mergedProfile = {
             name: userName,
@@ -115,7 +116,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
           localStorage.setItem(`userProfile_${userName}`, JSON.stringify(mergedProfile));
         }
       } catch (e) {
-        // No server profile yet is fine; keep local
+        console.log("ℹ️ No server profile found, using local/default");
       }
     })();
     return () => { cancelled = true; };
@@ -266,8 +267,9 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     // Also save online (best-effort)
     try {
       await api.saveUserProfile(userName, editedProfile);
+      console.log("✅ Profile saved to server successfully");
     } catch (e) {
-      console.warn("Profile saved locally, but online save failed:", e?.message || e);
+      console.error("❌ Profile saved locally, but online save failed:", e?.message || e);
     }
   };
 
