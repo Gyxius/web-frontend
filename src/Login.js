@@ -224,7 +224,7 @@ function Login({ onLogin, onRegistered }) {
         </div>
   <h2 style={styles.title}>Welcome to Lemi</h2>
         <p style={styles.subtitle}>
-          Lemi allows you to learn your target language with other cité residents
+          Lemi connects international students for in-person language exchange meetups, turning language practice into real friendships through shared activities.
         </p>
 
         {/* Auth form */}
