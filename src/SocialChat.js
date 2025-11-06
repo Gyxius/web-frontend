@@ -40,12 +40,17 @@ function SocialChat({
   
   // Merge event host/attendee data with their localStorage profile
   const enrichUserWithProfile = (user) => {
-    if (!user || !user.name) return user;
-    const profile = getUserProfile(user.name);
-    if (profile) {
-      return { ...user, ...profile }; // Profile data takes precedence
+    if (!user) return user;
+    let username = null;
+    if (typeof user === "string") {
+      username = user;
+    } else {
+      username = user.name || user.username || null;
     }
-    return user;
+    const base = typeof user === "object" && user ? user : (username ? { name: username } : {});
+    if (!username) return base;
+    const profile = getUserProfile(username);
+    return profile ? { ...base, ...profile } : base;
   };
   const [imageFile, setImageFile] = useState(null); // Store uploaded file for later upload
   const [editedEvent, setEditedEvent] = useState({
@@ -1130,12 +1135,12 @@ function SocialChat({
                   <div
                     key={i}
                     style={styles.hostCard}
-                    onClick={() => onUserClick && onUserClick(item)}
+                    onClick={() => onUserClick && onUserClick(enrichedItem)}
                     onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
                     onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
                   >
                     <div style={styles.hostAvatar}>
-                      {enrichedItem.emoji}
+                      {enrichedItem.emoji || "🙂"}
                     </div>
                     <div style={styles.hostInfo}>
                       <div style={styles.hostName}>
