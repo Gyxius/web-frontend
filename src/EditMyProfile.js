@@ -91,9 +91,28 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
       try {
         const serverProfile = await api.getUserProfile(userName);
         if (!cancelled && serverProfile) {
-          setProfile(serverProfile);
-          setEditedProfile(serverProfile);
-          localStorage.setItem(`userProfile_${userName}`, JSON.stringify(serverProfile));
+          // Merge server profile with defaults to ensure all properties exist
+          const mergedProfile = {
+            name: userName,
+            firstName: "",
+            age: "",
+            university: "",
+            degree: "",
+            emoji: "😊",
+            country: "🇫🇷",
+            countriesFrom: ["France"],
+            city: "Paris",
+            house: "",
+            desc: "Language enthusiast",
+            languages: ["English", "French"],
+            languageLevels: { "English": "Fluent", "French": "Native" },
+            bio: "",
+            interests: [],
+            ...serverProfile // Server values override defaults
+          };
+          setProfile(mergedProfile);
+          setEditedProfile(mergedProfile);
+          localStorage.setItem(`userProfile_${userName}`, JSON.stringify(mergedProfile));
         }
       } catch (e) {
         // No server profile yet is fine; keep local
@@ -776,15 +795,15 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
               availableInterests.map(interest => (
                 <span
                   key={interest}
-                  style={styles.chip(editedProfile.interests.includes(interest))}
+                  style={styles.chip((editedProfile.interests || []).includes(interest))}
                   onClick={() => handleInterestToggle(interest)}
                 >
                   {interest}
                 </span>
               ))
             ) : (
-              profile.interests.length > 0 ? (
-                profile.interests.map(interest => (
+              (profile.interests || []).length > 0 ? (
+                (profile.interests || []).map(interest => (
                   <span key={interest} style={styles.chip(true)}>{interest}</span>
                 ))
               ) : (
