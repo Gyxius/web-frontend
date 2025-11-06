@@ -1048,7 +1048,11 @@ function SocialChat({
               onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
             >
               <div style={styles.hostAvatar}>
-                {enrichedHost.emoji}
+                {enrichedHost.avatar && enrichedHost.avatar.provider === 'dicebear' ? (
+                  <img src={`https://api.dicebear.com/6.x/${enrichedHost.avatar.style}/svg?seed=${encodeURIComponent(enrichedHost.avatar.seed || enrichedHost.name || enrichedHost.username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: 8 }} />
+                ) : (
+                  enrichedHost.emoji
+                )}
               </div>
               <div style={styles.hostInfo}>
                 <div style={styles.hostName}>
@@ -1095,7 +1099,11 @@ function SocialChat({
                   onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
                 >
                   <div style={styles.hostAvatar}>
-                    {enrichedCoHost.emoji}
+                    {enrichedCoHost.avatar && enrichedCoHost.avatar.provider === 'dicebear' ? (
+                      <img src={`https://api.dicebear.com/6.x/${enrichedCoHost.avatar.style}/svg?seed=${encodeURIComponent(enrichedCoHost.avatar.seed || enrichedCoHost.name || enrichedCoHost.username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: 8 }} />
+                    ) : (
+                      enrichedCoHost.emoji
+                    )}
                   </div>
                   <div style={styles.hostInfo}>
                     <div style={styles.hostName}>
@@ -1148,7 +1156,11 @@ function SocialChat({
                     onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
                   >
                     <div style={styles.hostAvatar}>
-                      {enrichedItem.emoji || "🙂"}
+                      {enrichedItem.avatar && enrichedItem.avatar.provider === 'dicebear' ? (
+                        <img src={`https://api.dicebear.com/6.x/${enrichedItem.avatar.style}/svg?seed=${encodeURIComponent(enrichedItem.avatar.seed || enrichedItem.name || enrichedItem.username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: 8 }} />
+                      ) : (
+                        enrichedItem.emoji || "🙂"
+                      )}
                     </div>
                     <div style={styles.hostInfo}>
                       <div style={styles.hostName}>

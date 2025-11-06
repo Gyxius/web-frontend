@@ -44,6 +44,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState({ ...profile });
+  const [avatarTab, setAvatarTab] = useState("emoji");
   const [successMessage, setSuccessMessage] = useState("");
   // If requested, open in editing mode on mount (used for post-signup flow)
   useEffect(() => {
@@ -524,21 +525,49 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
 
       <div style={styles.card}>
         <div style={styles.section}>
-          <label style={styles.label}>Profile Emoji</label>
+          <label style={styles.label}>Profile Avatar</label>
           {isEditing ? (
-            <div style={styles.emojiPicker}>
-              {["😊", "😎", "🤓", "😃", "🥳", "🌟", "🚀", "💪"].map((emoji) => (
-                <span
-                  key={emoji}
-                  style={styles.emojiButton(editedProfile.emoji === emoji)}
-                  onClick={() => setEditedProfile({ ...editedProfile, emoji })}
-                >
-                  {emoji}
-                </span>
-              ))}
+            <div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <button type="button" onClick={() => setAvatarTab('emoji')} style={{ padding: 8, borderRadius: 8, border: avatarTab==='emoji' ? '2px solid #37B300' : '1px solid #ddd' }}>Emoji</button>
+                <button type="button" onClick={() => setAvatarTab('dicebear')} style={{ padding: 8, borderRadius: 8, border: avatarTab==='dicebear' ? '2px solid #37B300' : '1px solid #ddd' }}>Avatars</button>
+              </div>
+              {avatarTab === 'emoji' ? (
+                <div style={styles.emojiPicker}>
+                  {["😊", "😎", "🤓", "😃", "🥳", "🌟", "🚀", "💪"].map((emoji) => (
+                    <span
+                      key={emoji}
+                      style={styles.emojiButton(editedProfile.emoji === emoji)}
+                      onClick={() => setEditedProfile({ ...editedProfile, emoji, avatar: null })}
+                    >
+                      {emoji}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', gap: 10, marginBottom: 8, alignItems: 'center' }}>
+                    {['bottts','micah','adventurer','pixel-art','avataaars'].map(style => (
+                      <button key={style} type="button" onClick={() => setEditedProfile({ ...editedProfile, avatar: { provider: 'dicebear', style, seed: editedProfile.name || userName } })} style={{ border: editedProfile.avatar && editedProfile.avatar.style === style ? '2px solid #37B300' : '1px solid #ddd', padding: 6, borderRadius: 8 }}>
+                        <img src={`https://api.dicebear.com/6.x/${style}/svg?seed=${encodeURIComponent(editedProfile.name || userName)}`} alt={style} style={{ width: 64, height: 64 }} />
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input type="text" style={{ ...styles.input, flex: 1 }} placeholder="Seed for avatar (optional)" value={(editedProfile.avatar && editedProfile.avatar.seed) || ''} onChange={(e) => setEditedProfile({ ...editedProfile, avatar: { ...(editedProfile.avatar || { provider: 'dicebear', style: 'bottts', seed: '' }), seed: e.target.value } })} />
+                    <button type="button" style={{ ...styles.button, ...styles.primaryButton }} onClick={() => { if (!editedProfile.avatar) setEditedProfile({ ...editedProfile, avatar: { provider: 'dicebear', style: 'bottts', seed: editedProfile.name || userName } }); }}>Set</button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            <div style={styles.value}>{profile.emoji}</div>
+            <div style={styles.value}>
+              {profile.avatar && profile.avatar.provider === 'dicebear' ? (
+                <img src={`https://api.dicebear.com/6.x/${profile.avatar.style}/svg?seed=${encodeURIComponent(profile.avatar.seed || profile.name || userName)}`} alt="avatar" style={{ width: 36, height: 36, verticalAlign: 'middle' }} />
+              ) : (
+                <span style={{ fontSize: 20 }}>{profile.emoji}</span>
+              )}
+            </div>
           )}
         </div>
 
