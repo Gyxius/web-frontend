@@ -211,7 +211,9 @@
       // based on
       if (ev.templateEventName) { document.getElementById('basedOn').style.display = 'block'; document.getElementById('basedContent').innerHTML = `<div style="font-weight:700">${ev.templateEventName}</div><div style="color:#666;font-size:13px">${ev.templateEventVenue || ''} · ${ev.templateEventDate || ''}</div>`; } else { document.getElementById('basedOn').style.display = 'none'; }
 
-      // host (compact format)
+  // host (compact format)
+  // mapping of country names to flag emojis (used for host and attendees)
+  const countryFlagMap = { 'France':'🇫🇷', 'Madagascar':'🇲🇬', 'Poland':'🇵🇱', 'United Kingdom':'🇬🇧', 'England':'🇬🇧' };
       const hostEl = document.getElementById('host');
       if (!hostEl) {
         console.warn('fetchEvent: host element missing');
@@ -249,8 +251,6 @@
         }
         // For the host prefer the server's canonical profile (force a fetch so server wins over stale local cache)
         try { hostLocal = await fetchProfileIfMissing(hostName, true); } catch(e) {}
-
-        const countryFlagMap = { 'France':'🇫🇷', 'Madagascar':'🇲🇬', 'Poland':'🇵🇱', 'United Kingdom':'🇬🇧', 'England':'🇬🇧' };
 
         function humanLangs(levelsObj) {
           if (!levelsObj) return '';
