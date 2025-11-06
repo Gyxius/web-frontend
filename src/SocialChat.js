@@ -1162,8 +1162,8 @@ function SocialChat({
                   {enrichedHost.name} {(enrichedHost.homeCountries || [enrichedHost.homeCountry || (enrichedHost.countriesFrom && enrichedHost.countriesFrom[0]) || enrichedHost.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                 </div>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
-                  {enrichedHost.building && (
-                    <div>{enrichedHost.building}</div>
+                  {(enrichedHost.university || enrichedHost.building || enrichedHost.house || enrichedHost.residence) && (
+                    <div>{enrichedHost.university || enrichedHost.building || enrichedHost.house || enrichedHost.residence}</div>
                   )}
                   {enrichedHost.languageLevels && (
                     <div style={{ marginTop: 2 }}>
@@ -1213,8 +1213,8 @@ function SocialChat({
                       {enrichedCoHost.name} {(enrichedCoHost.homeCountries || [enrichedCoHost.homeCountry || (enrichedCoHost.countriesFrom && enrichedCoHost.countriesFrom[0]) || enrichedCoHost.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                     </div>
                     <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
-                      {enrichedCoHost.building && (
-                        <div>{enrichedCoHost.building}</div>
+                      {(enrichedCoHost.university || enrichedCoHost.building || enrichedCoHost.house || enrichedCoHost.residence) && (
+                        <div>{enrichedCoHost.university || enrichedCoHost.building || enrichedCoHost.house || enrichedCoHost.residence}</div>
                       )}
                       {enrichedCoHost.languageLevels && (
                         <div style={{ marginTop: 2 }}>
@@ -1270,8 +1270,8 @@ function SocialChat({
                         {enrichedItem.name} {(enrichedItem.homeCountries || [enrichedItem.homeCountry || (enrichedItem.countriesFrom && enrichedItem.countriesFrom[0]) || enrichedItem.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                       </div>
                       <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
-                        {enrichedItem.building && (
-                          <div>{enrichedItem.building}</div>
+                        {(enrichedItem.university || enrichedItem.building || enrichedItem.house || enrichedItem.residence) && (
+                          <div>{enrichedItem.university || enrichedItem.building || enrichedItem.house || enrichedItem.residence}</div>
                         )}
                         {enrichedItem.languageLevels && (
                           <div style={{ marginTop: 2 }}>
