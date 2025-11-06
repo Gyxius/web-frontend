@@ -109,7 +109,7 @@ function SocialChat({
     };
     loadProfiles();
     return () => { mounted = false; };
-  }, [event?.id]);
+  }, [event?.id, event?.crew, event?.crew_full, event?.host]);
   const [imageFile, setImageFile] = useState(null); // Store uploaded file for later upload
   const [editedEvent, setEditedEvent] = useState({
     name: event?.name || "",
