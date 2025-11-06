@@ -65,7 +65,7 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, is
         </div>
         
         <div style={styles.info}><b>Age:</b> {fullUser.age}</div>
-  <div style={styles.info}><b>House:</b> {fullUser.house}</div>
+  <div style={styles.info}><b>House:</b> {fullUser.house || fullUser.building || fullUser.residence || ''}</div>
   <div style={styles.info}><b>Degree:</b> {fullUser.degree}</div>
   <div style={styles.info}><b>Major:</b> {fullUser.major}</div>
         <div style={styles.info}><b>Points:</b> {realPoints}</div>
