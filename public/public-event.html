@@ -244,6 +244,9 @@
     const countryFlagMap = { 'France':'🇫🇷', 'Madagascar':'🇲🇬', 'Poland':'🇵🇱', 'United Kingdom':'🇬🇧', 'England':'🇬🇧' };
     const flags = (hostLocal && hostLocal.homeCountries) ? hostLocal.homeCountries.map(c => countryFlagMap[c] || c).join(' ') : '';
     hostInfo.innerHTML = `<div class="host-info">${hostNameText} ${flags}</div><div class="host-sub">${hostSub.join(' · ')}</div>`;
+    // append avatar and info into the host row so it renders like the app
+    hostRow.appendChild(hostAvatar);
+    hostRow.appendChild(hostInfo);
   // put host in a white card to match app
   const hostCardWrap = document.createElement('div');
   hostCardWrap.className = 'card-white';
