@@ -579,17 +579,36 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
                 </div>
               ) : (
                 <div>
-                  <div style={{ display: 'flex', gap: 10, marginBottom: 8, alignItems: 'center' }}>
-                    {['bottts','micah','adventurer','pixel-art','avataaars'].map(style => (
-                      <button key={style} type="button" onClick={() => setEditedProfile({ ...editedProfile, avatar: { provider: 'dicebear', style, seed: editedProfile.name || userName } })} style={{ border: editedProfile.avatar && editedProfile.avatar.style === style ? '2px solid #37B300' : '1px solid #ddd', padding: 6, borderRadius: 8 }}>
-                        <img src={`https://api.dicebear.com/6.x/${style}/svg?seed=${encodeURIComponent(editedProfile.name || userName)}`} alt={style} style={{ width: 64, height: 64 }} />
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <input type="text" style={{ ...styles.input, flex: 1 }} placeholder="Seed for avatar (optional)" value={(editedProfile.avatar && editedProfile.avatar.seed) || ''} onChange={(e) => setEditedProfile({ ...editedProfile, avatar: { ...(editedProfile.avatar || { provider: 'dicebear', style: 'bottts', seed: '' }), seed: e.target.value } })} />
-                    <button type="button" style={{ ...styles.button, ...styles.primaryButton }} onClick={() => { if (!editedProfile.avatar) setEditedProfile({ ...editedProfile, avatar: { provider: 'dicebear', style: 'bottts', seed: editedProfile.name || userName } }); }}>Set</button>
-                  </div>
+                  {/* Use AvatarPlayground component for a nicer quick playground (REST) */}
+                  {/* eslint-disable-next-line import/first */}
+                  {(() => {
+                    try {
+                      const AvatarPlayground = require('./components/AvatarPlayground').default;
+                      return (
+                        <AvatarPlayground
+                          initialSpec={editedProfile.avatar || { provider: 'dicebear', style: 'bottts', seed: editedProfile.name || userName }}
+                          onChange={(spec) => setEditedProfile({ ...editedProfile, avatar: spec, emoji: null })}
+                        />
+                      );
+                    } catch (e) {
+                      // Fallback inline controls if import fails for any reason
+                      return (
+                        <div>
+                          <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                            {['bottts','micah','adventurer','pixel-art','avataaars'].map(style => (
+                              <button key={style} type="button" onClick={() => setEditedProfile({ ...editedProfile, avatar: { provider: 'dicebear', style, seed: editedProfile.name || userName } })} style={{ border: editedProfile.avatar && editedProfile.avatar.style === style ? '2px solid #37B300' : '1px solid #ddd', padding: 6, borderRadius: 8 }}>
+                                <img src={`https://api.dicebear.com/6.x/${style}/svg?seed=${encodeURIComponent(editedProfile.name || userName)}`} alt={style} style={{ width: 64, height: 64 }} />
+                              </button>
+                            ))}
+                          </div>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <input type="text" style={{ ...styles.input, flex: 1 }} placeholder="Seed for avatar (optional)" value={(editedProfile.avatar && editedProfile.avatar.seed) || ''} onChange={(e) => setEditedProfile({ ...editedProfile, avatar: { ...(editedProfile.avatar || { provider: 'dicebear', style: 'bottts', seed: '' }), seed: e.target.value } })} />
+                            <button type="button" style={{ ...styles.button, ...styles.primaryButton }} onClick={() => { if (!editedProfile.avatar) setEditedProfile({ ...editedProfile, avatar: { provider: 'dicebear', style: 'bottts', seed: editedProfile.name || userName } }); }}>Set</button>
+                          </div>
+                        </div>
+                      );
+                    }
+                  })()}
                 </div>
               )}
             </div>
