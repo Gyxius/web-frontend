@@ -521,7 +521,8 @@ function SocialChat({
     // Input row
     chatInput: {
       display: "flex",
-      alignItems: "center",
+      flexDirection: window.innerWidth <= 640 ? "column" : "row",
+      alignItems: window.innerWidth <= 640 ? "stretch" : "center",
       gap: 8,
       marginTop: 6,
     },
@@ -534,6 +535,7 @@ function SocialChat({
       outline: "none",
       background: "#FFFFFF",
       fontSize: 14.5,
+      width: window.innerWidth <= 640 ? "100%" : "auto",
     },
     sendBtn: {
       background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
@@ -546,6 +548,7 @@ function SocialChat({
       cursor: "pointer",
       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
       transition: "transform 0.12s ease, box-shadow 0.2s",
+      width: window.innerWidth <= 640 ? "100%" : "auto",
     },
 
     // Footer CTA buttons
