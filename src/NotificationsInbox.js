@@ -268,7 +268,7 @@ function NotificationsInbox({
           <button style={styles.closeButton} onClick={onClose}>×</button>
         </div>
 
-        {/* Quick profile preview (moved to top so avatar appears near header) */}
+        {/* Quick profile preview centered at the top */}
         <div style={{ marginBottom: 12 }}>
           {(() => {
             const usernameKey = currentUser?.username || currentUser?.name || currentUser;
@@ -286,14 +286,14 @@ function NotificationsInbox({
               : null;
 
             return (
-              <div style={styles.profileRow}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="avatar" style={styles.avatarSmall} />
+                  <img src={avatarUrl} alt="avatar" style={{ ...styles.avatarSmall, width: 72, height: 72, borderRadius: 14 }} />
                 ) : (
-                  <div style={styles.avatarSmall}>{localProfile?.emoji || '🙂'}</div>
+                  <div style={{ ...styles.avatarSmall, width: 72, height: 72, borderRadius: 14 }}>{localProfile?.emoji || '🙂'}</div>
                 )}
-                <div>
-                  <div style={{ fontWeight: 700, color: styles.header?.color || '#111' }}>{localProfile?.name || usernameKey}</div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700, color: styles.header?.color || '#111', fontSize: 18 }}>{localProfile?.name || usernameKey}</div>
                   <div style={{ color: theme.textMuted, fontSize: 13 }}>{localProfile?.homeCountries?.[0] || localProfile?.country || ''}</div>
                 </div>
               </div>
