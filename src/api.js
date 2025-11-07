@@ -148,6 +148,19 @@ export const sendChatMessage = async (eventId, username, message) => {
   return response.json();
 };
 
+export const deleteChatMessage = async (eventId, messageId, username) => {
+  const response = await fetch(`${API_URL}/api/chat/${eventId}/messages/${messageId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to delete message");
+  }
+  return response.json();
+};
+
 // ===== USER ENDPOINTS =====
 
 export const loginUser = async (username, password) => {

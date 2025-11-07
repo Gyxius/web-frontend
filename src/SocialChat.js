@@ -204,6 +204,40 @@ function SocialChat({
     }
   };
 
+  const deleteMsg = async (messageId) => {
+    if (!messageId) return;
+    if (!window.confirm("Delete this message?")) return;
+    
+    const username = currentUser;
+    
+    // Optimistically remove from UI
+    setMessages((m) => m.filter(msg => msg.id !== messageId));
+
+    try {
+      if (event?.id) {
+        await api.deleteChatMessage(event.id, messageId, username);
+      }
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+      alert(error.message || "Failed to delete message. You may not have permission.");
+      // Reload messages to restore state
+      if (event?.id) {
+        try {
+          const messages = await api.getChatMessages(event.id);
+          const formattedMessages = messages.map(msg => ({
+            id: msg.id,
+            from: msg.username,
+            text: msg.message,
+            ts: new Date(msg.timestamp).getTime()
+          }));
+          setMessages(formattedMessages);
+        } catch (reloadError) {
+          console.error("Failed to reload messages:", reloadError);
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     // Auto-scroll to bottom when messages update
     const box = chatBoxRef.current;
@@ -1318,6 +1352,9 @@ function SocialChat({
                 }
               }
               const displayName = mine ? 'You' : (sender && sender.name) || m.from;
+              // Check if current user is the host
+              const isHost = event?.host === currentUser || event?.host?.name === currentUser || event?.host?.username === currentUser;
+              
               return (
                 <div
                   key={i}
@@ -1338,6 +1375,7 @@ function SocialChat({
                     style={{
                       ...styles.bubble,
                       ...(mine ? styles.bubbleMe : {}),
+                      position: 'relative',
                     }}
                   >
                     <span
@@ -1349,6 +1387,32 @@ function SocialChat({
                       {displayName}
                     </span>
                     {m.text}
+                    
+                    {/* Delete button for host */}
+                    {isHost && m.id && (
+                      <button
+                        onClick={() => deleteMsg(m.id)}
+                        style={{
+                          position: 'absolute',
+                          top: 4,
+                          right: 4,
+                          background: 'rgba(234, 43, 43, 0.9)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '4px 8px',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          opacity: 0.7,
+                          transition: 'opacity 0.2s',
+                        }}
+                        onMouseEnter={(e) => e.target.style.opacity = '1'}
+                        onMouseLeave={(e) => e.target.style.opacity = '0.7'}
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
 
                   {mine && (

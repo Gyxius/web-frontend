@@ -191,6 +191,7 @@ function App() {
           // Load chat messages
           const messages = await api.getChatMessages(rouletteResult.id);
           const formattedMessages = messages.map(msg => ({
+            id: msg.id,
             from: msg.username,
             text: msg.message,
             ts: new Date(msg.timestamp).getTime()
