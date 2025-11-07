@@ -207,7 +207,20 @@
       // title/banner
   titleElLocal.textContent = ev.name || 'Event';
       const banner = document.getElementById('banner');
-  if (ev.imageUrl && banner) { banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url(${ev.imageUrl})`; banner.style.display = 'block'; }
+  // support multiple possible image fields returned by different API versions (imageUrl, image, image_url)
+  try {
+    const maybeImage = ev.imageUrl || ev.image || ev.image_url || (ev.image && typeof ev.image === 'object' && ev.image.url ? ev.image.url : null);
+    if (banner) {
+      if (maybeImage) {
+        // quote the URL to be safe with characters/spaces
+        banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url("${maybeImage}")`;
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+        banner.style.backgroundImage = '';
+      }
+    }
+  } catch (e) { console.warn('setting banner failed', e); }
 
       // update city/venue/address: prefer existing elements (template), otherwise insert
       const cityText = ev.city || (ev.location ? String(ev.location).split(',')[0] : '');
