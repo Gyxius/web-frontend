@@ -591,7 +591,23 @@ input {
   gap: 8px;  
   box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;  
 }  
+/* Dynamic language badges without ID */
+.style-OBskZ {
+   background: rgba(255, 255, 255, 0.95);  
+  padding: 10px 16px;  
+  border-radius: 12px;  
+  font-size: 16px;  
+  font-weight: 700;  
+  color: rgb(31, 41, 55);  
+  display: flex;  
+  align-items: center;  
+  gap: 8px;  
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;  
+}
 #style-9m9Oq.style-9m9Oq {  
+   font-size: 24px;  
+}  
+.style-9m9Oq {
    font-size: 24px;  
 }  
 #style-3eoYs.style-3eoYs {  
