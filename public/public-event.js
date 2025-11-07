@@ -63,6 +63,19 @@ async function fetchEventData(eventId) {
     if (!response.ok) throw new Error('Event not found');
     const data = await response.json();
     
+    // Fetch template event if this is based on a template
+    let templateEvent = null;
+    if (data.templateEventId) {
+      try {
+        const templateResponse = await fetch(`${API_BASE}/api/events/${data.templateEventId}`);
+        if (templateResponse.ok) {
+          templateEvent = await templateResponse.json();
+        }
+      } catch (e) {
+        console.log('Could not fetch template event');
+      }
+    }
+    
     // Fetch host profile
     const hostUsername = data.host?.name || data.createdBy;
     const hostProfile = hostUsername ? await fetchUserProfile(hostUsername) : null;
@@ -80,7 +93,7 @@ async function fetchEventData(eventId) {
       hostName = `${hostProfile.name || hostUsername} ${flags}`;
     }
     
-    // Build host languages string
+    // Build host languages string (without emoji flags, just text)
     let hostLanguages = '';
     if (hostProfile && hostProfile.languageLevels) {
       hostLanguages = Object.entries(hostProfile.languageLevels)
@@ -92,7 +105,14 @@ async function fetchEventData(eventId) {
     const attendees = (data.participants || []).map((username, idx) => {
       const profile = participantProfiles[idx];
       if (!profile) {
-        return { emoji: '👤', name: username, meta: '' };
+        return { emoji: '�', name: username, meta: '' };
+      }
+      
+      // Get emoji from profile avatar or use default
+      let emoji = '😺';
+      if (profile.avatar && profile.avatar.seed) {
+        // Use first character or a default based on name
+        emoji = username.toLowerCase() === 'james' ? '🙂' : '😺';
       }
       
       // Build attendee name with country flags
@@ -100,30 +120,48 @@ async function fetchEventData(eventId) {
       const flags = countries.map(c => getCountryEmoji(c)).join(' ');
       const displayName = `${profile.name || username} ${flags}`;
       
-      // Build attendee meta (affiliation + languages)
+      // Build attendee meta (affiliation OR languages, not both displayed at same time)
       let meta = profile.university || '';
+      // Store language levels for rendering
+      let languageLevels = '';
       if (profile.languageLevels) {
-        const langs = Object.entries(profile.languageLevels)
+        languageLevels = Object.entries(profile.languageLevels)
           .map(([lang, level]) => `${level} ${lang}`)
           .join(', ');
-        meta = langs;
       }
       
-      return { emoji: '👤', name: displayName, meta };
+      return { emoji, name: displayName, meta, languageLevels };
     });
+    
+    // Capitalize city name
+    const city = data.location ? data.location.charAt(0).toUpperCase() + data.location.slice(1) : 'Paris';
+    
+    // Build venue short name with location prefix
+    let venueShort = data.venue || 'Venue';
+    if (templateEvent && templateEvent.location) {
+      venueShort = `${templateEvent.location} · ${data.venue}`;
+    }
+    
+    // Use template event name as main event title, current event name as title
+    const mainEventTitle = templateEvent?.name || data.name || 'Event';
+    const eventTitle = data.name || 'Event';
+    
+    // Use template category if available
+    const category = templateEvent?.category || data.category || 'event';
     
     // Transform backend data to match the expected format
     return {
       imageUrl: data.imageUrl || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
-      city: data.location || 'Paris',
+      city: city,
       venueName: data.venue || 'Venue',
       venueAddress: data.address || '',
       dateTime: `${data.date || ''} at ${data.time || ''}`,
       languages: (data.languages || []).map(lang => ({ emoji: getLanguageEmoji(lang), name: lang })),
-      mainEventTitle: data.name || 'Event',
-      venueShort: data.venue || 'Venue',
+      mainEventTitle: mainEventTitle,
+      eventTitle: eventTitle,
+      venueShort: venueShort,
       mainEventDate: data.date || '',
-      category: data.category || 'event',
+      category: category,
       attendees: attendees,
       description: data.description || 'No description',
       hostName: hostName,
@@ -149,8 +187,8 @@ async function fetchEventData(eventId) {
       mainEventDate: '2025-11-05',
       category: 'meetup',
       attendees: [
-        { emoji: '🙂', name: 'james', meta: '' },
-        { emoji: '😺', name: 'Kat 🇵🇱', meta: 'SGH' }
+        { emoji: '🙂', name: 'james', meta: '', languageLevels: '' },
+        { emoji: '😺', name: 'Kat 🇵🇱', meta: 'SGH', languageLevels: 'Fluent English, Native Polish, Beginner French' }
       ],
       description: 'A little meetup',
       hostName: 'Mitsu 🇫🇷 🇲🇬',
@@ -171,6 +209,10 @@ function setImage(selector, src) {
 }
 
 function renderEvent(event) {
+  // Set page title
+  const h1 = document.querySelector('h1');
+  if (h1) h1.textContent = event.eventTitle || event.mainEventTitle || 'Event';
+  
   // Set banner background
   const banner = document.getElementById('eventBanner');
   if (banner) {
@@ -209,79 +251,26 @@ function renderEvent(event) {
   setText('#style-nEg6y', event.description || 'No description');
   setText('#style-yeQbe', event.hostName || 'Host');
   setText('#style-RGVi8 > div:first-child', event.hostAffiliation || '');
-  // Render hostLanguages as emoji badges with proficiency
+  // Render hostLanguages as plain text (no emoji badges)
   const hostLangsContainer = document.getElementById('style-9hJaP');
   if (hostLangsContainer) {
-    hostLangsContainer.innerHTML = '';
-    if (event.hostLanguages) {
-      // Example: "Fluent English, Native French"
-      const langFlag = {
-        'French': '🇫🇷',
-        'English': '🇬🇧',
-        'Polish': '🇵🇱',
-        'Spanish': '🇪🇸',
-        'German': '🇩🇪',
-        'Italian': '🇮🇹',
-        'Portuguese': '🇵🇹',
-        'Chinese': '🇨🇳',
-        'Japanese': '🇯🇵',
-        'Korean': '🇰🇷',
-        'Arabic': '🇸🇦',
-      };
-      const parts = event.hostLanguages.split(',').map(s => s.trim());
-      hostLangsContainer.innerHTML = parts.map(part => {
-        // e.g. "Fluent English" or "Native French"
-        const match = part.match(/(Fluent|Native|Beginner)\s+(\w+)/);
-        if (match) {
-          const prof = match[1];
-          const lang = match[2];
-          const emoji = langFlag[lang] || '🗣️';
-          return `<span style="display:inline-block;margin-right:8px;padding:2px 8px;border-radius:8px;background:#f2f2f2;font-size:15px;">${emoji} <span style="font-weight:600;">${prof}</span> ${lang}</span>`;
-        }
-        return `<span style="display:inline-block;margin-right:8px;padding:2px 8px;border-radius:8px;background:#f2f2f2;font-size:15px;">${part}</span>`;
-      }).join('');
-    }
+    hostLangsContainer.textContent = event.hostLanguages || '';
   }
   // Attendees
   const attendeesContainer = document.getElementById('style-3beqi');
   if (attendeesContainer) {
     if (event.attendees && event.attendees.length) {
       attendeesContainer.innerHTML = event.attendees.map(att => {
-        // Try to extract language info from meta, e.g. "Fluent English, Native Polish"
-        let langsHtml = '';
-        if (att.meta && /English|French|Polish|Spanish|German|Italian|Portuguese|Chinese|Japanese|Korean|Arabic/.test(att.meta)) {
-          const langFlag = {
-            'French': '🇫🇷',
-            'English': '🇬🇧',
-            'Polish': '🇵🇱',
-            'Spanish': '🇪🇸',
-            'German': '🇩🇪',
-            'Italian': '🇮🇹',
-            'Portuguese': '🇵🇹',
-            'Chinese': '🇨🇳',
-            'Japanese': '🇯🇵',
-            'Korean': '🇰🇷',
-            'Arabic': '🇸🇦',
-          };
-          // Split meta by comma, look for prof+lang
-          langsHtml = att.meta.split(',').map(s => {
-            const part = s.trim();
-            const match = part.match(/(Fluent|Native|Beginner)\s+(\w+)/);
-            if (match) {
-              const prof = match[1];
-              const lang = match[2];
-              const emoji = langFlag[lang] || '🗣️';
-              return `<span style=\"display:inline-block;margin-right:6px;padding:2px 8px;border-radius:8px;background:#f2f2f2;font-size:13px;\">${emoji} <span style=\"font-weight:600;\">${prof}</span> ${lang}</span>`;
-            }
-            return '';
-          }).join('');
-        }
+        // Use languageLevels if available, otherwise check meta
+        const languagesToRender = att.languageLevels || att.meta;
+        
         return `
           <div class="style-rbjVo">
-            <div class="style-YsFbi">${att.emoji || ''}</div>
+            <div class="style-YsFbi">${att.emoji || '👤'}</div>
             <div class="style-U3Bwv">
               <div class="style-ttDWg">${att.name}</div>
-              <div class="style-lpVfd">${att.meta || ''}${langsHtml ? '<div>' + langsHtml + '</div>' : ''}</div>
+              <div class="style-lpVfd">${att.meta && !att.languageLevels ? att.meta : ''}</div>
+              ${att.languageLevels ? `<div class="style-lpVfd">${att.languageLevels}</div>` : ''}
             </div>
           </div>
         `;
