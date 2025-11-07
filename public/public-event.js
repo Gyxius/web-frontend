@@ -4,7 +4,8 @@
 // Helper to get query param
 function getEventIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  return params.get('id');
+  // Support both ?id= and ?event= for event id
+  return params.get('id') || params.get('event');
 }
 
 const API_BASE = "https://fast-api-backend-qlyb.onrender.com";
