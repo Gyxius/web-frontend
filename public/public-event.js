@@ -200,6 +200,7 @@ async function fetchEventData(eventId) {
       coordinates: data.coordinates || null,
       chatMessages: chatMessages,
       eventId: eventId,
+      hasTemplateEvent: !!data.templateEventId,
     };
   } catch (e) {
     console.error('Failed to fetch event:', e);
@@ -275,11 +276,22 @@ function renderEvent(event) {
   if (langsContainer) {
     langsContainer.innerHTML = langs.map(lang => `<div class="style-OBskZ"><span class="style-9m9Oq">${lang.emoji}</span><span>${lang.name}</span></div>`).join('');
   }
-  setText('#style-e4TOB', event.mainEventTitle || 'Event Title');
-  setText('#style-wJgk8 > span:last-child', event.venueShort || 'Venue');
-  setText('#style-1Ci39 > span:last-child', event.mainEventDate || 'Date');
-  setText('#style-ONmlH > span:last-child', event.category || 'Category');
-  setText('#style-18KL6 > span:last-child', `${(event.attendees && event.attendees.length) ? event.attendees.length : 0} attendees`);
+  
+  // Show/Hide "Based on Main Event" section
+  const basedOnSection = document.getElementById('style-mJ8XD');
+  if (basedOnSection) {
+    if (event.hasTemplateEvent) {
+      basedOnSection.style.display = 'block';
+      setText('#style-e4TOB', event.mainEventTitle || 'Event Title');
+      setText('#style-wJgk8 > span:last-child', event.venueShort || 'Venue');
+      setText('#style-1Ci39 > span:last-child', event.mainEventDate || 'Date');
+      setText('#style-ONmlH > span:last-child', event.category || 'Category');
+      setText('#style-18KL6 > span:last-child', `${(event.attendees && event.attendees.length) ? event.attendees.length : 0} attendees`);
+    } else {
+      basedOnSection.style.display = 'none';
+    }
+  }
+  
   setText('#style-nEg6y', event.description || 'No description');
   setText('#style-yeQbe', event.hostName || 'Host');
   setText('#style-RGVi8 > div:first-child', event.hostAffiliation || '');
@@ -350,14 +362,14 @@ function renderEvent(event) {
         const isCurrentUser = msg.username === 'Mitsu';
         
         if (isCurrentUser) {
-          // Right-aligned message with avatar
+          // Right-aligned message with host avatar (use the same avatar as host section)
           return `
             <div style="display:flex;justify-content:flex-end;margin-bottom:12px;gap:8px;">
               <div style="background:#58CC02;color:white;padding:12px 16px;border-radius:18px 18px 4px 18px;max-width:70%;">
                 <span style="font-weight:600;margin-right:8px;">You</span>${msg.message}
               </div>
               <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;">
-                <img alt="avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.username.toLowerCase()}" style="width:100%;height:100%;">
+                <img alt="avatar" src="${event.hostAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=mitsu'}" style="width:100%;height:100%;">
               </div>
             </div>
           `;
