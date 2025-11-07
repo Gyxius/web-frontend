@@ -20,6 +20,10 @@
     <div id="style-TooZo" class="style-TooZo">
       <h1 id="eventTitle">Event</h1>
       <div id="style-paiz6" class="style-paiz6"><button id="shareBtn" class="style-BBQAI">Share</button></div>
+      <div id="style-paiz6" class="style-paiz6">
+        <button id="shareBtn" class="style-BBQAI">Share</button>
+        <span id="shareMsg" style="display:none; margin-left:10px; color:#4BB543; font-size:14px; font-weight:600;">Link copied!</span>
+      </div>
       <div id="style-8jRbV" class="style-8jRbV"><button id="settingsBtn" class="style-NlawA">⚙️</button></div>
     </div>
     <div id="style-KX73E" class="style-KX73E">
@@ -67,6 +71,47 @@
 
   <!-- We'll refresh the event and chat periodically so the shared page stays live. -->
   <script>
+  // Share button logic
+  const shareBtn = document.getElementById('shareBtn');
+  const shareMsg = document.getElementById('shareMsg');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async function() {
+      const shareUrl = window.location.href;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: document.title, url: shareUrl });
+        } catch (e) {
+          // User cancelled or error
+        }
+      } else if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          if (shareMsg) {
+            shareMsg.style.display = 'inline';
+            setTimeout(() => { shareMsg.style.display = 'none'; }, 1800);
+          }
+        } catch (e) {
+          alert('Could not copy link.');
+        }
+      } else {
+        // Fallback for very old browsers
+        const tempInput = document.createElement('input');
+        tempInput.value = shareUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        try {
+          document.execCommand('copy');
+          if (shareMsg) {
+            shareMsg.style.display = 'inline';
+            setTimeout(() => { shareMsg.style.display = 'none'; }, 1800);
+          }
+        } catch (e) {
+          alert('Could not copy link.');
+        }
+        document.body.removeChild(tempInput);
+      }
+    });
+  }
   document.addEventListener('DOMContentLoaded', function(){
   (async function(){
   let currentEvent = null;
