@@ -25,6 +25,13 @@ function setImage(selector, src) {
 }
 
 function renderEvent(event) {
+  // Set banner background
+  const banner = document.getElementById('eventBanner');
+  if (banner && event.imageUrl) {
+    banner.style.backgroundImage = `url('${event.imageUrl}')`;
+  } else if (banner) {
+    banner.style.backgroundImage = '';
+  }
   setText('#style-d6n8e', event.city);
   setText('#style-bhvn2 > div:first-child', event.venueName);
   setText('#style-bhvn2 > div:last-child', event.venueAddress);
