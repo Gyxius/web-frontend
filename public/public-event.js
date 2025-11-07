@@ -7,10 +7,11 @@ function getEventIdFromUrl() {
   return params.get('id');
 }
 
+const API_BASE = "https://fast-api-backend-qlyb.onrender.com";
+
 async function fetchEventData(eventId) {
-  // TODO: Replace with your backend API endpoint
   try {
-    const response = await fetch(`/api/events/${eventId}`);
+    const response = await fetch(`${API_BASE}/api/events/${eventId}`);
     if (!response.ok) throw new Error('Event not found');
     return await response.json();
   } catch (e) {
