@@ -50,9 +50,13 @@ function getCountryEmoji(countryName) {
 async function fetchUserProfile(username) {
   try {
     const response = await fetch(`${API_BASE}/api/users/${username}/profile`);
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.log(`Profile not found for ${username}, using defaults`);
+      return null;
+    }
     return await response.json();
   } catch (e) {
+    console.log(`Error fetching profile for ${username}:`, e.message);
     return null;
   }
 }
