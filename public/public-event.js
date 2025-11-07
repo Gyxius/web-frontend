@@ -111,7 +111,13 @@ async function fetchEventData(eventId) {
       if (!profile) {
         // Default emoji for users without profiles
         const defaultEmoji = username.toLowerCase() === 'james' ? '🙂' : '👤';
-        return { emoji: defaultEmoji, name: username, meta: '', languageLevels: '' };
+        return { emoji: defaultEmoji, name: username, meta: '', languageLevels: '', avatar: null };
+      }
+      
+      // Get avatar URL from profile
+      let avatar = null;
+      if (profile.avatar && profile.avatar.provider === 'dicebear') {
+        avatar = `https://api.dicebear.com/7.x/${profile.avatar.style}/svg?seed=${profile.avatar.seed}`;
       }
       
       // Get emoji from profile avatar or use default
@@ -136,7 +142,7 @@ async function fetchEventData(eventId) {
           .join(', ');
       }
       
-      return { emoji, name: displayName, meta, languageLevels };
+      return { emoji, name: displayName, meta, languageLevels, avatar };
     });
     
     // Capitalize city name
@@ -154,6 +160,12 @@ async function fetchEventData(eventId) {
     
     // Use template category if available
     const category = templateEvent?.category || data.category || 'event';
+    
+    // Get host avatar URL
+    let hostAvatar = null;
+    if (hostProfile && hostProfile.avatar && hostProfile.avatar.provider === 'dicebear') {
+      hostAvatar = `https://api.dicebear.com/7.x/${hostProfile.avatar.style}/svg?seed=${hostProfile.avatar.seed}`;
+    }
     
     // Transform backend data to match the expected format
     return {
@@ -173,6 +185,7 @@ async function fetchEventData(eventId) {
       hostName: hostName,
       hostAffiliation: hostProfile?.university || '',
       hostLanguages: hostLanguages,
+      hostAvatar: hostAvatar,
       coordinates: data.coordinates || null,
     };
   } catch (e) {
@@ -257,6 +270,15 @@ function renderEvent(event) {
   setText('#style-nEg6y', event.description || 'No description');
   setText('#style-yeQbe', event.hostName || 'Host');
   setText('#style-RGVi8 > div:first-child', event.hostAffiliation || '');
+  
+  // Update host avatar
+  if (event.hostAvatar) {
+    const hostAvatarImg = document.getElementById('style-mZ3Tj');
+    if (hostAvatarImg) {
+      hostAvatarImg.src = event.hostAvatar;
+    }
+  }
+  
   // Render hostLanguages as plain text (no emoji badges)
   const hostLangsContainer = document.getElementById('style-9hJaP');
   if (hostLangsContainer) {
@@ -270,9 +292,17 @@ function renderEvent(event) {
         // Use languageLevels if available, otherwise check meta
         const languagesToRender = att.languageLevels || att.meta;
         
+        // Render avatar or emoji
+        let avatarHtml = '';
+        if (att.avatar) {
+          avatarHtml = `<div class="style-NRy22"><img alt="avatar" src="${att.avatar}" class="style-w4eFL"></div>`;
+        } else {
+          avatarHtml = `<div class="style-YsFbi">${att.emoji || '👤'}</div>`;
+        }
+        
         return `
           <div class="style-rbjVo">
-            <div class="style-YsFbi">${att.emoji || '👤'}</div>
+            ${avatarHtml}
             <div class="style-U3Bwv">
               <div class="style-ttDWg">${att.name}</div>
               <div class="style-lpVfd">${att.meta && !att.languageLevels ? att.meta : ''}</div>
