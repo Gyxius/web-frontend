@@ -5,13 +5,13 @@
       <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
       <link rel="stylesheet" href="./snipped.css">
    </head>
-   <body>
-<div id="eventBanner" style="width:100%;height:180px;background:#e5e5e5 center/cover no-repeat;border-radius:0 0 24px 24px;margin-bottom:18px;"></div>
-<div class="snipcss-z4Q8p style-Zwicg" id="style-Zwicg">
+   <body style="background: #F7F7F5; padding: 20px;">
+<div style="max-width: 800px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+<div id="eventBanner" style="width:100%;height:180px;background:#e5e5e5 center/cover no-repeat;border-radius:0;margin-bottom:0;"></div>
+<div class="snipcss-z4Q8p style-Zwicg" id="style-Zwicg" style="padding: 20px;">
     <div id="style-TooZo" class="style-TooZo">
         <h1>Meetup</h1>
-        <div id="style-paiz6" class="style-paiz6"><button id="style-BBQAI" class="style-BBQAI">Share</button></div>
-        <div id="style-8jRbV" class="style-8jRbV"><button id="style-NlawA" class="style-NlawA">⚙️</button></div>
+        <div id="style-8jRbV" class="style-8jRbV" style="display:none;"><button id="style-NlawA" class="style-NlawA">⚙️</button></div>
     </div>
     <div id="style-KX73E" class="style-KX73E">
         <div id="style-SMaKS" class="style-SMaKS"><span id="style-T4pGg" class="style-T4pGg">📍</span>
@@ -103,12 +103,54 @@
         </div>
         <div id="style-PUgAR" class="style-PUgAR"><input placeholder="Type your message…" value="" id="style-TNmnM" class="style-TNmnM"><button id="style-PSWPF" class="style-PSWPF">Send</button></div>
     </div>
+    
+    <!-- Share Button at Bottom -->
+    <div style="padding: 24px; text-align: center; border-top: 1px solid #EEF2F7;">
+        <button id="shareButton" style="background: #58CC02; color: white; border: none; padding: 16px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+            📤 Share Event
+        </button>
+    </div>
 </div>
+</div>
+
+<!-- Registration Modal -->
+<div id="registrationModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 20px; padding: 32px; max-width: 400px; margin: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div style="font-size: 48px; text-align: center; margin-bottom: 16px;">🎉</div>
+        <h2 style="font-size: 24px; font-weight: 800; color: #1F2937; margin-bottom: 12px; text-align: center;">Join the Conversation!</h2>
+        <p style="font-size: 16px; color: #6B7280; margin-bottom: 24px; text-align: center; line-height: 1.5;">
+            Sign up to chat with attendees, join events, and be part of our community!
+        </p>
+        <div style="display: flex; gap: 12px;">
+            <button id="closeModal" style="flex: 1; background: #F3F4F6; color: #1F2937; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                Cancel
+            </button>
+            <button id="goToLogin" style="flex: 1; background: #58CC02; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;">
+                Sign Up / Login
+            </button>
+        </div>
+    </div>
+</div>
+
         <script src="./public-event.js"></script>
         <script src="./test-public-event.js"></script>
         <script>
             // Expose renderEvent for testing
             window.renderEvent = renderEvent;
+            
+            // Add hover effects to share button
+            const shareBtn = document.getElementById('shareButton');
+            if (shareBtn) {
+                shareBtn.addEventListener('mouseenter', () => {
+                    shareBtn.style.transform = 'translateY(-2px)';
+                    shareBtn.style.boxShadow = '0 4px 12px rgba(88, 204, 2, 0.3)';
+                });
+                shareBtn.addEventListener('mouseleave', () => {
+                    shareBtn.style.transform = 'translateY(0)';
+                    shareBtn.style.boxShadow = 'none';
+                });
+            }
+        </script>
         </script>
     </body>
 </html>

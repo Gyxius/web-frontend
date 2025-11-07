@@ -351,6 +351,9 @@ function renderEvent(event) {
     } else {
       attendeesContainer.innerHTML = '<div style="color:#888;padding:12px;">No attendees yet</div>';
     }
+    
+    // Add click handlers to attendees after rendering
+    setTimeout(() => addAttendeeClickHandlers(), 100);
   }
   
   // Chat messages
@@ -412,6 +415,117 @@ async function main() {
     }
   }
   renderEvent(event);
+  
+  // Setup registration modal handlers
+  setupRegistrationHandlers();
+}
+
+// Show registration modal
+function showRegistrationModal() {
+  const modal = document.getElementById('registrationModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+// Hide registration modal
+function hideRegistrationModal() {
+  const modal = document.getElementById('registrationModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Setup all registration-related click handlers
+function setupRegistrationHandlers() {
+  // Close modal button
+  const closeBtn = document.getElementById('closeModal');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', hideRegistrationModal);
+  }
+  
+  // Go to login button
+  const loginBtn = document.getElementById('goToLogin');
+  if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+      // Redirect to main app login page
+      window.location.href = '/';
+    });
+  }
+  
+  // Share button
+  const shareBtn = document.getElementById('shareButton');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+      const eventId = getEventIdFromUrl();
+      const shareUrl = `${window.location.origin}${window.location.pathname}?event=${eventId}`;
+      
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: document.querySelector('h1')?.textContent || 'Event',
+            text: 'Check out this event!',
+            url: shareUrl
+          });
+        } catch (err) {
+          console.log('Share cancelled or failed:', err);
+        }
+      } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          const originalText = shareBtn.textContent;
+          shareBtn.textContent = '✓ Link Copied!';
+          setTimeout(() => {
+            shareBtn.textContent = originalText;
+          }, 2000);
+        });
+      }
+    });
+  }
+  
+  // Send message button
+  const sendBtn = document.getElementById('style-PSWPF');
+  if (sendBtn) {
+    sendBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showRegistrationModal();
+    });
+  }
+  
+  // Message input field
+  const messageInput = document.getElementById('style-TNmnM');
+  if (messageInput) {
+    messageInput.addEventListener('focus', () => {
+      showRegistrationModal();
+      messageInput.blur();
+    });
+  }
+  
+  // Host profile click
+  const hostProfile = document.getElementById('style-eJxvq');
+  if (hostProfile) {
+    hostProfile.style.cursor = 'pointer';
+    hostProfile.addEventListener('click', showRegistrationModal);
+  }
+  
+  // Close modal when clicking outside
+  const modal = document.getElementById('registrationModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        hideRegistrationModal();
+      }
+    });
+  }
+}
+
+// Add click handlers to attendees (called after rendering)
+function addAttendeeClickHandlers() {
+  const attendees = document.querySelectorAll('.style-Ton9s, .style-rbjVo');
+  attendees.forEach(attendee => {
+    attendee.style.cursor = 'pointer';
+    attendee.addEventListener('click', showRegistrationModal);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
