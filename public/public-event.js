@@ -89,6 +89,17 @@ async function fetchEventData(eventId) {
       (data.participants || []).map(p => fetchUserProfile(p))
     );
     
+    // Fetch chat messages
+    let chatMessages = [];
+    try {
+      const chatResponse = await fetch(`${API_BASE}/api/chat/${eventId}`);
+      if (chatResponse.ok) {
+        chatMessages = await chatResponse.json();
+      }
+    } catch (e) {
+      console.error('Failed to fetch chat:', e);
+    }
+    
     // Build host display name with country flags
     let hostName = hostUsername || 'Host';
     if (hostProfile) {
@@ -187,6 +198,8 @@ async function fetchEventData(eventId) {
       hostLanguages: hostLanguages,
       hostAvatar: hostAvatar,
       coordinates: data.coordinates || null,
+      chatMessages: chatMessages,
+      eventId: eventId,
     };
   } catch (e) {
     console.error('Failed to fetch event:', e);
@@ -286,7 +299,13 @@ function renderEvent(event) {
   }
   // Attendees
   const attendeesContainer = document.getElementById('style-3beqi');
+  const attendeeCount = document.getElementById('style-Ccfcf');
   if (attendeesContainer) {
+    const count = event.attendees ? event.attendees.length : 0;
+    if (attendeeCount) {
+      attendeeCount.textContent = `🧃 Attendees (${count})`;
+    }
+    
     if (event.attendees && event.attendees.length) {
       attendeesContainer.innerHTML = event.attendees.map(att => {
         // Different structure for avatar vs emoji
@@ -319,6 +338,45 @@ function renderEvent(event) {
       }).join('');
     } else {
       attendeesContainer.innerHTML = '<div style="color:#888;padding:12px;">No attendees yet</div>';
+    }
+  }
+  
+  // Chat messages
+  const chatContainer = document.getElementById('style-MWXHT');
+  if (chatContainer && event.chatMessages) {
+    if (event.chatMessages.length > 0) {
+      chatContainer.innerHTML = event.chatMessages.map(msg => {
+        // Determine if message is from current user (we'll show "You" for Mitsu for now)
+        const isCurrentUser = msg.username === 'Mitsu';
+        
+        if (isCurrentUser) {
+          // Right-aligned message with avatar
+          return `
+            <div style="display:flex;justify-content:flex-end;margin-bottom:12px;gap:8px;">
+              <div style="background:#58CC02;color:white;padding:12px 16px;border-radius:18px 18px 4px 18px;max-width:70%;">
+                <span style="font-weight:600;margin-right:8px;">You</span>${msg.message}
+              </div>
+              <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;">
+                <img alt="avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.username.toLowerCase()}" style="width:100%;height:100%;">
+              </div>
+            </div>
+          `;
+        } else {
+          // Left-aligned message with emoji/avatar
+          return `
+            <div style="display:flex;margin-bottom:12px;gap:8px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">
+                🙂
+              </div>
+              <div style="background:#f5f5f5;padding:12px 16px;border-radius:18px 18px 18px 4px;max-width:70%;">
+                <span style="font-weight:600;margin-right:8px;">${msg.username}</span>${msg.message}
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+    } else {
+      chatContainer.innerHTML = '<div style="color:#888;padding:12px;text-align:center;">No messages yet</div>';
     }
   }
 }
