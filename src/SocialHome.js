@@ -628,52 +628,53 @@ function SocialHome({
             Lemi
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button 
-              onClick={() => {
-                setShowNotificationsInbox(true);
-              }}
-              style={{ 
-                background: "none", 
-                border: "none", 
-                fontSize: 22, 
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                color: theme.primary,
-                position: "relative",
-              }}
-            >
-              {(() => {
-                const avatarUrl = getCurrentUserAvatarUrl();
-                if (avatarUrl) {
-                  return (
+            {/* Avatar with notification badge on the right (click avatar to open notifications) */}
+            {(() => {
+              const avatarUrl = getCurrentUserAvatarUrl();
+              return (
+                <button
+                  onClick={() => setShowNotificationsInbox(true)}
+                  aria-label="Open notifications"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative'
+                  }}
+                >
+                  {avatarUrl ? (
                     <img src={avatarUrl} alt="avatar" style={{ width: 36, height: 36, borderRadius: 999, display: 'block' }} />
-                  );
-                }
-                return <FaUserCircle size={28} />;
-              })()}
-              {(notificationCount + (followRequestsIncoming?.length || 0)) > 0 && (
-                <div style={{
-                  position: "absolute",
-                  top: -4,
-                  right: -4,
-                  background: "#FF4444",
-                  color: "white",
-                  borderRadius: "50%",
-                  minWidth: 18,
-                  height: 18,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 11,
-                  fontWeight: "bold",
-                  padding: (notificationCount + (followRequestsIncoming?.length || 0)) > 9 ? "0 4px" : 0,
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-                }}>
-                  {(notificationCount + (followRequestsIncoming?.length || 0)) > 99 ? "99+" : (notificationCount + (followRequestsIncoming?.length || 0))}
-                </div>
-              )}
-            </button>
+                  ) : (
+                    <FaUserCircle size={28} />
+                  )}
+                  {(notificationCount + (followRequestsIncoming?.length || 0)) > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: -6,
+                      right: -6,
+                      background: '#FF4444',
+                      color: 'white',
+                      borderRadius: '50%',
+                      minWidth: 18,
+                      height: 18,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 11,
+                      fontWeight: 'bold',
+                      padding: (notificationCount + (followRequestsIncoming?.length || 0)) > 9 ? '0 4px' : 0,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}>
+                      {(notificationCount + (followRequestsIncoming?.length || 0)) > 99 ? '99+' : (notificationCount + (followRequestsIncoming?.length || 0))}
+                    </div>
+                  )}
+                </button>
+              );
+            })()}
           </div>
         </div>
 
