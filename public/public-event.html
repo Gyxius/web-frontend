@@ -81,6 +81,7 @@
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
       <div style="font-size:64px; font-weight:900; color:var(--text)"> 
         <span class="title">Event</span>
+        <div id="meta" class="meta" style="margin-top:6px; font-size:16px; color:var(--muted)"></div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <button class="btn" style="padding:8px 12px; border-radius:10px; background:var(--primary); color:white; border:none; cursor:pointer; font-weight:700">Share</button>
@@ -115,7 +116,9 @@
       </div>
     </div>
 
-    <div id="basedOn" style="display:none; margin-bottom:16px;"></div>
+    <div id="basedOn" style="display:none; margin-bottom:16px;">
+      <div id="basedContent"></div>
+    </div>
 
     <div id="host" style="margin-bottom:16px;"></div>
 
