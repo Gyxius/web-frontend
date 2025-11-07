@@ -154,8 +154,15 @@ export const deleteChatMessage = async (eventId, messageId, username) => {
     headers: { "Content-Type": "application/json" },
   });
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || "Failed to delete message");
+    let errorMsg = "Failed to delete message";
+    try {
+      const error = await response.json();
+      errorMsg = error.detail || error.error || errorMsg;
+    } catch (e) {
+      // If can't parse JSON, use status text
+      errorMsg = `${errorMsg} (${response.status} ${response.statusText})`;
+    }
+    throw new Error(errorMsg);
   }
   return response.json();
 };
