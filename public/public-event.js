@@ -283,14 +283,19 @@ function renderEvent(event) {
 
 async function main() {
   const eventId = getEventIdFromUrl();
+  console.log('Event ID from URL:', eventId);
   let event;
   if (!eventId) {
+    console.log('No event ID, using mock data');
     // Use fallback mock data if no id
     event = await fetchEventData('mock');
   } else {
     try {
+      console.log('Fetching event:', eventId);
       event = await fetchEventData(eventId);
+      console.log('Event data:', event);
     } catch (e) {
+      console.error('Error fetching event:', e);
       event = await fetchEventData('mock');
     }
   }
