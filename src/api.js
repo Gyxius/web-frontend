@@ -149,10 +149,9 @@ export const sendChatMessage = async (eventId, username, message) => {
 };
 
 export const deleteChatMessage = async (eventId, messageId, username) => {
-  const response = await fetch(`${API_URL}/api/chat/${eventId}/messages/${messageId}`, {
+  const response = await fetch(`${API_URL}/api/chat/${eventId}/messages/${messageId}?username=${encodeURIComponent(username)}`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username }),
   });
   if (!response.ok) {
     const error = await response.json();
