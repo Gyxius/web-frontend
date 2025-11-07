@@ -1,541 +1,136 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Event — Public View</title>
-  <!-- Leaflet for map (needed because this is a standalone static page) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="/snipped.css">
-</head>
-<body>
-
-  <!-- Banner at the very top, keep as is for live updates -->
-  <div id="banner" style="visibility:hidden; background-size:cover; background-position:center; height:220px; border-radius:16px; margin:0 0 24px 0; overflow:hidden;">
-    <img id="bannerImg" alt="Event cover" style="display:none; width:100%; height:220px; object-fit:cover; border-radius:16px;" />
-  </div>
-
-  <div class="snipcss-z4Q8p style-Zwicg" id="style-Zwicg">
+   <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+      <link rel="stylesheet" href="./snipped.css">
+   </head>
+   <body>
+<div class="snipcss-z4Q8p style-Zwicg" id="style-Zwicg">
     <div id="style-TooZo" class="style-TooZo">
-      <h1 id="eventTitle">Event</h1>
-      <div id="style-paiz6" class="style-paiz6">
-        <button id="shareBtn" class="style-BBQAI">Share</button>
-        <span id="shareMsg" style="display:none; margin-left:10px; color:#4BB543; font-size:14px; font-weight:600;">Link copied!</span>
-      </div>
-      <div id="style-8jRbV" class="style-8jRbV"><button id="settingsBtn" class="style-NlawA">⚙️</button></div>
+        <h1>Meetup</h1>
+        <div id="style-paiz6" class="style-paiz6"><button id="style-BBQAI" class="style-BBQAI">Share</button></div>
+        <div id="style-8jRbV" class="style-8jRbV"><button id="style-NlawA" class="style-NlawA">⚙️</button></div>
     </div>
     <div id="style-KX73E" class="style-KX73E">
-      <div id="style-SMaKS" class="style-SMaKS"><span id="style-T4pGg" class="style-T4pGg">📍</span>
-        <div id="style-Cr8zq" class="style-Cr8zq">
-          <div id="city" class="style-d6n8e"></div>
-          <div id="venueName" class="style-bhvn2"></div>
-          <div id="venueAddress" class="style-bhvn2"></div>
-          <div id="mapWrap" style="visibility:hidden; margin-top:12px;">
-            <div id="map" class="leaflet-container style-Qg8iX" style="width:100%;height:200px;border-radius:12px;margin-top:12px;border:2px solid #e5e5e5;overflow:hidden;position:relative;z-index:1;"></div>
-          </div>
+        <div id="style-SMaKS" class="style-SMaKS"><span id="style-T4pGg" class="style-T4pGg">📍</span>
+            <div id="style-Cr8zq" class="style-Cr8zq">
+                <div id="style-d6n8e" class="style-d6n8e">Paris</div>
+                <div id="style-bhvn2" class="style-bhvn2">
+                    <div>Le Fleurus</div>
+                    <div>Le Fleurus, 10, Boulevard Jourdan, Quartier du Parc-de-Montsouris, Paris 14e Arrondissement, Paris, Île-de-France, France métropolitaine, 75014, France</div>
+                </div>
+                <div data-map-initialized="true" class="leaflet-container leaflet-touch leaflet-retina leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom style-Qg8iX" tabindex="0" id="style-Qg8iX">
+                    <div class="leaflet-pane leaflet-map-pane style-AtDRb" id="style-AtDRb">
+                        <div class="leaflet-pane leaflet-tile-pane">
+                            <div class="leaflet-layer  style-8cQnI" id="style-8cQnI">
+                                <div class="leaflet-tile-container leaflet-zoom-animated style-jHxRU" id="style-jHxRU"><img alt="" src="./images/11277.png" class="leaflet-tile leaflet-tile-loaded style-2Li9E" id="style-2Li9E"><img alt="" src="./images/11278.png" class="leaflet-tile leaflet-tile-loaded style-hqJoH" id="style-hqJoH"><img alt="" src="./images/11277.png" class="leaflet-tile leaflet-tile-loaded style-8TTvh" id="style-8TTvh"><img alt="" src="./images/11277.png" class="leaflet-tile leaflet-tile-loaded style-arcTc" id="style-arcTc"><img alt="" src="./images/11278.png" class="leaflet-tile leaflet-tile-loaded style-aTEoj" id="style-aTEoj"><img alt="" src="./images/11278.png" class="leaflet-tile leaflet-tile-loaded style-baGJh" id="style-baGJh"></div>
+                            </div>
+                        </div>
+                        <div class="leaflet-pane leaflet-overlay-pane"></div>
+                        <div class="leaflet-pane leaflet-shadow-pane"><img src="./images/marker-shadow.png" class="leaflet-marker-shadow leaflet-zoom-animated style-Db3DN" alt="" id="style-Db3DN"></div>
+                        <div class="leaflet-pane leaflet-marker-pane"><img src="./images/marker-icon-2x.png" class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive style-xA5As" alt="Marker" tabindex="0" role="button" id="style-xA5As"></div>
+                        <div class="leaflet-pane leaflet-tooltip-pane"></div>
+                        <div class="leaflet-pane leaflet-popup-pane"></div>
+                        <div class="leaflet-proxy leaflet-zoom-animated"></div>
+                    </div>
+                    <div class="leaflet-control-container">
+                        <div class="leaflet-top leaflet-left">
+                            <div class="leaflet-control-zoom leaflet-bar leaflet-control"><a class="leaflet-control-zoom-in" href="#" title="Zoom in" role="button" aria-label="Zoom in" aria-disabled="false"><span aria-hidden="true">+</span></a><a class="leaflet-control-zoom-out" href="#" title="Zoom out" role="button" aria-label="Zoom out" aria-disabled="false"><span aria-hidden="true">−</span></a></div>
+                        </div>
+                        <div class="leaflet-top leaflet-right"></div>
+                        <div class="leaflet-bottom leaflet-left"></div>
+                        <div class="leaflet-bottom leaflet-right">
+                            <div class="leaflet-control-attribution leaflet-control"><a href="https://leafletjs.com" title="A JavaScript library for interactive maps"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" class="leaflet-attribution-flag">
+                                        <path fill="#4C7BE1" d="M0 0h12v4H0z"></path>
+                                        <path fill="#FFD500" d="M0 4h12v3H0z"></path>
+                                        <path fill="#E0BC00" d="M0 7h12v1H0z"></path>
+                                    </svg> Leaflet</a> <span aria-hidden="true">|</span> © OpenStreetMap</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div id="style-me2og" class="style-me2og"><span id="style-AUnJo" class="style-AUnJo">📅</span><span id="eventDate"></span></div>
+        <div id="style-me2og" class="style-me2og"><span id="style-AUnJo" class="style-AUnJo">📅</span><span>2025-11-05 at 20:30</span></div>
     </div>
-    <div id="languagesSection" class="style-qoISp" style="display:none;">
-      <div id="style-m5hUl" class="style-m5hUl">🗣️ Languages</div>
-      <div id="languages" class="style-i5pDl"></div>
-    </div>
-    <div id="basedOn" class="style-mJ8XD" style="display:none;">
-      <div id="style-3qov8" class="style-3qov8">✨ Based on Main Event</div>
-      <div id="style-Ja7eE" class="style-Ja7eE">
-        <div id="style-e4TOB" class="style-e4TOB"></div>
-        <div id="style-AqkGG" class="style-AqkGG">
-          <div id="style-wJgk8" class="style-wJgk8"></div>
-          <div id="style-1Ci39" class="style-1Ci39"></div>
-          <div id="style-ONmlH" class="style-ONmlH"></div>
-          <div id="style-18KL6" class="style-18KL6"></div>
+    <div id="style-qoISp" class="style-qoISp">
+        <div id="style-m5hUl" class="style-m5hUl">🗣️ Languages</div>
+        <div id="style-i5pDl" class="style-i5pDl">
+            <div id="style-OBskZ" class="style-OBskZ"><span id="style-9m9Oq" class="style-9m9Oq">🇫🇷</span><span>French</span></div>
+            <div id="style-3eoYs" class="style-3eoYs"><span id="style-aRoMv" class="style-aRoMv">🇬🇧</span><span>English</span></div>
         </div>
-      </div>
-      <div id="basedContent"></div>
     </div>
-    <div id="aboutSection" class="style-soB6P" style="display:none;">
-      <div id="style-mCQV9" class="style-mCQV9">📝 About this hangout</div>
-      <div id="aboutContent" class="style-nEg6y"></div>
+    <div id="style-mJ8XD" class="style-mJ8XD">
+        <div id="style-3qov8" class="style-3qov8">✨ Based on Main Event</div>
+        <div id="style-Ja7eE" class="style-Ja7eE">
+            <div id="style-e4TOB" class="style-e4TOB">Karaoke Night</div>
+            <div id="style-AqkGG" class="style-AqkGG">
+                <div id="style-wJgk8" class="style-wJgk8"><span>📍</span><span>Cité · Le Fleurus</span></div>
+                <div id="style-1Ci39" class="style-1Ci39"><span>⏰</span><span>2025-11-05</span></div>
+                <div id="style-ONmlH" class="style-ONmlH"><span>🎯</span><span>party</span></div>
+                <div id="style-18KL6" class="style-18KL6"><span>👥</span><span>1 attendees</span></div>
+            </div>
+        </div>
     </div>
-    <div id="host" class="style-NlhQC"></div>
-    <div id="attendees" class="style-XlhYI"></div>
+    <div id="style-soB6P" class="style-soB6P">
+        <div id="style-mCQV9" class="style-mCQV9">📝 About this hangout</div>
+        <div id="style-nEg6y" class="style-nEg6y">A little meetup</div>
+    </div>
+    <div id="style-NlhQC" class="style-NlhQC">
+        <div id="style-z4QBA" class="style-z4QBA">👤 Hosted by</div>
+        <div id="style-eJxvq" class="style-eJxvq">
+            <div id="style-spmpI" class="style-spmpI"><img alt="avatar" src="./images/svg-seed-unms52o6" id="style-mZ3Tj" class="style-mZ3Tj"></div>
+            <div id="style-do2lP" class="style-do2lP">
+                <div id="style-yeQbe" class="style-yeQbe">Mitsu 🇫🇷 🇲🇬</div>
+                <div id="style-RGVi8" class="style-RGVi8">
+                    <div>Centrale X ESSEC</div>
+                    <div id="style-9hJaP" class="style-9hJaP"><span>Fluent English</span><span>, Native French</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="style-XlhYI" class="style-XlhYI">
+        <div id="style-Ccfcf" class="style-Ccfcf">🧃 Attendees (2)</div>
+        <div id="style-3beqi" class="style-3beqi">
+            <div id="style-rbjVo" class="style-rbjVo">
+                <div id="style-YsFbi" class="style-YsFbi">🙂</div>
+                <div id="style-U3Bwv" class="style-U3Bwv">
+                    <div id="style-ttDWg" class="style-ttDWg">james </div>
+                    <div id="style-lpVfd" class="style-lpVfd"></div>
+                </div>
+            </div>
+            <div id="style-Ton9s" class="style-Ton9s">
+                <div id="style-NRy22" class="style-NRy22"><img alt="avatar" src="./images/svg-seed-ccxi3vpf" id="style-w4eFL" class="style-w4eFL"></div>
+                <div id="style-yRx2V" class="style-yRx2V">
+                    <div id="style-DvGnR" class="style-DvGnR">Kat 🇵🇱</div>
+                    <div id="style-nWhD4" class="style-nWhD4">
+                        <div>SGH</div>
+                        <div id="style-Zm9pG" class="style-Zm9pG"><span>Fluent English</span><span>, Native Polish</span><span>, Beginner French</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="style-3tJEN" class="style-3tJEN">
-      <div id="style-nUYVF" class="style-nUYVF">💬 Group Chat</div>
-  <div id="chat" class="style-MWXHT" style="min-height:80px;display:flex;flex-direction:column;justify-content:center;">Loading chat…</div>
-      <div id="style-PUgAR" class="style-PUgAR"><input placeholder="Type your message…" id="chatInput" class="style-TNmnM" disabled><button id="sendBtn" class="style-PSWPF" disabled>Send</button></div>
+        <div id="style-nUYVF" class="style-nUYVF">💬 Group Chat</div>
+        <div id="style-MWXHT" class="style-MWXHT">
+            <div id="style-NakvX" class="style-NakvX">
+                <div id="style-Jhlj2" class="style-Jhlj2">
+                    <div id="style-mcTP3" class="style-mcTP3">🙂</div>
+                </div>
+                <div id="style-peqQY" class="style-peqQY"><span id="style-p1soe" class="style-p1soe">james</span>Automated test message — please ignore</div>
+            </div>
+            <div id="style-osFJj" class="style-osFJj">
+                <div id="style-YDOaZ" class="style-YDOaZ"><span id="style-QCoeK" class="style-QCoeK">You</span>test</div>
+                <div id="style-yMaYX" class="style-yMaYX"><img alt="avatar" src="./images/svg-seed-unms52o6" id="style-QxI3o" class="style-QxI3o"></div>
+            </div>
+            <div id="style-x4Pi9" class="style-x4Pi9">
+                <div id="style-VKgIh" class="style-VKgIh"><span id="style-Hvt1J" class="style-Hvt1J">You</span>test again</div>
+                <div id="style-oCczT" class="style-oCczT"><img alt="avatar" src="./images/svg-seed-unms52o6" id="style-3jNjt" class="style-3jNjt"></div>
+            </div>
+        </div>
+        <div id="style-PUgAR" class="style-PUgAR"><input placeholder="Type your message…" value="" id="style-TNmnM" class="style-TNmnM"><button id="style-PSWPF" class="style-PSWPF">Send</button></div>
     </div>
-  </div>
-
-  <!-- We'll refresh the event and chat periodically so the shared page stays live. -->
-  <script>
-  // Share button logic
-  const shareBtn = document.getElementById('shareBtn');
-  const shareMsg = document.getElementById('shareMsg');
-  if (shareBtn) {
-    shareBtn.addEventListener('click', async function() {
-      const shareUrl = window.location.href;
-      if (navigator.share) {
-        try {
-          await navigator.share({ title: document.title, url: shareUrl });
-        } catch (e) {
-          // User cancelled or error
-        }
-      } else if (navigator.clipboard) {
-        try {
-          await navigator.clipboard.writeText(shareUrl);
-          if (shareMsg) {
-            shareMsg.style.display = 'inline';
-            setTimeout(() => { shareMsg.style.display = 'none'; }, 1800);
-          }
-        } catch (e) {
-          alert('Could not copy link.');
-        }
-      } else {
-        // Fallback for very old browsers
-        const tempInput = document.createElement('input');
-        tempInput.value = shareUrl;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        try {
-          document.execCommand('copy');
-          if (shareMsg) {
-            shareMsg.style.display = 'inline';
-            setTimeout(() => { shareMsg.style.display = 'none'; }, 1800);
-          }
-        } catch (e) {
-          alert('Could not copy link.');
-        }
-        document.body.removeChild(tempInput);
-      }
-    });
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-  (async function(){
-  let currentEvent = null;
-  // track whether this is the initial load so we don't show a big "Loading…" on every poll
-  let initialLoad = true;
-  let map = null;
-  let marker = null;
-
-  const API_URL = 'https://fast-api-backend-qlyb.onrender.com';
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('event') || params.get('id');
-  const titleEl = document.querySelector('.title');
-  const metaEl = document.getElementById('meta');
-  const descEl = document.getElementById('desc');
-  const attendeesEl = document.getElementById('attendees');
-
-  if (!id) {
-    titleEl.textContent = 'No event specified';
-    metaEl.textContent = 'Open link like ?event=123';
-    // stop here — nothing to do
-  }
-
-  function avatarForLocal(local) {
-    if (local && local.avatar && local.avatar.provider === 'dicebear') return `https://api.dicebear.com/6.x/${local.avatar.style}/svg?seed=${encodeURIComponent(local.avatar.seed)}`;
-    const emoji = (local && local.emoji) ? local.emoji : null;
-    let label = emoji || (local && local.name ? String(local.name)[0].toUpperCase() : '?');
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%' height='100%' fill='%23EEE'/><text x='50%' y='50%' font-size='28' dominant-baseline='middle' text-anchor='middle'>${label}</text></svg>`;
-    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-  }
-
-  async function fetchEvent() {
-    // Preserve user's scroll position if they are currently at the bottom of the page.
-    const wasAtBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 8);
-    try {
-      // re-query DOM refs in case the DOM changed (prevents null errors)
-      const titleElLocal = document.querySelector('.title');
-      const attendeesElLocal = document.getElementById('attendees');
-      const aboutContentLocal = document.getElementById('aboutContent');
-      if (!titleElLocal || !attendeesElLocal || !aboutContentLocal) {
-        console.warn('fetchEvent: missing DOM refs', { titleEl: !!titleElLocal, attendeesEl: !!attendeesElLocal, aboutContent: !!aboutContentLocal });
-        return;
-      }
-      // show a friendly loading state only on the first load (avoid layout jumps on polling)
-      if (initialLoad) {
-        titleElLocal.textContent = 'Loading…';
-      }
-
-      const res = await fetch(`${API_URL}/api/events/${encodeURIComponent(id)}`);
-      if (!res.ok) {
-        // show a clear message for a 404, otherwise surface a generic network error
-        if (res.status === 404) {
-          titleElLocal.textContent = 'Event not found';
-          // clear template fields if present
-          const cityNode = document.querySelector('.city'); if (cityNode) cityNode.textContent = '';
-          const venueNode = document.querySelector('.venue'); if (venueNode) venueNode.textContent = '';
-          const addrNode = document.querySelector('.fulladdr'); if (addrNode) addrNode.textContent = '';
-          try { aboutContentLocal.textContent = ''; } catch(e) {}
-          attendeesElLocal.textContent = '';
-          return;
-        }
-        throw new Error('Network error: ' + res.status);
-      }
-      const ev = await res.json();
-      // If event changed (or first load), update relevant UI parts
-      // Simple change detection by comparing JSON string - sufficient here
-      const prev = JSON.stringify(currentEvent);
-      const now = JSON.stringify(ev);
-      if (prev === now && currentEvent !== null) return; // no change
-  currentEvent = ev;
-  // mark that we've completed the initial load — subsequent polls shouldn't replace the title
-  initialLoad = false;
-
-      // title/banner
-  titleElLocal.textContent = ev.name || 'Event';
-      const banner = document.getElementById('banner');
-  // support multiple possible image fields returned by different API versions (imageUrl, image, image_url)
-    try {
-    const maybeImage = ev.imageUrl || ev.image || ev.image_url || (ev.image && typeof ev.image === 'object' && ev.image.url ? ev.image.url : null);
-    const bannerImg = document.getElementById('bannerImg');
-    if (banner) {
-      if (maybeImage) {
-        // prefer showing a real <img> element (works around some blocker/CSP/background-image oddities)
-        try {
-          if (bannerImg) {
-            bannerImg.src = maybeImage;
-            bannerImg.style.display = 'block';
-          }
-        } catch(e) { console.warn('setting bannerImg src failed', e); }
-        // also set the background for older browsers: keep the gradient overlay
-        banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url("${maybeImage}")`;
-        // reveal via visibility so layout space is preserved and we avoid scroll jumps
-        banner.style.visibility = 'visible';
-      } else {
-        if (bannerImg) { bannerImg.src = ''; bannerImg.style.display = 'none'; }
-        banner.style.visibility = 'hidden';
-        banner.style.backgroundImage = '';
-      }
-    }
-  } catch (e) { console.warn('setting banner failed', e); }
-
-      // update city/venue/address: prefer existing elements (template), otherwise insert
-      const cityText = ev.city || (ev.location ? String(ev.location).split(',')[0] : '');
-      const cityNode = document.querySelector('.city');
-      const venueNode = document.querySelector('.venue');
-      const addrNode = document.querySelector('.fulladdr');
-      if (cityNode) {
-        cityNode.textContent = cityText || '';
-      } else {
-        if (cityText) { const cityEl = document.createElement('div'); cityEl.className = 'city'; cityEl.textContent = cityText; titleEl.parentNode.insertBefore(cityEl, titleEl.nextSibling); }
-      }
-      if (venueNode) {
-        venueNode.textContent = ev.venue || '';
-      } else {
-        if (ev.venue) { const venueEl = document.createElement('div'); venueEl.className = 'venue'; venueEl.textContent = ev.venue; const after = titleEl.nextSibling || titleEl; after.parentNode.insertBefore(venueEl, after.nextSibling); }
-      }
-      const addrLine2 = ev.address || ev.venue || ev.location || '';
-      if (addrNode) {
-        addrNode.textContent = addrLine2 || '';
-      } else {
-        if (addrLine2) { const addrEl = document.createElement('div'); addrEl.className = 'fulladdr'; addrEl.textContent = addrLine2; const ref = document.querySelector('.venue') || document.querySelector('.city') || titleEl; ref.parentNode.insertBefore(addrEl, ref.nextSibling); }
-      }
-
-      // description
-      const aboutSection = document.getElementById('aboutSection');
-      const aboutContent = document.getElementById('aboutContent');
-      if (aboutSection && aboutContent) {
-        if (ev.description) { aboutSection.style.display = 'block'; aboutContent.innerHTML = `<div>${ev.description}</div>`; } else { aboutSection.style.display = 'none'; }
-      }
-
-      // languages
-      const langEl = document.getElementById('languages');
-      if (ev.languages && ev.languages.length > 0) {
-        document.getElementById('languagesSection').style.display = 'block';
-        const langFlag = { 'French':'🇫🇷', 'English':'🇬🇧', 'Polish':'🇵🇱', 'Spanish':'🇪🇸' };
-        langEl.innerHTML = `<div class="lang-panel">${ev.languages.map(l => `<span class="language-badge"><span class="small-flag">${langFlag[l] || ''}</span>${l}</span>`).join('')}</div>`;
-      } else { document.getElementById('languagesSection').style.display = 'none'; }
-
-      // based on
-      if (ev.templateEventName) { document.getElementById('basedOn').style.display = 'block'; document.getElementById('basedContent').innerHTML = `<div style="font-weight:700">${ev.templateEventName}</div><div style="color:#666;font-size:13px">${ev.templateEventVenue || ''} · ${ev.templateEventDate || ''}</div>`; } else { document.getElementById('basedOn').style.display = 'none'; }
-
-  // host (compact format)
-  // mapping of country names to flag emojis (used for host and attendees)
-  const countryFlagMap = { 'France':'🇫🇷', 'Madagascar':'🇲🇬', 'Poland':'🇵🇱', 'United Kingdom':'🇬🇧', 'England':'🇬🇧' };
-      const hostEl = document.getElementById('host');
-      if (!hostEl) {
-        console.warn('fetchEvent: host element missing');
-      } else {
-        const hostName = (typeof ev.host === 'string') ? ev.host : (ev.host && typeof ev.host.name === 'string') ? ev.host.name : (ev.created_by || ev.createdBy || '');
-        let hostLocal = null;
-        try { if (hostName) { hostLocal = localStorage.getItem('userProfile_' + hostName); hostLocal = hostLocal ? JSON.parse(hostLocal) : null; } } catch(e) {}
-        // If we don't have a local profile, try to fetch a public profile from the backend and cache it
-        async function fetchProfileIfMissing(username, force = false) {
-          if (!username) return null;
-          // if not forcing, prefer a cached profile that looks complete
-          if (!force) {
-            try {
-              const cached = localStorage.getItem('userProfile_' + username);
-              if (cached) {
-                const parsed = JSON.parse(cached);
-                if (parsed.university && parsed.languageLevels) return parsed;
-                // otherwise we'll attempt to fetch below
-              }
-            } catch(e) {}
-          }
-          // try fetching the canonical profile from server
-          try {
-            const resp = await fetch(`${API_URL}/api/users/${encodeURIComponent(username)}/profile`);
-            if (resp.ok) {
-              const json = await resp.json();
-              try { localStorage.setItem('userProfile_' + username, JSON.stringify(json)); } catch(e) {}
-              return json;
-            }
-          } catch(e) {
-            // ignore network errors
-          }
-          // fallback: return whatever cached value we have (may be null)
-          try { return JSON.parse(localStorage.getItem('userProfile_' + username)); } catch(e) { return null; }
-        }
-        // For the host prefer the server's canonical profile (force a fetch so server wins over stale local cache)
-        try { hostLocal = await fetchProfileIfMissing(hostName, true); } catch(e) {}
-
-        function humanLangs(levelsObj) {
-          if (!levelsObj) return '';
-          return Object.entries(levelsObj).map(([lang, level]) => {
-            const cap = String(level).charAt(0).toUpperCase() + String(level).slice(1);
-            return `${cap} ${lang}`;
-          }).join(', ');
-        }
-
-        const hostLangsFormatted = humanLangs(hostLocal && hostLocal.languageLevels);
-        const hostNameText = (hostLocal && hostLocal.name) || hostName || '';
-        const flags = (hostLocal && hostLocal.homeCountries) ? hostLocal.homeCountries.map(c => countryFlagMap[c] || c).join(' ') : '';
-
-        hostEl.innerHTML = `
-          <div class="sectionTitle">👤 Hosted by</div>
-          <div class="card-white">
-            <div class="host-card">
-              <img class="avatar" src="${avatarForLocal(hostLocal)}" />
-              <div>
-                <div class="host-info">${hostNameText} ${flags}</div>
-                <div class="host-sub">${hostLocal && hostLocal.university ? hostLocal.university : ''}</div>
-                <div class="host-sub">${hostLangsFormatted}</div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      // attendees: re-render in compact format
-      attendeesElLocal.innerHTML = '';
-      const participants = ev.participants || [];
-      if (participants.length === 0) {
-        attendeesElLocal.innerHTML = '<p>No attendees yet.</p>';
-      } else {
-        const countHeader = document.createElement('div');
-        countHeader.style.fontWeight = '800';
-        countHeader.style.marginBottom = '8px';
-        countHeader.textContent = `🧃 Attendees (${participants.length})`;
-        attendeesElLocal.appendChild(countHeader);
-
-        // Resolve attendee profiles (use cached localStorage when available, otherwise fetch from backend)
-        const profilePromises = participants.map(async p => {
-          let local = null;
-          try { local = localStorage.getItem('userProfile_' + p); local = local ? JSON.parse(local) : null; } catch(e) {}
-          if (!local) {
-            try { local = await fetchProfileIfMissing(p); } catch(e) { local = null; }
-          }
-          return { username: p, profile: local };
-        });
-        const resolved = await Promise.all(profilePromises);
-        resolved.forEach(({ username, profile: local }) => {
-          const levelsFormatted = humanLangs(local && local.languageLevels);
-          const flags = (local && local.homeCountries) ? (local.homeCountries.map(c => countryFlagMap[c] || c).join(' ')) : '';
-
-          const item = document.createElement('div');
-          item.className = 'attendee-card';
-          item.innerHTML = `
-            <img class="avatar" src="${avatarForLocal(local)}" />
-            <div>
-              <div style="font-weight:800">${(local && local.name) || username} ${flags}</div>
-              <div class="host-sub">${local && local.university ? local.university : ''}</div>
-              <div class="host-sub">${levelsFormatted}</div>
-            </div>
-          `;
-          attendeesElLocal.appendChild(item);
-        });
-      }
-      // If the user was at the bottom before we re-rendered the event, keep them pinned to the bottom.
-      if (wasAtBottom) {
-        requestAnimationFrame(() => requestAnimationFrame(() => { window.scrollTo(0, document.body.scrollHeight); }));
-      }
-
-      // map: initialize once, update marker position if coordinates present
-      if (ev.coordinates && (ev.coordinates.lat || ev.coordinates.latitude)) {
-        const coords = ev.coordinates.lat ? { lat: ev.coordinates.lat, lng: ev.coordinates.lng } : { lat: ev.coordinates.latitude, lng: ev.coordinates.longitude };
-        try {
-          const mapWrap = document.getElementById('mapWrap');
-          // reveal map without stealing focus or causing browser scroll; use visibility so space is reserved
-          if (mapWrap) mapWrap.style.visibility = 'visible';
-          if (!map) {
-            // disable keyboard interactions so the map doesn't grab focus/scroll
-            map = L.map('map', { keyboard: false, tap: false }).setView([coords.lat, coords.lng], 15, { animate: false });
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
-            marker = L.marker([coords.lat, coords.lng]).addTo(map);
-            // ensure the map container is not focusable which can cause the browser to scroll to it
-            try { map.getContainer().tabIndex = -1; } catch (e) {}
-          } else {
-            // update marker position without animating the map (avoid panning/scrolling)
-            marker.setLatLng([coords.lat, coords.lng]);
-            try {
-              const cur = map.getCenter();
-              const lat = Number(cur.lat || 0), lng = Number(cur.lng || 0);
-              const dLat = Math.abs(lat - Number(coords.lat));
-              const dLng = Math.abs(lng - Number(coords.lng));
-              // only reset view if location changed noticeably
-              if (dLat > 0.0001 || dLng > 0.0001) {
-                map.setView([coords.lat, coords.lng], map.getZoom(), { animate: false });
-              }
-            } catch (e) {
-              // fallback: set view silently
-              try { map.setView([coords.lat, coords.lng], map.getZoom(), { animate: false }); } catch (e) {}
-            }
-          }
-        } catch (e) { console.warn('Leaflet init failed', e); }
-      }
-
-  // No share/open-in-app/home controls on the public page
-    } catch (e) {
-      console.warn('fetchEvent failed', e);
-      // show a gentle error message (distinct from "Event not found") for network/other failures
-  try { titleElLocal.textContent = 'Could not load event'; } catch(_) {}
-  try { const cityNode = document.querySelector('.city'); if (cityNode) cityNode.textContent = ''; } catch(_) {}
-    }
-  }
-
-  // fetch chat and re-render messages (read-only)
-  async function fetchChat() {
-    const chatEl = document.getElementById('chat');
-    if (!chatEl) { console.warn('fetchChat: chat element not found'); return; }
-    // Preserve user's scroll position if they are currently at the bottom of the page.
-    const wasAtBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 8);
-  // Only remove previous chat messages, not the whole container, to avoid flicker
-  // Only remove previous chat messages, not the placeholder if present
-  Array.from(chatEl.childNodes).forEach(node => {
-    if (!node.classList || !node.classList.contains('style-nomsg')) {
-      chatEl.removeChild(node);
-    }
-  });
-    try {
-      const chatRes = await fetch(`${API_URL}/api/chat/${encodeURIComponent(id)}`);
-      if (chatRes.ok) {
-        const chatMsgs = await chatRes.json();
-        if (Array.isArray(chatMsgs) && chatMsgs.length > 0) {
-          chatMsgs.forEach(m => {
-            const msgRow = document.createElement('div');
-            msgRow.className = 'chat-msg';
-
-            // Determine if this message should be shown as "me" (right side)
-            let sessionUser = null;
-            try { const raw = localStorage.getItem('sessionUser'); sessionUser = raw ? JSON.parse(raw) : null; } catch(e) { sessionUser = null; }
-            const currentName = sessionUser?.username || sessionUser?.name || 'You';
-            const isMe = (String(m.username).toLowerCase() === String(currentName).toLowerCase()) || (String(m.username).toLowerCase() === 'you');
-
-            const row = document.createElement('div');
-            row.className = 'chat-row ' + (isMe ? 'right' : 'left');
-
-            // load profile to show avatar if available
-            let profile = null;
-            try { const raw = localStorage.getItem('userProfile_' + m.username); profile = raw ? JSON.parse(raw) : null; } catch(e) { profile = null; }
-            const avatarImg = document.createElement('img');
-            avatarImg.className = 'chat-avatar';
-            avatarImg.src = avatarForLocal(profile);
-
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble' + (isMe ? ' me' : '');
-            const header = document.createElement('div'); header.className = 'bubble-header'; header.textContent = (isMe ? 'You' : m.username);
-            const msgDiv = document.createElement('div'); msgDiv.className = 'bubble-text'; msgDiv.textContent = m.message;
-            bubble.appendChild(header);
-            bubble.appendChild(msgDiv);
-
-            if (isMe) {
-              // right: bubble then avatar
-              row.appendChild(bubble);
-              row.appendChild(avatarImg);
-            } else {
-              // left: avatar then bubble
-              row.appendChild(avatarImg);
-              row.appendChild(bubble);
-            }
-
-            msgRow.appendChild(row);
-            chatEl.appendChild(msgRow);
-          });
-        } else {
-          // Insert a styled placeholder div for 'No messages yet' to match template
-          const placeholder = document.createElement('div');
-          placeholder.className = 'style-nomsg';
-          placeholder.style.color = '#6B7280';
-          placeholder.style.textAlign = 'center';
-          placeholder.style.fontSize = '15px';
-          placeholder.style.margin = 'auto 0';
-          placeholder.textContent = 'No messages yet';
-          chatEl.appendChild(placeholder);
-  }
-        // If the user was at the bottom before we re-rendered the chat, keep them pinned to the bottom.
-        try {
-          const chatRes = await fetch(`${API_URL}/api/chat/${encodeURIComponent(id)}`);
-          if (chatRes.ok) {
-            const chatMsgs = await chatRes.json();
-            // Remove placeholder if there are messages
-            const existingPlaceholder = chatEl.querySelector('.style-nomsg');
-            if (Array.isArray(chatMsgs) && chatMsgs.length > 0) {
-              if (existingPlaceholder) chatEl.removeChild(existingPlaceholder);
-              chatMsgs.forEach(m => {
-                const msgRow = document.createElement('div');
-                msgRow.className = 'chat-msg';
-                // ...existing code...
-                chatEl.appendChild(msgRow);
-              });
-            } else {
-              // Only add the placeholder if it doesn't already exist
-              if (!existingPlaceholder) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'style-nomsg';
-                placeholder.style.color = '#6B7280';
-                placeholder.style.textAlign = 'center';
-                placeholder.style.fontSize = '15px';
-                placeholder.style.margin = 'auto 0';
-                placeholder.textContent = 'No messages yet';
-                chatEl.appendChild(placeholder);
-              }
-            }
-            // If the user was at the bottom before we re-rendered the chat, keep them pinned to the bottom.
-            if (wasAtBottom) {
-              // wait for layout to settle then jump to bottom
-              requestAnimationFrame(() => requestAnimationFrame(() => { window.scrollTo(0, document.body.scrollHeight); }));
-            }
-          } else {
-            // Only add the placeholder if it doesn't already exist
-            const existingPlaceholder = chatEl.querySelector('.style-nomsg');
-            if (!existingPlaceholder) {
-              const placeholder = document.createElement('div');
-              placeholder.className = 'style-nomsg';
-              placeholder.style.color = '#6B7280';
-              placeholder.style.textAlign = 'center';
-              placeholder.style.fontSize = '15px';
-              placeholder.style.margin = 'auto 0';
-              placeholder.textContent = 'No messages yet';
-              chatEl.appendChild(placeholder);
-            }
-          }
-        } catch (e) {
-          // Only add the placeholder if it doesn't already exist
-          const existingPlaceholder = chatEl.querySelector('.style-nomsg');
-          if (!existingPlaceholder) {
-            const placeholder = document.createElement('div');
-            placeholder.className = 'style-nomsg';
-            placeholder.style.color = '#6B7280';
-            placeholder.style.textAlign = 'center';
-            placeholder.style.fontSize = '15px';
-            placeholder.style.margin = 'auto 0';
-            placeholder.textContent = 'No messages yet';
-            chatEl.appendChild(placeholder);
-          }
-        }
-  </script>
-</body>
+</div>
+   </body>
 </html>
