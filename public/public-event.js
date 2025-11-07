@@ -92,20 +92,83 @@ function renderEvent(event) {
   setText('#style-nEg6y', event.description || 'No description');
   setText('#style-yeQbe', event.hostName || 'Host');
   setText('#style-RGVi8 > div:first-child', event.hostAffiliation || '');
-  setText('#style-9hJaP', event.hostLanguages || '');
+  // Render hostLanguages as emoji badges with proficiency
+  const hostLangsContainer = document.getElementById('style-9hJaP');
+  if (hostLangsContainer) {
+    hostLangsContainer.innerHTML = '';
+    if (event.hostLanguages) {
+      // Example: "Fluent English, Native French"
+      const langFlag = {
+        'French': '🇫🇷',
+        'English': '🇬🇧',
+        'Polish': '🇵🇱',
+        'Spanish': '🇪🇸',
+        'German': '🇩🇪',
+        'Italian': '🇮🇹',
+        'Portuguese': '🇵🇹',
+        'Chinese': '🇨🇳',
+        'Japanese': '🇯🇵',
+        'Korean': '🇰🇷',
+        'Arabic': '🇸🇦',
+      };
+      const parts = event.hostLanguages.split(',').map(s => s.trim());
+      hostLangsContainer.innerHTML = parts.map(part => {
+        // e.g. "Fluent English" or "Native French"
+        const match = part.match(/(Fluent|Native|Beginner)\s+(\w+)/);
+        if (match) {
+          const prof = match[1];
+          const lang = match[2];
+          const emoji = langFlag[lang] || '🗣️';
+          return `<span style="display:inline-block;margin-right:8px;padding:2px 8px;border-radius:8px;background:#f2f2f2;font-size:15px;">${emoji} <span style="font-weight:600;">${prof}</span> ${lang}</span>`;
+        }
+        return `<span style="display:inline-block;margin-right:8px;padding:2px 8px;border-radius:8px;background:#f2f2f2;font-size:15px;">${part}</span>`;
+      }).join('');
+    }
+  }
   // Attendees
   const attendeesContainer = document.getElementById('style-3beqi');
   if (attendeesContainer) {
     if (event.attendees && event.attendees.length) {
-      attendeesContainer.innerHTML = event.attendees.map(att => `
-        <div class="style-rbjVo">
-          <div class="style-YsFbi">${att.emoji || ''}</div>
-          <div class="style-U3Bwv">
-            <div class="style-ttDWg">${att.name}</div>
-            <div class="style-lpVfd">${att.meta || ''}</div>
+      attendeesContainer.innerHTML = event.attendees.map(att => {
+        // Try to extract language info from meta, e.g. "Fluent English, Native Polish"
+        let langsHtml = '';
+        if (att.meta && /English|French|Polish|Spanish|German|Italian|Portuguese|Chinese|Japanese|Korean|Arabic/.test(att.meta)) {
+          const langFlag = {
+            'French': '🇫🇷',
+            'English': '🇬🇧',
+            'Polish': '🇵🇱',
+            'Spanish': '🇪🇸',
+            'German': '🇩🇪',
+            'Italian': '🇮🇹',
+            'Portuguese': '🇵🇹',
+            'Chinese': '🇨🇳',
+            'Japanese': '🇯🇵',
+            'Korean': '🇰🇷',
+            'Arabic': '🇸🇦',
+          };
+          // Split meta by comma, look for prof+lang
+          langsHtml = att.meta.split(',').map(s => {
+            const part = s.trim();
+            const match = part.match(/(Fluent|Native|Beginner)\s+(\w+)/);
+            if (match) {
+              const prof = match[1];
+              const lang = match[2];
+              const emoji = langFlag[lang] || '🗣️';
+              return `<span style=\"display:inline-block;margin-right:6px;padding:2px 8px;border-radius:8px;background:#f2f2f2;font-size:13px;\">${emoji} <span style=\"font-weight:600;\">${prof}</span> ${lang}</span>`;
+            }
+            return '';
+          }).join('');
+        }
+        return `
+          <div class="style-rbjVo">
+            <div class="style-YsFbi">${att.emoji || ''}</div>
+            <div class="style-U3Bwv">
+              <div class="style-ttDWg">${att.name}</div>
+              <div class="style-lpVfd">${att.meta || ''}${langsHtml ? '<div>' + langsHtml + '</div>' : ''}</div>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     } else {
       attendeesContainer.innerHTML = '<div style="color:#888;padding:12px;">No attendees yet</div>';
     }
