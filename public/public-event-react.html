@@ -128,38 +128,16 @@
             margin-bottom: 8px;
         }
         
-        .host-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .host-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-        }
-        
-        .host-details {
-            flex: 1;
-        }
-        
         .host-name {
             font-size: 16px;
             font-weight: 700;
             color: #1F2937;
-            margin-bottom: 2px;
         }
         
-        .host-affiliation {
+        .host-bio {
             font-size: 14px;
             color: #6B7280;
-        }
-        
-        .host-languages {
-            font-size: 13px;
-            color: #9CA3AF;
-            margin-top: 2px;
+            margin-top: 4px;
         }
         
         .event-details {
@@ -187,11 +165,12 @@
         .detail-secondary {
             font-size: 14px;
             margin-top: 2px;
+            color: #6B7280;
         }
         
         .detail-tertiary {
             font-size: 13px;
-            color: #9CA3AF;
+            color: #6B7280;
             margin-top: 2px;
         }
         
@@ -216,57 +195,23 @@
             border-radius: 12px;
         }
         
-        .attendees-section {
+        .participants-section {
             margin-bottom: 20px;
         }
         
-        .attendee-card {
+        .participants-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .participant-badge {
             background: #F7F7F5;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .attendee-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-        }
-        
-        .attendee-emoji {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-        
-        .attendee-info {
-            flex: 1;
-        }
-        
-        .attendee-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1F2937;
-            margin-bottom: 2px;
-        }
-        
-        .attendee-meta {
+            padding: 6px 12px;
+            border-radius: 999px;
             font-size: 14px;
-            color: #6B7280;
-        }
-        
-        .attendee-languages {
-            font-size: 13px;
-            color: #9CA3AF;
-            margin-top: 2px;
+            font-weight: 600;
+            color: #1F2937;
         }
         
         .join-button {
@@ -307,14 +252,8 @@
             
             <div class="host-section" id="host-section">
                 <div class="host-label">👤 HOSTED BY</div>
-                <div class="host-info">
-                    <img class="host-avatar" id="host-avatar" alt="Host">
-                    <div class="host-details">
-                        <div class="host-name" id="host-name"></div>
-                        <div class="host-affiliation" id="host-affiliation"></div>
-                        <div class="host-languages" id="host-languages"></div>
-                    </div>
-                </div>
+                <div class="host-name" id="host-name"></div>
+                <div class="host-bio" id="host-bio" style="display: none;"></div>
             </div>
             
             <div class="event-details">
@@ -343,9 +282,9 @@
                 <div class="description-content" id="event-description"></div>
             </div>
             
-            <div class="attendees-section" id="attendees-section">
-                <div class="section-label" id="attendees-label">🧃 ATTENDEES (0)</div>
-                <div id="attendees-list"></div>
+            <div class="participants-section" id="participants-section">
+                <div class="section-label" id="participants-label">👥 PARTICIPANTS (0)</div>
+                <div class="participants-list" id="participants-list"></div>
             </div>
             
             <button class="join-button" onclick="alert('Join feature coming soon!')">

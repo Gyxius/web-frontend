@@ -172,24 +172,16 @@ function renderEvent(event, mainEvent, hostProfile, attendeeProfiles) {
   
   // Set host info
   const hostName = event.host || 'Anonymous';
-  document.getElementById('host-name').textContent = hostName;
+  const hostEmoji = hostProfile?.emoji || '🙂';
+  const hostCountry = hostProfile?.country ? getCountryEmoji(hostProfile.country) : '';
   
-  const hostAvatar = getAvatarUrl(hostName, hostProfile);
-  document.getElementById('host-avatar').src = hostAvatar;
+  document.getElementById('host-name').textContent = `${hostEmoji} ${hostName} ${hostCountry}`;
   
-  if (hostProfile) {
-    const hostCountry = hostProfile.country ? getCountryEmoji(hostProfile.country) : '';
-    const affiliation = hostProfile.affiliation || hostProfile.school || 'No affiliation';
-    document.getElementById('host-affiliation').innerHTML = `${hostCountry} ${affiliation}`;
-    
-    if (hostProfile.languages && hostProfile.languages.length > 0) {
-      document.getElementById('host-languages').textContent = formatLanguagesForTitle(hostProfile.languages);
-    } else {
-      document.getElementById('host-languages').style.display = 'none';
-    }
-  } else {
-    document.getElementById('host-affiliation').textContent = '';
-    document.getElementById('host-languages').style.display = 'none';
+  // Show bio if available
+  if (hostProfile?.bio) {
+    const bioElement = document.getElementById('host-bio');
+    bioElement.textContent = `"${hostProfile.bio}"`;
+    bioElement.style.display = 'block';
   }
   
   // Set location
@@ -241,44 +233,35 @@ function renderEvent(event, mainEvent, hostProfile, attendeeProfiles) {
   
   // Set attendees
   const attendees = event.attendees || [];
-  const attendeesLabel = document.getElementById('attendees-label');
-  attendeesLabel.textContent = `🧃 ATTENDEES (${attendees.length})`;
+  const participantsLabel = document.getElementById('participants-label');
+  participantsLabel.textContent = `👥 PARTICIPANTS (${attendees.length})`;
   
   if (attendees.length > 0) {
-    const attendeesList = document.getElementById('attendees-list');
-    attendeesList.innerHTML = attendees.map(username => {
+    const participantsList = document.getElementById('participants-list');
+    participantsList.innerHTML = attendees.slice(0, 10).map(username => {
       const profile = attendeeProfiles[username];
-      const avatarUrl = getAvatarUrl(username, profile);
       
-      let metaInfo = '';
-      let languagesInfo = '';
-      
-      if (profile) {
-        const countryEmoji = profile.country ? getCountryEmoji(profile.country) : '';
-        const affiliation = profile.affiliation || profile.school || '';
-        metaInfo = `${countryEmoji} ${affiliation}`;
-        
-        if (profile.languages && profile.languages.length > 0) {
-          languagesInfo = formatLanguagesForTitle(profile.languages);
-        }
-      }
+      // Use emoji from profile or default
+      const emoji = profile?.emoji || '🙂';
+      const displayName = username;
       
       return `
-        <div class="attendee-card">
-          ${profile ? 
-            `<img class="attendee-avatar" src="${avatarUrl}" alt="${username}">` :
-            `<div class="attendee-emoji">🙂</div>`
-          }
-          <div class="attendee-info">
-            <div class="attendee-name">${username}</div>
-            ${metaInfo ? `<div class="attendee-meta">${metaInfo}</div>` : ''}
-            ${languagesInfo ? `<div class="attendee-languages">${languagesInfo}</div>` : ''}
-          </div>
+        <div class="participant-badge">
+          ${emoji} ${displayName}
         </div>
       `;
     }).join('');
+    
+    // Add "+X more" if there are more than 10
+    if (attendees.length > 10) {
+      participantsList.innerHTML += `
+        <div class="participant-badge" style="color: #6B7280;">
+          +${attendees.length - 10} more
+        </div>
+      `;
+    }
   } else {
-    document.getElementById('attendees-section').style.display = 'none';
+    document.getElementById('participants-section').style.display = 'none';
   }
   
   // Setup share button
