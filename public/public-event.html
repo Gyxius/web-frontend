@@ -279,7 +279,7 @@
       attendeesElLocal.innerHTML = '';
       const participants = ev.participants || [];
       if (participants.length === 0) {
-        attendeesElLocal.textContent = 'No attendees yet';
+        attendeesElLocal.innerHTML = '<p>No attendees yet.</p>';
       } else {
         const countHeader = document.createElement('div');
         countHeader.style.fontWeight = '800';
@@ -492,3 +492,6 @@
             chatEl.appendChild(placeholder);
           }
         }
+  </script>
+</body>
+</html>
