@@ -7,118 +7,61 @@
   <!-- Leaflet for map (needed because this is a standalone static page) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>
-    :root{
-      --bg:#F7F7F5; --card:#FFFFFF; --text:#111827; --muted:#6B7280; --primary:#58CC02; --accent:#1CB0F6; --border:#EEF2F7;
-    }
-  body { font-family: Inter, Roboto, 'Nunito Sans', Arial, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif; background:var(--bg); color:var(--text); padding:22px; }
-  
-  .title { font-size:44px; font-weight:900; margin-bottom:6px; color:var(--text); line-height:1; }
-  .meta { color:var(--muted); margin-bottom:10px; font-size:16px }
-  /* City / Venue / Address styling: match in-app compact look (muted, indented, lighter weight) */
-  .city { color:var(--muted); font-weight:700; font-size:18px; margin-top:6px; }
-  .venue { color:#9CA3AF; font-weight:600; margin-top:4px; margin-left:6px; }
-  .fulladdr { color:#9CA3AF; font-size:14px; margin-top:4px; margin-left:6px; }
-  .desc { color:var(--text); line-height:1.45; margin-top:6px }
-  .section { margin-top:18px; }
-  .sectionTitle { font-size:18px; font-weight:900; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px }
-  .section strong, .sectionTitle strong { display:block; font-weight:800; margin-bottom:8px }
-    .avatar { width:56px; height:56px; border-radius:12px; display:inline-block; vertical-align:middle; margin-right:12px; object-fit:cover }
-    .attendee { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #F3F4F6 }
-  .host-card{display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg);border-radius:12px}
-  .host-info {font-weight:700}
-  .host-sub { color:var(--muted); font-size:14px; margin-top:6px }
-  .language-badge{display:inline-block;background:#F3F4F6;padding:6px 12px;border-radius:999px;margin-right:8px;font-weight:700;font-size:14px}
-  /* languages green panel */
-  #languagesSection { padding:12px; border-radius:12px; }
-  #languagesSection .lang-panel { background: linear-gradient(135deg, var(--primary), #37B300); padding:14px; border-radius:12px; }
-  #languagesSection .lang-panel .language-badge{background:white; color:var(--text); margin-right:8px}
-  .chat { background:var(--card); padding:16px; border-radius:16px; margin-bottom:12px; border:1px solid var(--border); }
-  .chat-msg { padding:12px 10px; border-bottom:1px solid #F3F4F6 }
-  .chat-msg .who{font-weight:800;margin-bottom:6px;color:var(--muted); font-size:14px}
-  .chat-avatar { width:40px; height:40px; border-radius:50%; flex-shrink:0; object-fit:cover }
-  .message-text { margin-top:4px; color:var(--text); font-size:15px }
-  .chat-msg { padding:8px 12px; }
-  .bubble { max-width:68%; padding:12px 14px; border-radius:14px; background:var(--card); box-shadow:0 4px 12px rgba(2,6,23,0.06); border:1px solid #EEF2F7; }
-  .bubble .bubble-header { font-weight:800; color:var(--muted); font-size:13px; margin-bottom:6px }
-  .bubble.me { background: linear-gradient(135deg,#58CC02,#37B300); color:white; border:none; box-shadow:0 8px 20px rgba(56,186,43,0.18) }
-  .bubble.me .bubble-header { color: rgba(255,255,255,0.95); }
-  .chat-row { display:flex; align-items:flex-start; gap:12px }
-  .chat-row.left { justify-content:flex-start }
-  .chat-row.right { justify-content:flex-end }
-  .chat-row.right .bubble { max-width:56%; }
-  .chat-row.right .chat-avatar { order: 2 }
-  .chat-row.right .bubble { order: 1; border-radius:16px 16px 16px 8px }
-  .chat-row.left .bubble { border-radius:16px 16px 8px 16px }
-  .btn { display:inline-block; padding:10px 16px; border-radius:12px; background:var(--primary); color:white; text-decoration:none; font-weight:900; border:none; box-shadow:0 6px 16px rgba(88,204,2,0.28) }
-    .btn.secondary { background:#3B82F6 }
-    .copy { margin-left:12px; font-size:13px; color:var(--muted) }
-
-  /* host avatar match app */
-  .host-card .avatar { width:64px; height:64px; border-radius:50%; background:var(--card); border:2px solid var(--border); }
-  .attendee .avatar { width:56px; height:56px; border-radius:12px }
-  /* attendee card style */
-  .attendee { background:var(--card); border-radius:10px; padding:12px; margin-bottom:10px }
-  .card-white { background:white; border-radius:12px; padding:14px; border:1px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:12px }
-  .meta-row { display:flex; gap:12px; align-items:center; color:var(--muted); margin-top:8px }
-  .meta-badge { display:inline-flex; align-items:center; gap:8px; background:#F3F4F6; padding:8px 12px; border-radius:12px; font-weight:700 }
-  .addr { color:var(--muted); font-size:13px; margin-top:6px }
-  .attendee-card { display:flex; gap:12px; align-items:center; padding:12px; background:white; border-radius:12px; border:1px solid var(--border); margin-bottom:10px }
-  .chat-input-row { display:flex; gap:8px; margin-top:12px; align-items:center }
-  .chat-input { flex:1; padding:10px 12px; border-radius:999px; border:1px solid var(--border); }
-  .small-flag { font-size:18px; margin-right:8px }
-  /* header bar */
-  #headerBar a { font-size:20px }
-  #headerBar .btn { padding:8px 12px }
-  /* banner and top layout tweaks */
-  #map { height:220px; border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
-  </style>
+  <link rel="stylesheet" href="/snipped.css">
 </head>
 <body>
 
   <!-- Banner at the very top, keep as is for live updates -->
-  <div id="banner" style="visibility:hidden; background-size:cover; background-position:center; height:220px; border-radius:12px; margin:0 0 14px 0; overflow:hidden;">
-    <img id="bannerImg" alt="Event cover" style="display:none; width:100%; height:220px; object-fit:cover; border-radius:12px;" />
+  <div id="banner" style="visibility:hidden; background-size:cover; background-position:center; height:220px; border-radius:16px; margin:0 0 24px 0; overflow:hidden;">
+    <img id="bannerImg" alt="Event cover" style="display:none; width:100%; height:220px; object-fit:cover; border-radius:16px;" />
   </div>
 
-  <!-- Begin template-based layout -->
   <div class="snipcss-z4Q8p style-Zwicg" id="style-Zwicg">
-    <div id="header" class="style-TooZo">
-      <h1 class="title" id="eventTitle">Event</h1>
-      <div class="style-paiz6"><button id="shareBtn" class="style-BBQAI">Share</button></div>
-      <div class="style-8jRbV"><button id="settingsBtn" class="style-NlawA">⚙️</button></div>
+    <div id="style-TooZo" class="style-TooZo">
+      <h1 id="eventTitle">Event</h1>
+      <div id="style-paiz6" class="style-paiz6"><button id="shareBtn" class="style-BBQAI">Share</button></div>
+      <div id="style-8jRbV" class="style-8jRbV"><button id="settingsBtn" class="style-NlawA">⚙️</button></div>
     </div>
-    <div id="meta" class="style-KX73E">
-      <div class="style-SMaKS"><span class="style-T4pGg">📍</span>
-        <div class="style-Cr8zq">
-          <div class="city style-d6n8e" id="city"></div>
-          <div class="venue style-bhvn2" id="venueName"></div>
-          <div class="fulladdr" id="venueAddress"></div>
+    <div id="style-KX73E" class="style-KX73E">
+      <div id="style-SMaKS" class="style-SMaKS"><span id="style-T4pGg" class="style-T4pGg">📍</span>
+        <div id="style-Cr8zq" class="style-Cr8zq">
+          <div id="city" class="style-d6n8e"></div>
+          <div id="venueName" class="style-bhvn2"></div>
+          <div id="venueAddress" class="style-bhvn2"></div>
           <div id="mapWrap" style="visibility:hidden; margin-top:12px;">
             <div id="map" class="leaflet-container style-Qg8iX" style="width:100%;height:200px;border-radius:12px;margin-top:12px;border:2px solid #e5e5e5;overflow:hidden;position:relative;z-index:1;"></div>
           </div>
         </div>
       </div>
-      <div class="style-me2og"><span class="style-AUnJo">�</span><span id="eventDate"></span></div>
+      <div id="style-me2og" class="style-me2og"><span id="style-AUnJo" class="style-AUnJo">📅</span><span id="eventDate"></span></div>
     </div>
     <div id="languagesSection" class="style-qoISp" style="display:none;">
-      <div class="style-m5hUl">🗣️ Languages</div>
-      <div class="style-i5pDl" id="languages"></div>
+      <div id="style-m5hUl" class="style-m5hUl">🗣️ Languages</div>
+      <div id="languages" class="style-i5pDl"></div>
     </div>
     <div id="basedOn" class="style-mJ8XD" style="display:none;">
+      <div id="style-3qov8" class="style-3qov8">✨ Based on Main Event</div>
+      <div id="style-Ja7eE" class="style-Ja7eE">
+        <div id="style-e4TOB" class="style-e4TOB"></div>
+        <div id="style-AqkGG" class="style-AqkGG">
+          <div id="style-wJgk8" class="style-wJgk8"></div>
+          <div id="style-1Ci39" class="style-1Ci39"></div>
+          <div id="style-ONmlH" class="style-ONmlH"></div>
+          <div id="style-18KL6" class="style-18KL6"></div>
+        </div>
+      </div>
       <div id="basedContent"></div>
     </div>
     <div id="aboutSection" class="style-soB6P" style="display:none;">
-      <div class="style-mCQV9">📝 About this hangout</div>
-      <div class="style-nEg6y" id="aboutContent"></div>
+      <div id="style-mCQV9" class="style-mCQV9">📝 About this hangout</div>
+      <div id="aboutContent" class="style-nEg6y"></div>
     </div>
     <div id="host" class="style-NlhQC"></div>
     <div id="attendees" class="style-XlhYI"></div>
-    <div class="style-3tJEN">
-      <div class="style-nUYVF">💬 Group Chat</div>
-      <div class="style-MWXHT" id="chat">Loading chat…</div>
-      <!-- Input is not used for public view, but keep for structure -->
-      <div class="style-PUgAR"><input placeholder="Type your message…" id="chatInput" class="style-TNmnM" disabled><button id="sendBtn" class="style-PSWPF" disabled>Send</button></div>
+    <div id="style-3tJEN" class="style-3tJEN">
+      <div id="style-nUYVF" class="style-nUYVF">💬 Group Chat</div>
+      <div id="chat" class="style-MWXHT">Loading chat…</div>
+      <div id="style-PUgAR" class="style-PUgAR"><input placeholder="Type your message…" id="chatInput" class="style-TNmnM" disabled><button id="sendBtn" class="style-PSWPF" disabled>Send</button></div>
     </div>
   </div>
 
