@@ -85,7 +85,10 @@
       </div>
 
     <!-- cover/banner moved to top so the image is visible immediately under the title -->
-    <div id="banner" style="display:none; background-size:cover; background-position:center; height:160px; border-radius:12px; margin:14px 0;"></div>
+    <div id="banner" style="display:none; background-size:cover; background-position:center; height:160px; border-radius:12px; margin:14px 0; overflow:hidden; position:relative;">
+      <!-- img fallback: some browsers or blockers may not render CSS background-image reliably; use a real <img> as a fallback -->
+      <img id="bannerImg" alt="Event cover" style="display:none; width:100%; height:160px; object-fit:cover; border-radius:12px;" />
+    </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <button class="btn" style="padding:8px 12px; border-radius:10px; background:var(--primary); color:white; border:none; cursor:pointer; font-weight:700">Share</button>
         <button class="iconBtn" style="background:white; border:2px solid var(--border); border-radius:12px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer">⚙️</button>
@@ -208,14 +211,23 @@
   titleElLocal.textContent = ev.name || 'Event';
       const banner = document.getElementById('banner');
   // support multiple possible image fields returned by different API versions (imageUrl, image, image_url)
-  try {
+    try {
     const maybeImage = ev.imageUrl || ev.image || ev.image_url || (ev.image && typeof ev.image === 'object' && ev.image.url ? ev.image.url : null);
+    const bannerImg = document.getElementById('bannerImg');
     if (banner) {
       if (maybeImage) {
-        // quote the URL to be safe with characters/spaces
+        // prefer showing a real <img> element (works around some blocker/CSP/background-image oddities)
+        try {
+          if (bannerImg) {
+            bannerImg.src = maybeImage;
+            bannerImg.style.display = 'block';
+          }
+        } catch(e) { console.warn('setting bannerImg src failed', e); }
+        // also set the background for older browsers: keep the gradient overlay
         banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url("${maybeImage}")`;
         banner.style.display = 'block';
       } else {
+        if (bannerImg) { bannerImg.src = ''; bannerImg.style.display = 'none'; }
         banner.style.display = 'none';
         banner.style.backgroundImage = '';
       }
