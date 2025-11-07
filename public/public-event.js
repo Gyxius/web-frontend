@@ -289,27 +289,33 @@ function renderEvent(event) {
   if (attendeesContainer) {
     if (event.attendees && event.attendees.length) {
       attendeesContainer.innerHTML = event.attendees.map(att => {
-        // Use languageLevels if available, otherwise check meta
-        const languagesToRender = att.languageLevels || att.meta;
-        
-        // Render avatar or emoji
-        let avatarHtml = '';
+        // Different structure for avatar vs emoji
         if (att.avatar) {
-          avatarHtml = `<div class="style-NRy22"><img alt="avatar" src="${att.avatar}" class="style-w4eFL"></div>`;
-        } else {
-          avatarHtml = `<div class="style-YsFbi">${att.emoji || '👤'}</div>`;
-        }
-        
-        return `
-          <div class="style-rbjVo">
-            ${avatarHtml}
-            <div class="style-U3Bwv">
-              <div class="style-ttDWg">${att.name}</div>
-              <div class="style-lpVfd">${att.meta && !att.languageLevels ? att.meta : ''}</div>
-              ${att.languageLevels ? `<div class="style-lpVfd">${att.languageLevels}</div>` : ''}
+          // Has avatar - use style-Ton9s wrapper with style-NRy22 for avatar
+          return `
+            <div class="style-Ton9s">
+              <div class="style-NRy22"><img alt="avatar" src="${att.avatar}" class="style-w4eFL"></div>
+              <div class="style-yRx2V">
+                <div class="style-DvGnR">${att.name}</div>
+                <div class="style-nWhD4">
+                  ${att.meta ? `<div>${att.meta}</div>` : ''}
+                  ${att.languageLevels ? `<div class="style-Zm9pG">${att.languageLevels}</div>` : ''}
+                </div>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        } else {
+          // No avatar - use style-rbjVo wrapper with style-YsFbi for emoji
+          return `
+            <div class="style-rbjVo">
+              <div class="style-YsFbi">${att.emoji || '🙂'}</div>
+              <div class="style-U3Bwv">
+                <div class="style-ttDWg">${att.name}</div>
+                <div class="style-lpVfd">${att.meta || ''}</div>
+              </div>
+            </div>
+          `;
+        }
       }).join('');
     } else {
       attendeesContainer.innerHTML = '<div style="color:#888;padding:12px;">No attendees yet</div>';

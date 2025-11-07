@@ -765,14 +765,24 @@ input {
 }  
 #style-rbjVo.style-rbjVo {  
    display: flex;  
-  align-items: center;  
-  gap: 8px;  
-  margin-bottom: 12px;  
-  font-size: 16px;  
-  color: rgb(107, 114, 128);  
+   align-items: center;  
+   gap: 16px;  
+   padding: 16px;  
+   background: rgb(247, 247, 245);  
+   border-radius: 12px;  
+   cursor: pointer;  
+   transition: transform 0.2s, box-shadow 0.2s;  
 }  
 #style-YsFbi.style-YsFbi {  
    font-size: 48px;  
+   width: 64px;  
+   height: 64px;  
+   display: flex;  
+   align-items: center;  
+   justify-content: center;  
+   background: rgb(255, 255, 255);  
+   border-radius: 50%;  
+   border: 2px solid rgb(238, 242, 247);  
 }  
 #style-U3Bwv.style-U3Bwv {  
    flex: 1 1 0%;  
@@ -790,11 +800,24 @@ input {
 }  
 #style-Ton9s.style-Ton9s {  
    display: flex;  
-  align-items: center;  
-  gap: 16px;  
+   align-items: center;  
+   gap: 16px;  
+   padding: 16px;  
+   background: rgb(247, 247, 245);  
+   border-radius: 12px;  
+   cursor: pointer;  
+   transition: transform 0.2s, box-shadow 0.2s;  
 }  
 #style-NRy22.style-NRy22 {  
    font-size: 48px;  
+   width: 64px;  
+   height: 64px;  
+   display: flex;  
+   align-items: center;  
+   justify-content: center;  
+   background: rgb(255, 255, 255);  
+   border-radius: 50%;  
+   border: 2px solid rgb(238, 242, 247);  
 }  
 #style-w4eFL.style-w4eFL {  
    width: 100%;  
