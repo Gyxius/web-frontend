@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: #F7F7F5;
+            color: #1F2937;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .event-card {
+            background: white;
+            border-radius: 18px;
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .back-button {
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #6B7280;
+            padding: 0;
+            font-weight: 600;
+        }
+        
+        .settings-button {
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6B7280;
+            padding: 0;
+        }
+        
+        .event-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #1F2937;
+            margin-bottom: 16px;
+        }
+        
+        .event-image {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .languages-section {
+            background: linear-gradient(135deg, #58CC02, #00B207);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .languages-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .languages-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .language-badge {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .language-flag {
+            font-size: 20px;
+        }
+        
+        .language-name {
+            font-weight: 700;
+            color: #1F2937;
+        }
+        
+        .host-section {
+            background: #F7F7F5;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .host-label {
+            font-size: 13px;
+            font-weight: 800;
+            color: #6B7280;
+            margin-bottom: 8px;
+        }
+        
+        .host-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .host-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+        }
+        
+        .host-details {
+            flex: 1;
+        }
+        
+        .host-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 2px;
+        }
+        
+        .host-affiliation {
+            font-size: 14px;
+            color: #6B7280;
+        }
+        
+        .host-languages {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-top: 2px;
+        }
+        
+        .event-details {
+            margin-bottom: 16px;
+        }
+        
+        .event-detail {
+            font-size: 15px;
+            color: #6B7280;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .detail-content {
+            flex: 1;
+        }
+        
+        .detail-primary {
+            font-weight: 600;
+            color: #1F2937;
+        }
+        
+        .detail-secondary {
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        
+        .detail-tertiary {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-top: 2px;
+        }
+        
+        .description-section {
+            margin-bottom: 20px;
+        }
+        
+        .section-label {
+            font-size: 13px;
+            font-weight: 800;
+            color: #6B7280;
+            margin-bottom: 8px;
+        }
+        
+        .description-content {
+            font-size: 15px;
+            color: #1F2937;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            background: #F7F7F5;
+            padding: 16px;
+            border-radius: 12px;
+        }
+        
+        .attendees-section {
+            margin-bottom: 20px;
+        }
+        
+        .attendee-card {
+            background: #F7F7F5;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .attendee-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+        }
+        
+        .attendee-emoji {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .attendee-info {
+            flex: 1;
+        }
+        
+        .attendee-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 2px;
+        }
+        
+        .attendee-meta {
+            font-size: 14px;
+            color: #6B7280;
+        }
+        
+        .attendee-languages {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-top: 2px;
+        }
+        
+        .join-button {
+            width: 100%;
+            background: linear-gradient(135deg, #58CC02, #00B207);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(88, 204, 2, 0.3);
+        }
+        
+        .join-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(88, 204, 2, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="event-card">
+            <div class="header">
+                <button class="back-button">← Event</button>
+                <button class="settings-button" id="share-button">Share</button>
+            </div>
+            
+            <h1 class="event-title" id="event-title">Loading...</h1>
+            
+            <div class="event-image" id="event-image"></div>
+            
+            <div class="languages-section" id="languages-section" style="display: none;">
+                <div class="languages-label">🗣️ LANGUAGES</div>
+                <div class="languages-list" id="languages-list"></div>
+            </div>
+            
+            <div class="host-section" id="host-section">
+                <div class="host-label">👤 HOSTED BY</div>
+                <div class="host-info">
+                    <img class="host-avatar" id="host-avatar" alt="Host">
+                    <div class="host-details">
+                        <div class="host-name" id="host-name"></div>
+                        <div class="host-affiliation" id="host-affiliation"></div>
+                        <div class="host-languages" id="host-languages"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="event-details">
+                <div class="event-detail" id="location-detail">
+                    <span>📍</span>
+                    <div class="detail-content">
+                        <div class="detail-primary" id="location-primary"></div>
+                        <div class="detail-secondary" id="venue-name"></div>
+                        <div class="detail-tertiary" id="venue-address"></div>
+                    </div>
+                </div>
+                
+                <div class="event-detail">
+                    <span>📅</span>
+                    <span id="event-datetime"></span>
+                </div>
+                
+                <div class="event-detail" id="category-detail">
+                    <span>🎯</span>
+                    <span id="event-category"></span>
+                </div>
+            </div>
+            
+            <div class="description-section" id="description-section">
+                <div class="section-label">📝 ABOUT THIS EVENT</div>
+                <div class="description-content" id="event-description"></div>
+            </div>
+            
+            <div class="attendees-section" id="attendees-section">
+                <div class="section-label" id="attendees-label">🧃 ATTENDEES (0)</div>
+                <div id="attendees-list"></div>
+            </div>
+            
+            <button class="join-button" onclick="alert('Join feature coming soon!')">
+                Join Event
+            </button>
+        </div>
+    </div>
+    
+    <script src="./public-event-react.js"></script>
+</body>
+</html>
