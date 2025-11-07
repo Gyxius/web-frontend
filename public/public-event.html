@@ -76,46 +76,56 @@
 </head>
 <body>
 
-  <!-- Page content required by the live-update script -->
-  <!-- header intentionally minimal for public page (no share/open-in-app/home) -->
-
-  <div class="card">
-    <div id="banner" style="display:none; background-size:cover; background-position:center; height:160px; border-radius:12px; margin-bottom:14px;"></div>
-    <div>
-      <div class="title">Event</div>
-      <div id="meta" class="meta">Location · Venue · Date</div>
-      <div id="desc" class="desc" style="margin-top:12px;">Short event description</div>
+  <!-- Reworked public event layout (follows provided template) -->
+  <div style="padding:24px; max-width:980px; margin:0 auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+      <div style="font-size:64px; font-weight:900; color:var(--text)"> 
+        <span class="title">Event</span>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn" style="padding:8px 12px; border-radius:10px; background:var(--primary); color:white; border:none; cursor:pointer; font-weight:700">Share</button>
+        <button class="iconBtn" style="background:white; border:2px solid var(--border); border-radius:12px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer">⚙️</button>
+      </div>
     </div>
 
-    <div id="mapWrap" style="display:none; margin-top:16px;">
-      <div id="map"></div>
+    <div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:18px;">
+      <div style="font-size:20px; width:24px; text-align:center; color:var(--muted)">📍</div>
+      <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+        <div class="city" style="font-weight:600; font-size:18px"></div>
+        <div class="venue" style="font-size:14px; color:#8B8B8B; margin-left:6px"></div>
+        <div class="fulladdr" style="font-size:14px; color:#8B8B8B; margin-left:6px"></div>
+
+        <div id="banner" style="display:none; background-size:cover; background-position:center; height:160px; border-radius:12px; margin-top:8px;"></div>
+
+        <div id="mapWrap" style="display:none; margin-top:12px;">
+          <div id="map" style="width:100%; height:200px; border-radius:12px; border:2px solid #E5E5E5; overflow:hidden"></div>
+        </div>
+      </div>
     </div>
 
-    <div id="aboutSection" class="section" style="display:none;">
-      <div class="sectionTitle">About</div>
+    <div id="aboutSection" style="display:none; margin-bottom:16px; background:white; padding:24px; border-radius:16px; border:1px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+      <div class="sectionTitle">📝 About this hangout</div>
       <div id="aboutContent"></div>
     </div>
 
-    <div id="languagesSection" style="display:none; margin-top:12px;">
-      <div id="languages"></div>
+    <div id="languagesSection" style="display:none; margin-bottom:16px;">
+      <div style="padding:20px; background: linear-gradient(135deg, var(--primary), #37B300); color:white; border-radius:16px; margin-bottom:12px;">
+        <div style="font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px">🗣️ Languages</div>
+        <div id="languages" style="display:flex; gap:10px; flex-wrap:wrap"></div>
+      </div>
     </div>
 
-    <div id="basedOn" style="display:none; margin-top:12px;">
-      <div id="basedContent"></div>
+    <div id="basedOn" style="display:none; margin-bottom:16px;"></div>
+
+    <div id="host" style="margin-bottom:16px;"></div>
+
+    <div id="attendees" style="margin-bottom:16px;"></div>
+
+    <div style="background:white; padding:24px; border-radius:16px; border:1px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:20px;">
+      <div class="sectionTitle">💬 Group Chat</div>
+      <div id="chat" class="chat">Loading chat…</div>
     </div>
 
-    <div style="margin-top:16px;">
-      <div id="host"></div>
-    </div>
-
-    <div style="margin-top:16px;">
-      <div id="attendees"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="sectionTitle">Group Chat</div>
-    <div id="chat" class="chat">Loading chat…</div>
   </div>
 
   <!-- We'll refresh the event and chat periodically so the shared page stays live. -->
@@ -154,17 +164,15 @@
     try {
       // re-query DOM refs in case the DOM changed (prevents null errors)
   const titleElLocal = document.querySelector('.title');
-  const metaElLocal = document.getElementById('meta');
-  const descElLocal = document.getElementById('desc');
   const attendeesElLocal = document.getElementById('attendees');
-      if (!titleElLocal || !metaElLocal || !descElLocal || !attendeesElLocal) {
-        console.warn('fetchEvent: missing DOM refs', { titleEl: !!titleElLocal, metaEl: !!metaElLocal, descEl: !!descElLocal, attendeesEl: !!attendeesElLocal });
+  const aboutContentLocal = document.getElementById('aboutContent');
+      if (!titleElLocal || !attendeesElLocal || !aboutContentLocal) {
+        console.warn('fetchEvent: missing DOM refs', { titleEl: !!titleElLocal, attendeesEl: !!attendeesElLocal, aboutContent: !!aboutContentLocal });
         return;
       }
       // show a friendly loading state only on the first load (avoid layout jumps on polling)
       if (initialLoad) {
         titleElLocal.textContent = 'Loading…';
-        metaElLocal.textContent = '';
       }
 
       const res = await fetch(`${API_URL}/api/events/${encodeURIComponent(id)}`);
@@ -172,8 +180,11 @@
         // show a clear message for a 404, otherwise surface a generic network error
         if (res.status === 404) {
           titleElLocal.textContent = 'Event not found';
-          metaElLocal.textContent = '';
-          descElLocal.textContent = '';
+          // clear template fields if present
+          const cityNode = document.querySelector('.city'); if (cityNode) cityNode.textContent = '';
+          const venueNode = document.querySelector('.venue'); if (venueNode) venueNode.textContent = '';
+          const addrNode = document.querySelector('.fulladdr'); if (addrNode) addrNode.textContent = '';
+          try { aboutContentLocal.textContent = ''; } catch(e) {}
           attendeesElLocal.textContent = '';
           return;
         }
@@ -194,14 +205,27 @@
       const banner = document.getElementById('banner');
   if (ev.imageUrl && banner) { banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url(${ev.imageUrl})`; banner.style.display = 'block'; }
 
-      // clear/insert city/venue/address if they changed
-      // remove existing helpers then re-insert
-      ['city','venue','fulladdr'].forEach(c => { const el = document.querySelector('.' + c); if (el) el.remove(); });
+      // update city/venue/address: prefer existing elements (template), otherwise insert
       const cityText = ev.city || (ev.location ? String(ev.location).split(',')[0] : '');
-      if (cityText) { const cityEl = document.createElement('div'); cityEl.className = 'city'; cityEl.textContent = cityText; titleEl.parentNode.insertBefore(cityEl, titleEl.nextSibling); }
-      if (ev.venue) { const venueEl = document.createElement('div'); venueEl.className = 'venue'; venueEl.textContent = ev.venue; const after = titleEl.nextSibling || titleEl; after.parentNode.insertBefore(venueEl, after.nextSibling); }
+      const cityNode = document.querySelector('.city');
+      const venueNode = document.querySelector('.venue');
+      const addrNode = document.querySelector('.fulladdr');
+      if (cityNode) {
+        cityNode.textContent = cityText || '';
+      } else {
+        if (cityText) { const cityEl = document.createElement('div'); cityEl.className = 'city'; cityEl.textContent = cityText; titleEl.parentNode.insertBefore(cityEl, titleEl.nextSibling); }
+      }
+      if (venueNode) {
+        venueNode.textContent = ev.venue || '';
+      } else {
+        if (ev.venue) { const venueEl = document.createElement('div'); venueEl.className = 'venue'; venueEl.textContent = ev.venue; const after = titleEl.nextSibling || titleEl; after.parentNode.insertBefore(venueEl, after.nextSibling); }
+      }
       const addrLine2 = ev.address || ev.venue || ev.location || '';
-      if (addrLine2) { const addrEl = document.createElement('div'); addrEl.className = 'fulladdr'; addrEl.textContent = addrLine2; const ref = document.querySelector('.venue') || document.querySelector('.city') || titleEl; ref.parentNode.insertBefore(addrEl, ref.nextSibling); }
+      if (addrNode) {
+        addrNode.textContent = addrLine2 || '';
+      } else {
+        if (addrLine2) { const addrEl = document.createElement('div'); addrEl.className = 'fulladdr'; addrEl.textContent = addrLine2; const ref = document.querySelector('.venue') || document.querySelector('.city') || titleEl; ref.parentNode.insertBefore(addrEl, ref.nextSibling); }
+      }
 
       // description
       const aboutSection = document.getElementById('aboutSection');
@@ -367,8 +391,8 @@
     } catch (e) {
       console.warn('fetchEvent failed', e);
       // show a gentle error message (distinct from "Event not found") for network/other failures
-      try { titleElLocal.textContent = 'Could not load event'; } catch(_) {}
-      try { metaElLocal.textContent = ''; } catch(_) {}
+  try { titleElLocal.textContent = 'Could not load event'; } catch(_) {}
+  try { const cityNode = document.querySelector('.city'); if (cityNode) cityNode.textContent = ''; } catch(_) {}
     }
   }
 
