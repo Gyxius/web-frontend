@@ -172,11 +172,13 @@
   }
 
   async function fetchEvent() {
+    // Preserve user's scroll position if they are currently at the bottom of the page.
+    const wasAtBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 8);
     try {
       // re-query DOM refs in case the DOM changed (prevents null errors)
-  const titleElLocal = document.querySelector('.title');
-  const attendeesElLocal = document.getElementById('attendees');
-  const aboutContentLocal = document.getElementById('aboutContent');
+      const titleElLocal = document.querySelector('.title');
+      const attendeesElLocal = document.getElementById('attendees');
+      const aboutContentLocal = document.getElementById('aboutContent');
       if (!titleElLocal || !attendeesElLocal || !aboutContentLocal) {
         console.warn('fetchEvent: missing DOM refs', { titleEl: !!titleElLocal, attendeesEl: !!attendeesElLocal, aboutContent: !!aboutContentLocal });
         return;
@@ -385,6 +387,10 @@
           `;
           attendeesElLocal.appendChild(item);
         });
+      }
+      // If the user was at the bottom before we re-rendered the event, keep them pinned to the bottom.
+      if (wasAtBottom) {
+        requestAnimationFrame(() => requestAnimationFrame(() => { window.scrollTo(0, document.body.scrollHeight); }));
       }
 
       // map: initialize once, update marker position if coordinates present
