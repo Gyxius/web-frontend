@@ -789,6 +789,17 @@ input {
    cursor: pointer;  
    transition: transform 0.2s, box-shadow 0.2s;  
 }  
+/* Dynamic emoji attendee wrapper without ID */
+.style-rbjVo {
+   display: flex;  
+   align-items: center;  
+   gap: 16px;  
+   padding: 16px;  
+   background: rgb(247, 247, 245);  
+   border-radius: 12px;  
+   cursor: pointer;  
+   transition: transform 0.2s, box-shadow 0.2s;  
+}
 #style-YsFbi.style-YsFbi {  
    font-size: 20px;  
    width: 48px;  
@@ -803,20 +814,49 @@ input {
    flex-shrink: 0;  
    line-height: 1;  
 }  
+/* Dynamic emoji container without ID */
+.style-YsFbi {
+   font-size: 20px;  
+   width: 48px;  
+   height: 48px;  
+   display: flex;  
+   align-items: center;  
+   justify-content: center;  
+   background: rgb(255, 255, 255);  
+   border-radius: 50%;  
+   border: 2px solid rgb(238, 242, 247);  
+   overflow: hidden;  
+   flex-shrink: 0;  
+   line-height: 1;  
+}
 #style-U3Bwv.style-U3Bwv {  
    flex: 1 1 0%;  
 }  
+.style-U3Bwv {
+   flex: 1 1 0%;  
+}
 #style-ttDWg.style-ttDWg {  
    font-size: 18px;  
   font-weight: 700;  
   color: rgb(31, 41, 55);  
   margin-bottom: 4px;  
 }  
+.style-ttDWg {
+   font-size: 18px;  
+  font-weight: 700;  
+  color: rgb(31, 41, 55);  
+  margin-bottom: 4px;  
+}
 #style-lpVfd.style-lpVfd {  
    font-size: 13px;  
   color: rgb(107, 114, 128);  
   margin-top: 4px;  
 }  
+.style-lpVfd {
+   font-size: 13px;  
+  color: rgb(107, 114, 128);  
+  margin-top: 4px;  
+}
 #style-Ton9s.style-Ton9s {  
    display: flex;  
    align-items: center;  
