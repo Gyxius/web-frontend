@@ -268,19 +268,7 @@ function NotificationsInbox({
           <button style={styles.closeButton} onClick={onClose}>×</button>
         </div>
 
-        <button 
-          style={styles.profileButton}
-          onClick={() => {
-            onViewProfile();
-            onClose();
-          }}
-          onMouseEnter={(e) => e.target.style.background = theme.primaryDark}
-          onMouseLeave={(e) => e.target.style.background = theme.primary}
-        >
-          See My Profile
-        </button>
-
-        {/* Quick profile preview */}
+        {/* Quick profile preview (moved to top so avatar appears near header) */}
         <div style={{ marginBottom: 12 }}>
           {(() => {
             const usernameKey = currentUser?.username || currentUser?.name || currentUser;
@@ -312,6 +300,18 @@ function NotificationsInbox({
             );
           })()}
         </div>
+
+        <button 
+          style={styles.profileButton}
+          onClick={() => {
+            onViewProfile();
+            onClose();
+          }}
+          onMouseEnter={(e) => e.target.style.background = theme.primaryDark}
+          onMouseLeave={(e) => e.target.style.background = theme.primary}
+        >
+          See My Profile
+        </button>
 
         <button
           style={styles.signOutButton}
