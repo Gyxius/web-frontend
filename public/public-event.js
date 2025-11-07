@@ -109,7 +109,9 @@ async function fetchEventData(eventId) {
     const attendees = (data.participants || []).map((username, idx) => {
       const profile = participantProfiles[idx];
       if (!profile) {
-        return { emoji: '�', name: username, meta: '' };
+        // Default emoji for users without profiles
+        const defaultEmoji = username.toLowerCase() === 'james' ? '🙂' : '👤';
+        return { emoji: defaultEmoji, name: username, meta: '', languageLevels: '' };
       }
       
       // Get emoji from profile avatar or use default
