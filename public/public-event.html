@@ -85,14 +85,16 @@
       </div>
 
     <!-- cover/banner moved to top so the image is visible immediately under the title -->
-    <div id="banner" style="display:none; background-size:cover; background-position:center; height:160px; border-radius:12px; margin:14px 0; overflow:hidden; position:relative;">
-      <!-- img fallback: some browsers or blockers may not render CSS background-image reliably; use a real <img> as a fallback -->
-      <img id="bannerImg" alt="Event cover" style="display:none; width:100%; height:160px; object-fit:cover; border-radius:12px;" />
-    </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <button class="btn" style="padding:8px 12px; border-radius:10px; background:var(--primary); color:white; border:none; cursor:pointer; font-weight:700">Share</button>
         <button class="iconBtn" style="background:white; border:2px solid var(--border); border-radius:12px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer">⚙️</button>
       </div>
+    </div>
+
+    <!-- Banner row: moved out of header flex so it spans the page width and crops as a cover -->
+    <div id="banner" style="display:none; background-size:cover; background-position:center; height:220px; border-radius:12px; margin:14px 0; overflow:hidden;">
+      <!-- img fallback: some browsers or blockers may not render CSS background-image reliably; use a real <img> as a fallback -->
+      <img id="bannerImg" alt="Event cover" style="display:none; width:100%; height:220px; object-fit:cover; border-radius:12px;" />
     </div>
 
     <div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:18px;">
