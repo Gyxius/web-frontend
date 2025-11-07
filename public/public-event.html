@@ -434,6 +434,8 @@
   async function fetchChat() {
     const chatEl = document.getElementById('chat');
     if (!chatEl) { console.warn('fetchChat: chat element not found'); return; }
+    // Preserve user's scroll position if they are currently at the bottom of the page.
+    const wasAtBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 8);
     chatEl.innerHTML = '';
     try {
       const chatRes = await fetch(`${API_URL}/api/chat/${encodeURIComponent(id)}`);
@@ -481,6 +483,11 @@
             chatEl.appendChild(msgRow);
           });
         } else { chatEl.textContent = 'No messages yet'; }
+        // If the user was at the bottom before we re-rendered the chat, keep them pinned to the bottom.
+        if (wasAtBottom) {
+          // wait for layout to settle then jump to bottom
+          requestAnimationFrame(() => requestAnimationFrame(() => { window.scrollTo(0, document.body.scrollHeight); }));
+        }
       } else { chatEl.textContent = 'No messages yet'; }
     } catch (e) { chatEl.textContent = 'No messages yet'; }
   }
