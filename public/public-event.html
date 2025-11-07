@@ -76,67 +76,50 @@
 </head>
 <body>
 
-  <!-- Reworked public event layout (follows provided template) -->
-  <div style="padding:24px; max-width:980px; margin:0 auto;">
-    <!-- Banner at very top of the page. Use visibility:hidden initially so space is reserved and revealing it doesn't shift layout. -->
-    <div id="banner" style="visibility:hidden; background-size:cover; background-position:center; height:220px; border-radius:12px; margin:0 0 14px 0; overflow:hidden;">
-      <img id="bannerImg" alt="Event cover" style="display:none; width:100%; height:220px; object-fit:cover; border-radius:12px;" />
+  <!-- Banner at the very top, keep as is for live updates -->
+  <div id="banner" style="visibility:hidden; background-size:cover; background-position:center; height:220px; border-radius:12px; margin:0 0 14px 0; overflow:hidden;">
+    <img id="bannerImg" alt="Event cover" style="display:none; width:100%; height:220px; object-fit:cover; border-radius:12px;" />
+  </div>
+
+  <!-- Begin template-based layout -->
+  <div class="snipcss-z4Q8p style-Zwicg" id="style-Zwicg">
+    <div id="header" class="style-TooZo">
+      <h1 class="title" id="eventTitle">Event</h1>
+      <div class="style-paiz6"><button id="shareBtn" class="style-BBQAI">Share</button></div>
+      <div class="style-8jRbV"><button id="settingsBtn" class="style-NlawA">⚙️</button></div>
     </div>
-
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-      <div style="font-size:64px; font-weight:900; color:var(--text)"> 
-        <span class="title">Event</span>
-        <div id="meta" class="meta" style="margin-top:6px; font-size:16px; color:var(--muted)"></div>
-      </div>
-
-    <!-- cover/banner moved to top so the image is visible immediately under the title -->
-      <div style="display:flex; gap:8px; align-items:center;">
-        <button class="btn" style="padding:8px 12px; border-radius:10px; background:var(--primary); color:white; border:none; cursor:pointer; font-weight:700">Share</button>
-        <button class="iconBtn" style="background:white; border:2px solid var(--border); border-radius:12px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer">⚙️</button>
-      </div>
-    </div>
-
-    <!-- previously: banner row moved below header; now moved above the header to show at very top -->
-
-    <div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:18px;">
-      <div style="font-size:20px; width:24px; text-align:center; color:var(--muted)">📍</div>
-      <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
-        <div class="city" style="font-weight:600; font-size:18px"></div>
-        <div class="venue" style="font-size:14px; color:#8B8B8B; margin-left:6px"></div>
-        <div class="fulladdr" style="font-size:14px; color:#8B8B8B; margin-left:6px"></div>
-
-        <!-- mapWrap reserves height even when hidden to avoid layout jumps; visibility toggled by script -->
-        <div id="mapWrap" style="visibility:hidden; margin-top:12px;">
-          <div id="map" style="width:100%; height:200px; border-radius:12px; border:2px solid #E5E5E5; overflow:hidden"></div>
+    <div id="meta" class="style-KX73E">
+      <div class="style-SMaKS"><span class="style-T4pGg">📍</span>
+        <div class="style-Cr8zq">
+          <div class="city style-d6n8e" id="city"></div>
+          <div class="venue style-bhvn2" id="venueName"></div>
+          <div class="fulladdr" id="venueAddress"></div>
+          <div id="mapWrap" style="visibility:hidden; margin-top:12px;">
+            <div id="map" class="leaflet-container style-Qg8iX" style="width:100%;height:200px;border-radius:12px;margin-top:12px;border:2px solid #e5e5e5;overflow:hidden;position:relative;z-index:1;"></div>
+          </div>
         </div>
       </div>
+      <div class="style-me2og"><span class="style-AUnJo">�</span><span id="eventDate"></span></div>
     </div>
-
-    <div id="aboutSection" style="display:none; margin-bottom:16px; background:white; padding:24px; border-radius:16px; border:1px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,0.04)">
-      <div class="sectionTitle">📝 About this hangout</div>
-      <div id="aboutContent"></div>
+    <div id="languagesSection" class="style-qoISp" style="display:none;">
+      <div class="style-m5hUl">🗣️ Languages</div>
+      <div class="style-i5pDl" id="languages"></div>
     </div>
-
-    <div id="languagesSection" style="display:none; margin-bottom:16px;">
-      <div style="padding:20px; background: linear-gradient(135deg, var(--primary), #37B300); color:white; border-radius:16px; margin-bottom:12px;">
-        <div style="font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px">🗣️ Languages</div>
-        <div id="languages" style="display:flex; gap:10px; flex-wrap:wrap"></div>
-      </div>
-    </div>
-
-    <div id="basedOn" style="display:none; margin-bottom:16px;">
+    <div id="basedOn" class="style-mJ8XD" style="display:none;">
       <div id="basedContent"></div>
     </div>
-
-    <div id="host" style="margin-bottom:16px;"></div>
-
-    <div id="attendees" style="margin-bottom:16px;"></div>
-
-    <div style="background:white; padding:24px; border-radius:16px; border:1px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:20px;">
-      <div class="sectionTitle">💬 Group Chat</div>
-      <div id="chat" class="chat">Loading chat…</div>
+    <div id="aboutSection" class="style-soB6P" style="display:none;">
+      <div class="style-mCQV9">📝 About this hangout</div>
+      <div class="style-nEg6y" id="aboutContent"></div>
     </div>
-
+    <div id="host" class="style-NlhQC"></div>
+    <div id="attendees" class="style-XlhYI"></div>
+    <div class="style-3tJEN">
+      <div class="style-nUYVF">💬 Group Chat</div>
+      <div class="style-MWXHT" id="chat">Loading chat…</div>
+      <!-- Input is not used for public view, but keep for structure -->
+      <div class="style-PUgAR"><input placeholder="Type your message…" id="chatInput" class="style-TNmnM" disabled><button id="sendBtn" class="style-PSWPF" disabled>Send</button></div>
+    </div>
   </div>
 
   <!-- We'll refresh the event and chat periodically so the shared page stays live. -->
