@@ -78,8 +78,8 @@
 
   <!-- Reworked public event layout (follows provided template) -->
   <div style="padding:24px; max-width:980px; margin:0 auto;">
-    <!-- Banner at very top of the page -->
-    <div id="banner" style="display:none; background-size:cover; background-position:center; height:220px; border-radius:12px; margin:0 0 14px 0; overflow:hidden;">
+    <!-- Banner at very top of the page. Use visibility:hidden initially so space is reserved and revealing it doesn't shift layout. -->
+    <div id="banner" style="visibility:hidden; background-size:cover; background-position:center; height:220px; border-radius:12px; margin:0 0 14px 0; overflow:hidden;">
       <img id="bannerImg" alt="Event cover" style="display:none; width:100%; height:220px; object-fit:cover; border-radius:12px;" />
     </div>
 
@@ -105,7 +105,8 @@
         <div class="venue" style="font-size:14px; color:#8B8B8B; margin-left:6px"></div>
         <div class="fulladdr" style="font-size:14px; color:#8B8B8B; margin-left:6px"></div>
 
-        <div id="mapWrap" style="display:none; margin-top:12px;">
+        <!-- mapWrap reserves height even when hidden to avoid layout jumps; visibility toggled by script -->
+        <div id="mapWrap" style="visibility:hidden; margin-top:12px;">
           <div id="map" style="width:100%; height:200px; border-radius:12px; border:2px solid #E5E5E5; overflow:hidden"></div>
         </div>
       </div>
@@ -228,10 +229,11 @@
         } catch(e) { console.warn('setting bannerImg src failed', e); }
         // also set the background for older browsers: keep the gradient overlay
         banner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url("${maybeImage}")`;
-        banner.style.display = 'block';
+        // reveal via visibility so layout space is preserved and we avoid scroll jumps
+        banner.style.visibility = 'visible';
       } else {
         if (bannerImg) { bannerImg.src = ''; bannerImg.style.display = 'none'; }
-        banner.style.display = 'none';
+        banner.style.visibility = 'hidden';
         banner.style.backgroundImage = '';
       }
     }
@@ -390,8 +392,8 @@
         const coords = ev.coordinates.lat ? { lat: ev.coordinates.lat, lng: ev.coordinates.lng } : { lat: ev.coordinates.latitude, lng: ev.coordinates.longitude };
         try {
           const mapWrap = document.getElementById('mapWrap');
-          // reveal map without stealing focus or causing browser scroll
-          mapWrap.style.display = 'block';
+          // reveal map without stealing focus or causing browser scroll; use visibility so space is reserved
+          if (mapWrap) mapWrap.style.visibility = 'visible';
           if (!map) {
             // disable keyboard interactions so the map doesn't grab focus/scroll
             map = L.map('map', { keyboard: false, tap: false }).setView([coords.lat, coords.lng], 15, { animate: false });
