@@ -338,4 +338,8 @@ async function main() {
   renderEvent(event);
 }
 
-document.addEventListener('DOMContentLoaded', main);
+document.addEventListener('DOMContentLoaded', () => {
+  main();
+  // Refresh every 10 seconds for real-time updates
+  setInterval(main, 10000);
+});
