@@ -10,15 +10,132 @@ function getEventIdFromUrl() {
 
 const API_BASE = "https://fast-api-backend-qlyb.onrender.com";
 
+function getLanguageEmoji(langName) {
+  const langFlag = {
+    'French': '🇫🇷',
+    'English': '🇬🇧',
+    'Polish': '🇵🇱',
+    'Spanish': '🇪🇸',
+    'German': '🇩🇪',
+    'Italian': '🇮🇹',
+    'Portuguese': '🇵🇹',
+    'Chinese': '🇨🇳',
+    'Japanese': '🇯🇵',
+    'Korean': '🇰🇷',
+    'Arabic': '🇸🇦',
+  };
+  return langFlag[langName] || '🗣️';
+}
+
+function getCountryEmoji(countryName) {
+  const countryFlag = {
+    'France': '🇫🇷',
+    'Madagascar': '🇲🇬',
+    'Poland': '🇵🇱',
+    'Spain': '🇪🇸',
+    'Germany': '🇩🇪',
+    'Italy': '🇮🇹',
+    'Portugal': '🇵🇹',
+    'China': '🇨🇳',
+    'Japan': '🇯🇵',
+    'Korea': '🇰🇷',
+    'Saudi Arabia': '🇸🇦',
+    'United States': '🇺🇸',
+    'United Kingdom': '🇬🇧',
+    'Canada': '🇨🇦',
+  };
+  return countryFlag[countryName] || '🌍';
+}
+
+async function fetchUserProfile(username) {
+  try {
+    const response = await fetch(`${API_BASE}/api/users/${username}/profile`);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
 async function fetchEventData(eventId) {
   try {
     const response = await fetch(`${API_BASE}/api/events/${eventId}`);
     if (!response.ok) throw new Error('Event not found');
-    return await response.json();
+    const data = await response.json();
+    
+    // Fetch host profile
+    const hostUsername = data.host?.name || data.createdBy;
+    const hostProfile = hostUsername ? await fetchUserProfile(hostUsername) : null;
+    
+    // Fetch participant profiles
+    const participantProfiles = await Promise.all(
+      (data.participants || []).map(p => fetchUserProfile(p))
+    );
+    
+    // Build host display name with country flags
+    let hostName = hostUsername || 'Host';
+    if (hostProfile) {
+      const countries = hostProfile.homeCountries || hostProfile.countriesFrom || [];
+      const flags = countries.map(c => getCountryEmoji(c)).join(' ');
+      hostName = `${hostProfile.name || hostUsername} ${flags}`;
+    }
+    
+    // Build host languages string
+    let hostLanguages = '';
+    if (hostProfile && hostProfile.languageLevels) {
+      hostLanguages = Object.entries(hostProfile.languageLevels)
+        .map(([lang, level]) => `${level} ${lang}`)
+        .join(', ');
+    }
+    
+    // Build attendees array with profile data
+    const attendees = (data.participants || []).map((username, idx) => {
+      const profile = participantProfiles[idx];
+      if (!profile) {
+        return { emoji: '👤', name: username, meta: '' };
+      }
+      
+      // Build attendee name with country flags
+      const countries = profile.homeCountries || profile.countriesFrom || [];
+      const flags = countries.map(c => getCountryEmoji(c)).join(' ');
+      const displayName = `${profile.name || username} ${flags}`;
+      
+      // Build attendee meta (affiliation + languages)
+      let meta = profile.university || '';
+      if (profile.languageLevels) {
+        const langs = Object.entries(profile.languageLevels)
+          .map(([lang, level]) => `${level} ${lang}`)
+          .join(', ');
+        meta = langs;
+      }
+      
+      return { emoji: '👤', name: displayName, meta };
+    });
+    
+    // Transform backend data to match the expected format
+    return {
+      imageUrl: data.imageUrl || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+      city: data.location || 'Paris',
+      venueName: data.venue || 'Venue',
+      venueAddress: data.address || '',
+      dateTime: `${data.date || ''} at ${data.time || ''}`,
+      languages: (data.languages || []).map(lang => ({ emoji: getLanguageEmoji(lang), name: lang })),
+      mainEventTitle: data.name || 'Event',
+      venueShort: data.venue || 'Venue',
+      mainEventDate: data.date || '',
+      category: data.category || 'event',
+      attendees: attendees,
+      description: data.description || 'No description',
+      hostName: hostName,
+      hostAffiliation: hostProfile?.university || '',
+      hostLanguages: hostLanguages,
+      coordinates: data.coordinates || null,
+    };
   } catch (e) {
+    console.error('Failed to fetch event:', e);
     // Fallback mock data for local development
     return {
-      imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80', // Example: real event image URL
+      imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
       city: 'Paris',
       venueName: 'Le Fleurus',
       venueAddress: '10, Boulevard Jourdan, Quartier du Parc-de-Montsouris, Paris 14e Arrondissement, Paris, Île-de-France, France métropolitaine, 75014, France',
