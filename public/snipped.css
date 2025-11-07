@@ -774,7 +774,7 @@ input {
    transition: transform 0.2s, box-shadow 0.2s;  
 }  
 #style-YsFbi.style-YsFbi {  
-   font-size: 24px;  
+   font-size: 20px;  
    width: 48px;  
    height: 48px;  
    display: flex;  
@@ -785,6 +785,7 @@ input {
    border: 2px solid rgb(238, 242, 247);  
    overflow: hidden;  
    flex-shrink: 0;  
+   line-height: 1;  
 }  
 #style-U3Bwv.style-U3Bwv {  
    flex: 1 1 0%;  
