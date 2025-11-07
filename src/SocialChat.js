@@ -1153,6 +1153,8 @@ function SocialChat({
               <div style={styles.hostAvatar}>
                 {enrichedHost.avatar && enrichedHost.avatar.provider === 'dicebear' ? (
                   <img src={`https://api.dicebear.com/6.x/${enrichedHost.avatar.style}/svg?seed=${encodeURIComponent(enrichedHost.avatar.seed || enrichedHost.name || enrichedHost.username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: 8 }} />
+                ) : enrichedHost.avatar && enrichedHost.avatar.provider === 'custom' ? (
+                  <img src={enrichedHost.avatar.url} alt="custom avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                 ) : (
                   enrichedHost.emoji
                 )}
@@ -1204,6 +1206,8 @@ function SocialChat({
                   <div style={styles.hostAvatar}>
                     {enrichedCoHost.avatar && enrichedCoHost.avatar.provider === 'dicebear' ? (
                       <img src={`https://api.dicebear.com/6.x/${enrichedCoHost.avatar.style}/svg?seed=${encodeURIComponent(enrichedCoHost.avatar.seed || enrichedCoHost.name || enrichedCoHost.username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: 8 }} />
+                    ) : enrichedCoHost.avatar && enrichedCoHost.avatar.provider === 'custom' ? (
+                      <img src={enrichedCoHost.avatar.url} alt="custom avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                     ) : (
                       enrichedCoHost.emoji
                     )}
@@ -1261,6 +1265,8 @@ function SocialChat({
                     <div style={styles.hostAvatar}>
                       {enrichedItem.avatar && enrichedItem.avatar.provider === 'dicebear' ? (
                         <img src={`https://api.dicebear.com/6.x/${enrichedItem.avatar.style}/svg?seed=${encodeURIComponent(enrichedItem.avatar.seed || enrichedItem.name || enrichedItem.username)}`} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: 8 }} />
+                      ) : enrichedItem.avatar && enrichedItem.avatar.provider === 'custom' ? (
+                        <img src={enrichedItem.avatar.url} alt="custom avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                       ) : (
                         enrichedItem.emoji || "🙂"
                       )}
@@ -1303,9 +1309,14 @@ function SocialChat({
             {messages.map((m, i) => {
               const mine = m.from === currentUser;
               const sender = enrichUserWithProfile(m.from);
-              const avatarUrl = sender && sender.avatar && sender.avatar.provider === 'dicebear'
-                ? `https://api.dicebear.com/6.x/${sender.avatar.style}/svg?seed=${encodeURIComponent(sender.avatar.seed || sender.name || sender.username)}`
-                : null;
+              let avatarUrl = null;
+              if (sender && sender.avatar) {
+                if (sender.avatar.provider === 'dicebear') {
+                  avatarUrl = `https://api.dicebear.com/6.x/${sender.avatar.style}/svg?seed=${encodeURIComponent(sender.avatar.seed || sender.name || sender.username)}`;
+                } else if (sender.avatar.provider === 'custom') {
+                  avatarUrl = sender.avatar.url;
+                }
+              }
               const displayName = mine ? 'You' : (sender && sender.name) || m.from;
               return (
                 <div

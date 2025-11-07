@@ -127,8 +127,12 @@ async function fetchEventData(eventId) {
       
       // Get avatar URL from profile
       let avatar = null;
-      if (profile.avatar && profile.avatar.provider === 'dicebear') {
-        avatar = `https://api.dicebear.com/7.x/${profile.avatar.style}/svg?seed=${profile.avatar.seed}`;
+      if (profile.avatar) {
+        if (profile.avatar.provider === 'dicebear') {
+          avatar = `https://api.dicebear.com/7.x/${profile.avatar.style}/svg?seed=${profile.avatar.seed}`;
+        } else if (profile.avatar.provider === 'custom' && profile.avatar.url) {
+          avatar = profile.avatar.url;
+        }
       }
       
       // Get emoji from profile avatar or use default
@@ -174,8 +178,12 @@ async function fetchEventData(eventId) {
     
     // Get host avatar URL
     let hostAvatar = null;
-    if (hostProfile && hostProfile.avatar && hostProfile.avatar.provider === 'dicebear') {
-      hostAvatar = `https://api.dicebear.com/7.x/${hostProfile.avatar.style}/svg?seed=${hostProfile.avatar.seed}`;
+    if (hostProfile && hostProfile.avatar) {
+      if (hostProfile.avatar.provider === 'dicebear') {
+        hostAvatar = `https://api.dicebear.com/7.x/${hostProfile.avatar.style}/svg?seed=${hostProfile.avatar.seed}`;
+      } else if (hostProfile.avatar.provider === 'custom' && hostProfile.avatar.url) {
+        hostAvatar = hostProfile.avatar.url;
+      }
     }
     
     // Transform backend data to match the expected format

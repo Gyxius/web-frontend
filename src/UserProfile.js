@@ -44,6 +44,12 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, is
               alt="avatar"
               style={{ width: 72, height: 72, borderRadius: 12 }}
             />
+          ) : fullUser.avatar && fullUser.avatar.provider === 'custom' ? (
+            <img
+              src={fullUser.avatar.url}
+              alt="custom avatar"
+              style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover' }}
+            />
           ) : (
             fullUser.emoji
           )}

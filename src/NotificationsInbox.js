@@ -281,9 +281,14 @@ function NotificationsInbox({
             }
 
             const avatarSpec = localProfile?.avatar;
-            const avatarUrl = avatarSpec && avatarSpec.provider === 'dicebear'
-              ? `https://api.dicebear.com/6.x/${avatarSpec.style}/svg?seed=${encodeURIComponent(avatarSpec.seed)}`
-              : null;
+            let avatarUrl = null;
+            if (avatarSpec) {
+              if (avatarSpec.provider === 'dicebear') {
+                avatarUrl = `https://api.dicebear.com/6.x/${avatarSpec.style}/svg?seed=${encodeURIComponent(avatarSpec.seed)}`;
+              } else if (avatarSpec.provider === 'custom') {
+                avatarUrl = avatarSpec.url;
+              }
+            }
 
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>

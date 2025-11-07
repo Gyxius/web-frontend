@@ -3,7 +3,7 @@ import * as api from "./api";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
 
 // AVATAR_STYLES and hashString are module-level to keep identity stable across renders
-const AVATAR_STYLES = ['bottts','micah','adventurer','pixel-art','avataaars'];
+const AVATAR_STYLES = ['bottts','micah','adventurer','pixel-art','avataaars','lorelei','notionists','personas','thumbs','fun-emoji'];
 const hashString = (s) => {
   let h = 0;
   for (let i = 0; i < s.length; i++) {
@@ -599,16 +599,47 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
                       // Fallback inline controls if import fails for any reason
                       return (
                         <div>
-                          <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-                            {['bottts','micah','adventurer','pixel-art','avataaars'].map(style => (
+                          <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                            {['bottts','micah','adventurer','pixel-art','avataaars','lorelei','notionists','personas','thumbs','fun-emoji'].map(style => (
                               <button key={style} type="button" onClick={() => setEditedProfile({ ...editedProfile, avatar: { provider: 'dicebear', style, seed: editedProfile.name || userName } })} style={{ border: editedProfile.avatar && editedProfile.avatar.style === style ? '2px solid #37B300' : '1px solid #ddd', padding: 6, borderRadius: 8 }}>
                                 <img src={`https://api.dicebear.com/6.x/${style}/svg?seed=${encodeURIComponent(editedProfile.name || userName)}`} alt={style} style={{ width: 64, height: 64 }} />
                               </button>
                             ))}
                           </div>
-                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                            <input type="text" style={{ ...styles.input, flex: 1 }} placeholder="Seed for avatar (optional)" value={(editedProfile.avatar && editedProfile.avatar.seed) || ''} onChange={(e) => setEditedProfile({ ...editedProfile, avatar: { ...(editedProfile.avatar || { provider: 'dicebear', style: 'bottts', seed: '' }), seed: e.target.value } })} />
-                            <button type="button" style={{ ...styles.button, ...styles.primaryButton }} onClick={() => { if (!editedProfile.avatar) setEditedProfile({ ...editedProfile, avatar: { provider: 'dicebear', style: 'bottts', seed: editedProfile.name || userName } }); }}>Set</button>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                            <button type="button" style={{ ...styles.button, ...styles.primaryButton, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => {
+                              const randomSeed = Math.random().toString(36).substring(7);
+                              const currentStyle = editedProfile.avatar?.style || 'bottts';
+                              setEditedProfile({ ...editedProfile, avatar: { provider: 'dicebear', style: currentStyle, seed: randomSeed } });
+                            }}>
+                              🎲 Random Avatar
+                            </button>
+                          </div>
+                          <div style={{ borderTop: '1px solid #ddd', paddingTop: 12, marginTop: 12 }}>
+                            <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Upload Custom Image</label>
+                            <input 
+                              type="file" 
+                              accept="image/*"
+                              style={{ display: 'block', marginBottom: 8 }}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    setEditedProfile({ 
+                                      ...editedProfile, 
+                                      avatar: { provider: 'custom', url: event.target.result } 
+                                    });
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                            {editedProfile.avatar?.provider === 'custom' && editedProfile.avatar?.url && (
+                              <div style={{ marginTop: 8 }}>
+                                <img src={editedProfile.avatar.url} alt="Custom avatar preview" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid #37B300' }} />
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -621,6 +652,8 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
             <div style={styles.value}>
               {profile.avatar && profile.avatar.provider === 'dicebear' ? (
                 <img src={`https://api.dicebear.com/6.x/${profile.avatar.style}/svg?seed=${encodeURIComponent(profile.avatar.seed || profile.name || userName)}`} alt="avatar" style={{ width: 36, height: 36, verticalAlign: 'middle' }} />
+              ) : profile.avatar && profile.avatar.provider === 'custom' ? (
+                <img src={profile.avatar.url} alt="custom avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', verticalAlign: 'middle' }} />
               ) : (
                 <span style={{ fontSize: 20 }}>{profile.emoji}</span>
               )}

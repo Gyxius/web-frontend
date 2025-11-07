@@ -542,15 +542,23 @@ function SocialHome({
   const getCurrentUserAvatarUrl = () => {
     try {
       // Prefer avatar from currentUser object if present
-      if (currentUser && currentUser.avatar && currentUser.avatar.provider === 'dicebear') {
-        return dicebearPreviewUrl(currentUser.avatar, userName);
+      if (currentUser && currentUser.avatar) {
+        if (currentUser.avatar.provider === 'dicebear') {
+          return dicebearPreviewUrl(currentUser.avatar, userName);
+        } else if (currentUser.avatar.provider === 'custom' && currentUser.avatar.url) {
+          return currentUser.avatar.url;
+        }
       }
       // Next, try localStorage cached profile
       const raw = localStorage.getItem(`userProfile_${userName}`);
       if (raw) {
         const prof = JSON.parse(raw);
-        if (prof && prof.avatar && prof.avatar.provider === 'dicebear') {
-          return dicebearPreviewUrl(prof.avatar, userName);
+        if (prof && prof.avatar) {
+          if (prof.avatar.provider === 'dicebear') {
+            return dicebearPreviewUrl(prof.avatar, userName);
+          } else if (prof.avatar.provider === 'custom' && prof.avatar.url) {
+            return prof.avatar.url;
+          }
         }
         // fallback: maybe emoji stored
       }
