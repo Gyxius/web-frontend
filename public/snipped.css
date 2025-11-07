@@ -1,0 +1,215 @@
+body {
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;
+  background: #F7F7F5;
+  color: #1F2937;
+  margin: 0;
+}
+.title, #eventTitle {
+  font-size: 64px;
+  font-weight: 900;
+  margin: 8px 0 12px;
+}
+#banner {
+  background-size: cover;
+  background-position: center;
+  height: 220px;
+  border-radius: 16px;
+  margin: 0 0 24px 0;
+  overflow: hidden;
+}
+#bannerImg {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 16px;
+}
+#style-TooZo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#style-paiz6 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#shareBtn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgb(88, 204, 2);
+  color: white;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+#shareMsg {
+  color: #4BB543;
+  font-size: 14px;
+  font-weight: 600;
+}
+#style-8jRbV {
+  display: flex;
+  align-items: center;
+}
+#settingsBtn {
+  background: white;
+  border: 2px solid #EEF2F7;
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: rgba(0,0,0,0.08) 0 2px 8px;
+}
+#style-KX73E {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+#style-SMaKS {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+#style-T4pGg {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+  color: #6B7280;
+}
+#style-Cr8zq {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+#city {
+  font-weight: 600;
+  font-size: 18px;
+}
+#venueName, #venueAddress {
+  font-size: 14px;
+  color: #8B8B8B;
+  margin-left: 6px;
+}
+#map {
+  width: 100%;
+  height: 200px;
+  border-radius: 12px;
+  margin-top: 12px;
+  border: 2px solid #E5E5E5;
+  overflow: hidden;
+}
+#languagesSection {
+  margin-bottom: 20px;
+}
+#style-m5hUl {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+#languages {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.langBadge {
+  background: rgba(255,255,255,0.95);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1F2937;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  box-shadow: rgba(0,0,0,0.1) 0 2px 8px;
+}
+#aboutSection {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #EEF2F7;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+#aboutContent {
+  font-size: 15px;
+  color: #6B7280;
+  line-height: 1.6;
+}
+#attendees {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.attendeeItem {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  background: #F7F7F5;
+  border-radius: 12px;
+}
+.attEmoji {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  background: white;
+  border: 2px solid #EEF2F7;
+}
+.attName {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1F2937;
+}
+.attMeta {
+  font-size: 13px;
+  color: #6B7280;
+  margin-top: 4px;
+}
+#chat {
+  background: #FBFDFC;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid #EEF2F7;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+#style-nUYVF {
+  font-size: 18px;
+  font-weight: 900;
+  color: #1F2937;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#chatInput {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #EEF2F7;
+  background: white;
+  font-size: 14.5px;
+}
+#sendBtn {
+  background: linear-gradient(135deg, rgb(88,204,2), rgb(55,179,0));
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 900;
+  box-shadow: rgba(88,204,2,0.28) 0 6px 16px;
+}
