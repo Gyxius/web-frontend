@@ -369,7 +369,12 @@
     // Preserve user's scroll position if they are currently at the bottom of the page.
     const wasAtBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 8);
   // Only remove previous chat messages, not the whole container, to avoid flicker
-  while (chatEl.firstChild) chatEl.removeChild(chatEl.firstChild);
+  // Only remove previous chat messages, not the placeholder if present
+  Array.from(chatEl.childNodes).forEach(node => {
+    if (!node.classList || !node.classList.contains('style-nomsg')) {
+      chatEl.removeChild(node);
+    }
+  });
     try {
       const chatRes = await fetch(`${API_URL}/api/chat/${encodeURIComponent(id)}`);
       if (chatRes.ok) {
@@ -425,45 +430,65 @@
           placeholder.style.margin = 'auto 0';
           placeholder.textContent = 'No messages yet';
           chatEl.appendChild(placeholder);
-        }
-        // If the user was at the bottom before we re-rendered the chat, keep them pinned to the bottom.
-        if (wasAtBottom) {
-          // wait for layout to settle then jump to bottom
-          requestAnimationFrame(() => requestAnimationFrame(() => { window.scrollTo(0, document.body.scrollHeight); }));
-        }
-      } else {
-        const placeholder = document.createElement('div');
-        placeholder.className = 'style-nomsg';
-        placeholder.style.color = '#6B7280';
-        placeholder.style.textAlign = 'center';
-        placeholder.style.fontSize = '15px';
-        placeholder.style.margin = 'auto 0';
-        placeholder.textContent = 'No messages yet';
-        chatEl.appendChild(placeholder);
-      }
-    } catch (e) {
-      const placeholder = document.createElement('div');
-      placeholder.className = 'style-nomsg';
-      placeholder.style.color = '#6B7280';
-      placeholder.style.textAlign = 'center';
-      placeholder.style.fontSize = '15px';
-      placeholder.style.margin = 'auto 0';
-      placeholder.textContent = 'No messages yet';
-      chatEl.appendChild(placeholder);
-    }
   }
-
-  // initial load and polling intervals
-  fetchEvent(); fetchChat();
-  // refresh event every 10s, chat every 3s for near-real-time
-  setInterval(fetchEvent, 10000);
-  setInterval(fetchChat, 3000);
-
-  // expose a manual refresh (optional) - not necessary but helpful for debugging
-  window.__fetchEvent = fetchEvent; window.__fetchChat = fetchChat;
-
-  })();
-  });
-</script>
-</body>
-</html>
+        // If the user was at the bottom before we re-rendered the chat, keep them pinned to the bottom.
+        try {
+          const chatRes = await fetch(`${API_URL}/api/chat/${encodeURIComponent(id)}`);
+          if (chatRes.ok) {
+            const chatMsgs = await chatRes.json();
+            // Remove placeholder if there are messages
+            const existingPlaceholder = chatEl.querySelector('.style-nomsg');
+            if (Array.isArray(chatMsgs) && chatMsgs.length > 0) {
+              if (existingPlaceholder) chatEl.removeChild(existingPlaceholder);
+              chatMsgs.forEach(m => {
+                const msgRow = document.createElement('div');
+                msgRow.className = 'chat-msg';
+                // ...existing code...
+                chatEl.appendChild(msgRow);
+              });
+            } else {
+              // Only add the placeholder if it doesn't already exist
+              if (!existingPlaceholder) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'style-nomsg';
+                placeholder.style.color = '#6B7280';
+                placeholder.style.textAlign = 'center';
+                placeholder.style.fontSize = '15px';
+                placeholder.style.margin = 'auto 0';
+                placeholder.textContent = 'No messages yet';
+                chatEl.appendChild(placeholder);
+              }
+            }
+            // If the user was at the bottom before we re-rendered the chat, keep them pinned to the bottom.
+            if (wasAtBottom) {
+              // wait for layout to settle then jump to bottom
+              requestAnimationFrame(() => requestAnimationFrame(() => { window.scrollTo(0, document.body.scrollHeight); }));
+            }
+          } else {
+            // Only add the placeholder if it doesn't already exist
+            const existingPlaceholder = chatEl.querySelector('.style-nomsg');
+            if (!existingPlaceholder) {
+              const placeholder = document.createElement('div');
+              placeholder.className = 'style-nomsg';
+              placeholder.style.color = '#6B7280';
+              placeholder.style.textAlign = 'center';
+              placeholder.style.fontSize = '15px';
+              placeholder.style.margin = 'auto 0';
+              placeholder.textContent = 'No messages yet';
+              chatEl.appendChild(placeholder);
+            }
+          }
+        } catch (e) {
+          // Only add the placeholder if it doesn't already exist
+          const existingPlaceholder = chatEl.querySelector('.style-nomsg');
+          if (!existingPlaceholder) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'style-nomsg';
+            placeholder.style.color = '#6B7280';
+            placeholder.style.textAlign = 'center';
+            placeholder.style.fontSize = '15px';
+            placeholder.style.margin = 'auto 0';
+            placeholder.textContent = 'No messages yet';
+            chatEl.appendChild(placeholder);
+          }
+        }
