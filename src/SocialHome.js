@@ -54,6 +54,13 @@ function SocialHome({
   // View mode: 'my' shows only user's joined events, 'following' shows only following users' joined events
   const [viewMode, setViewMode] = useState("my");
   
+  // Onboarding tooltip state
+  const [showOnboardingTooltip, setShowOnboardingTooltip] = useState(() => {
+    // Check if user has seen the tooltip before
+    const hasSeenTooltip = localStorage.getItem('hasSeenOnboardingTooltip');
+    return !hasSeenTooltip;
+  });
+  
   // New state for Frimake-style navigation
   const [activeTab, setActiveTab] = useState("featured"); // "featured", "joined", "hosted"
   const [activeBottomTab, setActiveBottomTab] = useState("events"); // "events", "explore", "calendar", "profile"
@@ -236,10 +243,43 @@ function SocialHome({
     return flagMap[language] || "🗣️";
   };
 
+  const getCategoryBadge = (category) => {
+    const categoryMap = {
+      "food": { emoji: "🍽️", label: "Food", color: "#FF6B6B" },
+      "drinks": { emoji: "🍹", label: "Drinks", color: "#4ECDC4" },
+      "party": { emoji: "🎉", label: "Party", color: "#A463F2" },
+      "sports": { emoji: "⚽", label: "Sports", color: "#45B7D1" },
+      "culture": { emoji: "🎭", label: "Culture", color: "#F7B731" },
+      "study": { emoji: "📚", label: "Study", color: "#5F27CD" },
+      "music": { emoji: "🎵", label: "Music", color: "#FD79A8" },
+      "games": { emoji: "🎮", label: "Games", color: "#6C5CE7" },
+      "outdoor": { emoji: "🌳", label: "Outdoor", color: "#00B894" },
+      "other": { emoji: "✨", label: "Other", color: "#74B9FF" },
+    };
+    return categoryMap[category?.toLowerCase()] || categoryMap["other"];
+  };
+
   const formatDateOnly = (dateStr) => {
     if (!dateStr) return "";
     try {
-      return String(dateStr).includes('T') ? String(dateStr).split('T')[0] : String(dateStr);
+      const dateString = String(dateStr).includes('T') ? String(dateStr).split('T')[0] : String(dateStr);
+      const date = new Date(dateString);
+      
+      // Check if valid date
+      if (isNaN(date.getTime())) {
+        return String(dateStr);
+      }
+      
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                     'July', 'August', 'September', 'October', 'November', 'December'];
+      
+      const dayName = days[date.getDay()];
+      const dayNum = date.getDate();
+      const monthName = months[date.getMonth()];
+      
+      // Format: "Wednesday 5 November"
+      return `${dayName} ${dayNum} ${monthName}`;
     } catch {
       return String(dateStr);
     }
@@ -772,12 +812,12 @@ function SocialHome({
                 onClick={() => setActiveTab("featured")}
                 style={{
                   flex: 1,
-                  padding: "12px 8px",
+                  padding: "14px 8px",
                   background: "none",
                   border: "none",
-                  borderBottom: activeTab === "featured" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  borderBottom: activeTab === "featured" ? `4px solid ${theme.primary}` : "4px solid transparent",
                   fontWeight: activeTab === "featured" ? 900 : 600,
-                  fontSize: 15,
+                  fontSize: 16,
                   color: activeTab === "featured" ? theme.text : theme.textMuted,
                   cursor: "pointer",
                   transition: "all 0.2s",
@@ -789,12 +829,12 @@ function SocialHome({
                 onClick={() => setActiveTab("joined")}
                 style={{
                   flex: 1,
-                  padding: "12px 8px",
+                  padding: "14px 8px",
                   background: "none",
                   border: "none",
-                  borderBottom: activeTab === "joined" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  borderBottom: activeTab === "joined" ? `4px solid ${theme.primary}` : "4px solid transparent",
                   fontWeight: activeTab === "joined" ? 900 : 600,
-                  fontSize: 15,
+                  fontSize: 16,
                   color: activeTab === "joined" ? theme.text : theme.textMuted,
                   cursor: "pointer",
                   transition: "all 0.2s",
@@ -806,12 +846,12 @@ function SocialHome({
                 onClick={() => setActiveTab("hosted")}
                 style={{
                   flex: 1,
-                  padding: "12px 8px",
+                  padding: "14px 8px",
                   background: "none",
                   border: "none",
-                  borderBottom: activeTab === "hosted" ? `3px solid ${theme.gold}` : "3px solid transparent",
+                  borderBottom: activeTab === "hosted" ? `4px solid ${theme.primary}` : "4px solid transparent",
                   fontWeight: activeTab === "hosted" ? 900 : 600,
-                  fontSize: 15,
+                  fontSize: 16,
                   color: activeTab === "hosted" ? theme.text : theme.textMuted,
                   cursor: "pointer",
                   transition: "all 0.2s",
@@ -1215,65 +1255,79 @@ function SocialHome({
         return (
         <div style={styles.highlightCard}>
           <div style={styles.highlightTitle}>🎉 Featured Events</div>
-          <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-            Main events happening - organize language exchanges or hangouts around them!
+          <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
+            Big events happening this week — join or create hangouts around them!
           </div>
-          {featuredEvents.slice(0, 5).map((event, idx) => (
+          {featuredEvents.slice(0, 5).map((event, idx) => {
+            const categoryBadge = getCategoryBadge(event.category);
+            return (
             <div key={idx} style={{ 
-              background: theme.bg, 
-              padding: 14, 
-              borderRadius: 12, 
-              marginBottom: 10,
+              background: theme.card, 
+              padding: 16, 
+              borderRadius: 14, 
+              marginBottom: 12,
               border: `1px solid ${theme.track}`,
               cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             }}
             onClick={() => onJoinedEventClick && onJoinedEventClick(event)}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
                   {event.name}
-                  {event.languages && event.languages.length > 0 && (
-                    <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
-                      {" - "}
-                      {event.languages.map((lang, i) => {
-                        const flag = getLanguageFlag(lang);
-                        return <span key={i}>{flag} {lang}{i < event.languages.length - 1 ? " ↔ " : ""}</span>;
-                      })}
-                    </span>
-                  )}
                 </div>
               </div>
               
               {event.imageUrl && (
                 <div style={{
                   width: "100%",
-                  height: 140,
+                  height: 160,
                   borderRadius: 12,
-                  marginBottom: 10,
+                  marginBottom: 12,
                   backgroundImage: `url(${event.imageUrl})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }} />
               )}
               
-              {event.location && (
-                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                  📍 {event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location}
-                  {event.venue && ` · ${event.venue}`}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {event.location && (
+                  <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>📍</span>
+                    <span style={{ fontWeight: 600 }}>
+                      {event.venue || (event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location)}
+                      {event.venue && event.location && `, ${event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location}`}
+                    </span>
+                  </div>
+                )}
+                
+                <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>🗓</span>
+                  <span style={{ fontWeight: 600 }}>{formatDateOnly(event.date) || event.time}</span>
                 </div>
-              )}
-              
-              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                ⏰ {formatDateOnly(event.date) || event.time}
+                
+                {event.category && (
+                  <div style={{ marginTop: 4 }}>
+                    <span style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "6px 12px",
+                      borderRadius: 999,
+                      background: categoryBadge.color,
+                      color: "white",
+                      fontSize: 13,
+                      fontWeight: 700,
+                    }}>
+                      <span>{categoryBadge.emoji}</span>
+                      <span>{categoryBadge.label}</span>
+                    </span>
+                  </div>
+                )}
               </div>
-              
-              {event.category && (
-                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
-                  🎯 {event.category}
-                </div>
-              )}
             </div>
-          ))}
+            );
+          })}
           {featuredEvents.length > 5 && (
             <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8 }}>
               +{featuredEvents.length - 5} more featured event{featuredEvents.length - 5 !== 1 ? "s" : ""} available
@@ -3770,7 +3824,7 @@ function SocialHome({
           }}
         >
           <div style={{ fontSize: 24 }}>🏠</div>
-          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "events" ? 700 : 600 }}>
+          <div style={{ fontSize: 12, fontWeight: activeBottomTab === "events" ? 700 : 600 }}>
             Home
           </div>
         </button>
@@ -3793,13 +3847,19 @@ function SocialHome({
           }}
         >
           <div style={{ fontSize: 24 }}>🔄</div>
-          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "explore" ? 700 : 600 }}>
+          <div style={{ fontSize: 12, fontWeight: activeBottomTab === "explore" ? 700 : 600 }}>
             Explore
           </div>
         </button>
 
         <button
-          onClick={() => setShowCreateEventModal(true)}
+          onClick={() => {
+            setShowCreateEventModal(true);
+            if (showOnboardingTooltip) {
+              setShowOnboardingTooltip(false);
+              localStorage.setItem('hasSeenOnboardingTooltip', 'true');
+            }
+          }}
           style={{
             width: 56,
             height: 56,
@@ -3814,9 +3874,41 @@ function SocialHome({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            position: "relative",
           }}
         >
           +
+          {showOnboardingTooltip && (
+            <div style={{
+              position: "absolute",
+              bottom: "calc(100% + 12px)",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: theme.text,
+              color: "white",
+              padding: "10px 14px",
+              borderRadius: 12,
+              fontSize: 13,
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              zIndex: 1001,
+              animation: "tooltipBounce 0.6s ease-in-out infinite",
+            }}>
+              Tap + to create your first hangout
+              <div style={{
+                position: "absolute",
+                top: "100%",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 0,
+                height: 0,
+                borderLeft: "6px solid transparent",
+                borderRight: "6px solid transparent",
+                borderTop: `6px solid ${theme.text}`,
+              }} />
+            </div>
+          )}
         </button>
 
         <button
@@ -3837,7 +3929,7 @@ function SocialHome({
           }}
         >
           <div style={{ fontSize: 24 }}>📅</div>
-          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "calendar" ? 700 : 600 }}>
+          <div style={{ fontSize: 12, fontWeight: activeBottomTab === "calendar" ? 700 : 600 }}>
             Calendar
           </div>
         </button>
@@ -3862,7 +3954,7 @@ function SocialHome({
           }}
         >
           <div style={{ fontSize: 24 }}>👥</div>
-          <div style={{ fontSize: 11, fontWeight: activeBottomTab === "following" ? 700 : 600 }}>
+          <div style={{ fontSize: 12, fontWeight: activeBottomTab === "following" ? 700 : 600 }}>
             Following
           </div>
         </button>

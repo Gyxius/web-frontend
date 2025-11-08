@@ -7,6 +7,10 @@
   50% { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
+@keyframes tooltipBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-4px); }
+}
 .eventCard {
   animation: fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1);
   transition: box-shadow 0.2s, transform 0.2s;
