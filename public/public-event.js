@@ -417,6 +417,25 @@ function renderEvent(event) {
 }
 
 async function main() {
+  // Check if user is logged in - if so, redirect to main app
+  try {
+    const sessionUser = localStorage.getItem('sessionUser');
+    if (sessionUser) {
+      const user = JSON.parse(sessionUser);
+      // User is logged in, redirect to main app with event ID
+      const eventId = getEventIdFromUrl();
+      if (eventId) {
+        window.location.href = `/?event=${eventId}`;
+        return;
+      } else {
+        window.location.href = '/';
+        return;
+      }
+    }
+  } catch (e) {
+    console.log('Error checking session user:', e);
+  }
+  
   const eventId = getEventIdFromUrl();
   console.log('Event ID from URL:', eventId);
   let event;
