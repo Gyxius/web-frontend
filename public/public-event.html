@@ -25,14 +25,52 @@
 
 <div style="padding: 20px;">
 <div style="max-width: 800px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-<div id="eventBanner" style="width:100%;height:180px;background:#e5e5e5 center/cover no-repeat;border-radius:0;margin-bottom:0;"></div>
-<div class="snipcss-z4Q8p style-Zwicg" id="style-Zwicg" style="padding: 20px;">
-    <div id="style-TooZo" class="style-TooZo">
+<div id="eventBanner" style="width:100%;height:240px;background:#e5e5e5 center/cover no-repeat;border-radius:0;margin-bottom:0;"></div>
+
+<!-- Loading State -->
+<div id="loadingState" style="padding: 40px 20px; text-align: center;">
+    <div style="display: inline-block; width: 48px; height: 48px; border: 4px solid #E5E7EB; border-top-color: #58CC02; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+    <div style="font-size: 18px; font-weight: 600; color: #6B7280;">Loading event...</div>
+</div>
+<style>
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+@media (max-width: 600px) {
+    #eventBanner {
+        height: 180px !important;
+    }
+    .snipcss-z4Q8p {
+        padding: 16px !important;
+    }
+    h1 {
+        font-size: 24px !important;
+    }
+}
+</style>
+
+<div class="snipcss-z4Q8p style-Zwicg" id="style-Zwicg" style="padding: 32px 24px; display: none;">
+    <!-- Event Header -->
+    <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 32px; font-weight: 900; color: #1F2937; margin: 0 0 12px 0; line-height: 1.2;">Meetup</h1>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 16px; color: #6B7280;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">🗓</span>
+                <span id="eventDateTime" style="font-weight: 600; color: #374151;">2025-11-05 at 20:30</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">📍</span>
+                <span id="eventLocation" style="font-weight: 600; color: #374151;">Paris · Le Fleurus</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="style-TooZo" class="style-TooZo" style="display: none;">
         <h1>Meetup</h1>
         <div id="style-8jRbV" class="style-8jRbV" style="display:none;"><button id="style-NlawA" class="style-NlawA">⚙️</button></div>
     </div>
-    <div id="style-KX73E" class="style-KX73E">
-        <div id="style-SMaKS" class="style-SMaKS"><span id="style-T4pGg" class="style-T4pGg">📍</span>
+    <div id="style-KX73E" class="style-KX73E" style="margin-bottom: 24px;">
+        <div id="style-SMaKS" class="style-SMaKS" style="margin-bottom: 16px;"><span id="style-T4pGg" class="style-T4pGg">📍</span>
             <div id="style-Cr8zq" class="style-Cr8zq">
                 <div id="style-d6n8e" class="style-d6n8e">Paris</div>
                 <div id="style-bhvn2" class="style-bhvn2">
@@ -70,17 +108,17 @@
                 </div>
             </div>
         </div>
-        <div id="style-me2og" class="style-me2og"><span id="style-AUnJo" class="style-AUnJo">📅</span><span>2025-11-05 at 20:30</span></div>
+        <div id="style-me2og" class="style-me2og" style="display: none;"><span id="style-AUnJo" class="style-AUnJo">📅</span><span>2025-11-05 at 20:30</span></div>
     </div>
-    <div id="style-qoISp" class="style-qoISp">
-        <div id="style-m5hUl" class="style-m5hUl">🗣️ Languages</div>
+    <div id="style-qoISp" class="style-qoISp" style="margin-bottom: 32px;">
+        <div id="style-m5hUl" class="style-m5hUl" style="font-size: 18px; font-weight: 800; color: #1F2937; margin-bottom: 12px;">🗣️ Languages</div>
         <div id="style-i5pDl" class="style-i5pDl">
             <div id="style-OBskZ" class="style-OBskZ"><span id="style-9m9Oq" class="style-9m9Oq">🇫🇷</span><span>French</span></div>
             <div id="style-3eoYs" class="style-3eoYs"><span id="style-aRoMv" class="style-aRoMv">🇬🇧</span><span>English</span></div>
         </div>
     </div>
-    <div id="style-mJ8XD" class="style-mJ8XD" style="display:none;">
-        <div id="style-3qov8" class="style-3qov8">✨ Based on Main Event</div>
+    <div id="style-mJ8XD" class="style-mJ8XD" style="display:none; margin-bottom: 32px;">
+        <div id="style-3qov8" class="style-3qov8" style="font-size: 18px; font-weight: 800; color: #1F2937; margin-bottom: 12px;">✨ Based on Main Event</div>
         <div id="style-Ja7eE" class="style-Ja7eE">
             <div id="style-e4TOB" class="style-e4TOB">Karaoke Night</div>
             <div id="style-AqkGG" class="style-AqkGG">
@@ -91,12 +129,12 @@
             </div>
         </div>
     </div>
-    <div id="style-soB6P" class="style-soB6P">
-        <div id="style-mCQV9" class="style-mCQV9">📝 About this hangout</div>
-        <div id="style-nEg6y" class="style-nEg6y">A little meetup</div>
+    <div id="style-soB6P" class="style-soB6P" style="margin-bottom: 32px;">
+        <div id="style-mCQV9" class="style-mCQV9" style="font-size: 18px; font-weight: 800; color: #1F2937; margin-bottom: 12px;">📝 About this hangout</div>
+        <div id="style-nEg6y" class="style-nEg6y" style="color: #374151; line-height: 1.6;">A little meetup</div>
     </div>
-    <div id="style-NlhQC" class="style-NlhQC">
-        <div id="style-z4QBA" class="style-z4QBA">👤 Hosted by</div>
+    <div id="style-NlhQC" class="style-NlhQC" style="margin-bottom: 32px;">
+        <div id="style-z4QBA" class="style-z4QBA" style="font-size: 18px; font-weight: 800; color: #1F2937; margin-bottom: 12px;">👤 Hosted by</div>
         <div id="style-eJxvq" class="style-eJxvq">
             <div id="style-spmpI" class="style-spmpI"><img alt="avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=mitsu" id="style-mZ3Tj" class="style-mZ3Tj"></div>
             <div id="style-do2lP" class="style-do2lP">
@@ -108,14 +146,14 @@
             </div>
         </div>
     </div>
-    <div id="style-XlhYI" class="style-XlhYI">
-        <div id="style-Ccfcf" class="style-Ccfcf">🧃 Attendees (0)</div>
+    <div id="style-XlhYI" class="style-XlhYI" style="margin-bottom: 32px;">
+        <div id="style-Ccfcf" class="style-Ccfcf" style="font-size: 18px; font-weight: 800; color: #1F2937; margin-bottom: 12px;">🧃 Attendees (0)</div>
         <div id="style-3beqi" class="style-3beqi">
             <!-- Attendees will be populated by JavaScript -->
         </div>
     </div>
-    <div id="style-3tJEN" class="style-3tJEN">
-        <div id="style-nUYVF" class="style-nUYVF">💬 Group Chat</div>
+    <div id="style-3tJEN" class="style-3tJEN" style="margin-bottom: 16px;">
+        <div id="style-nUYVF" class="style-nUYVF" style="font-size: 18px; font-weight: 800; color: #1F2937; margin-bottom: 12px;">💬 Group Chat</div>
         <div id="style-MWXHT" class="style-MWXHT">
             <!-- Chat messages will be populated by JavaScript -->
         </div>
@@ -123,8 +161,21 @@
     </div>
     
     <!-- Share Button at Bottom -->
-    <div style="padding: 24px; text-align: center; border-top: 1px solid #EEF2F7;">
-        <button id="shareButton" style="background: #58CC02; color: white; border: none; padding: 16px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+    <div style="padding: 32px 24px; text-align: center; border-top: 2px solid #EEF2F7; margin-top: 32px;">
+        <button id="shareButton" style="
+            background: linear-gradient(135deg, #58CC02, #37B300); 
+            color: white; 
+            border: none; 
+            padding: 16px 48px; 
+            border-radius: 14px; 
+            font-size: 17px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 20px rgba(88, 204, 2, 0.3);
+            width: 100%;
+            max-width: 400px;
+        ">
             📤 Share Event
         </button>
     </div>
@@ -161,12 +212,18 @@
             const shareBtn = document.getElementById('shareButton');
             if (shareBtn) {
                 shareBtn.addEventListener('mouseenter', () => {
-                    shareBtn.style.transform = 'translateY(-2px)';
-                    shareBtn.style.boxShadow = '0 4px 12px rgba(88, 204, 2, 0.3)';
+                    shareBtn.style.transform = 'translateY(-2px) scale(1.02)';
+                    shareBtn.style.boxShadow = '0 8px 24px rgba(88, 204, 2, 0.4)';
                 });
                 shareBtn.addEventListener('mouseleave', () => {
-                    shareBtn.style.transform = 'translateY(0)';
-                    shareBtn.style.boxShadow = 'none';
+                    shareBtn.style.transform = 'translateY(0) scale(1)';
+                    shareBtn.style.boxShadow = '0 6px 20px rgba(88, 204, 2, 0.3)';
+                });
+                shareBtn.addEventListener('mousedown', () => {
+                    shareBtn.style.transform = 'translateY(0) scale(0.98)';
+                });
+                shareBtn.addEventListener('mouseup', () => {
+                    shareBtn.style.transform = 'translateY(-2px) scale(1.02)';
                 });
             }
         </script>

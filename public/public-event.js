@@ -8,6 +8,38 @@ function getEventIdFromUrl() {
   return params.get('id') || params.get('event');
 }
 
+// Format date to human-friendly format
+function formatHumanDate(dateStr, timeStr) {
+  if (!dateStr) return '';
+  
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    const dayName = days[date.getDay()];
+    const dayNum = date.getDate();
+    const monthName = months[date.getMonth()];
+    
+    // Format time if provided (convert 24h to 12h format)
+    let timeFormatted = '';
+    if (timeStr) {
+      const [hours, minutes] = timeStr.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      timeFormatted = ` · ${hour12}:${minutes} ${ampm}`;
+    }
+    
+    return `${dayName}, ${dayNum} ${monthName}${timeFormatted}`;
+  } catch (e) {
+    return dateStr + (timeStr ? ` at ${timeStr}` : '');
+  }
+}
+
 const API_BASE = "https://fast-api-backend-qlyb.onrender.com";
 
 function getLanguageEmoji(langName) {
@@ -266,9 +298,26 @@ function setImage(selector, src) {
 }
 
 function renderEvent(event) {
-  // Set page title
+  // Extract date and time from dateTime string
+  const dateTimeParts = (event.dateTime || '').split(' at ');
+  const dateStr = dateTimeParts[0];
+  const timeStr = dateTimeParts[1];
+  
+  // Set page title with human-friendly format
   const h1 = document.querySelector('h1');
   if (h1) h1.textContent = event.eventTitle || event.mainEventTitle || 'Event';
+  
+  // Set human-friendly date and time
+  const dateTimeEl = document.getElementById('eventDateTime');
+  if (dateTimeEl) {
+    dateTimeEl.textContent = formatHumanDate(dateStr, timeStr);
+  }
+  
+  // Set location with city and venue
+  const locationEl = document.getElementById('eventLocation');
+  if (locationEl) {
+    locationEl.textContent = `${event.city}${event.venueName ? ' · ' + event.venueName : ''}`;
+  }
   
   // Set banner background
   const banner = document.getElementById('eventBanner');
@@ -448,6 +497,13 @@ function renderEvent(event) {
 }
 
 async function main() {
+  // Show loading state
+  const loadingState = document.getElementById('loadingState');
+  const contentDiv = document.getElementById('style-Zwicg');
+  
+  if (loadingState) loadingState.style.display = 'block';
+  if (contentDiv) contentDiv.style.display = 'none';
+  
   // Check if user is logged in - if so, redirect to main app
   try {
     const sessionUser = localStorage.getItem('sessionUser');
@@ -485,6 +541,10 @@ async function main() {
     }
   }
   renderEvent(event);
+  
+  // Hide loading state and show content
+  if (loadingState) loadingState.style.display = 'none';
+  if (contentDiv) contentDiv.style.display = 'block';
   
   // Setup registration modal handlers
   setupRegistrationHandlers();
