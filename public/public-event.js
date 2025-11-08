@@ -335,8 +335,8 @@ function renderEvent(event) {
   const mapDiv = document.getElementById('style-Qg8iX');
   if (mapDiv) {
     if (event.coordinates && event.coordinates.lat && event.coordinates.lng) {
-      // Use Leaflet or static map image
-      mapDiv.innerHTML = `<iframe width="100%" height="180" frameborder="0" style="border-radius:12px" src="https://www.openstreetmap.org/export/embed.html?bbox=${event.coordinates.lng-0.01}%2C${event.coordinates.lat-0.01}%2C${event.coordinates.lng+0.01}%2C${event.coordinates.lat+0.01}&amp;layer=mapnik&amp;marker=${event.coordinates.lat}%2C${event.coordinates.lng}" allowfullscreen></iframe>`;
+      // Use Leaflet or static map image with tighter zoom (±0.002 degrees for closer view)
+      mapDiv.innerHTML = `<iframe width="100%" height="180" frameborder="0" style="border-radius:12px" src="https://www.openstreetmap.org/export/embed.html?bbox=${event.coordinates.lng-0.002}%2C${event.coordinates.lat-0.002}%2C${event.coordinates.lng+0.002}%2C${event.coordinates.lat+0.002}&amp;layer=mapnik&amp;marker=${event.coordinates.lat}%2C${event.coordinates.lng}" allowfullscreen></iframe>`;
     } else {
       mapDiv.innerHTML = '<div style="width:100%;height:100px;display:flex;align-items:center;justify-content:center;color:#888;">Map unavailable</div>';
     }
