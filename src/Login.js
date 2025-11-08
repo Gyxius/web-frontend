@@ -83,7 +83,6 @@ function Login({ onLogin, onRegistered }) {
     fontSize: 15,
     boxSizing: "border-box",
   };
-  const optionalLabel = <span style={{ color: theme.textMuted, fontWeight: 400 }}> (Optional)</span>;
 
   const generateRandomAvatars = () => {
     const seeds = Array.from({ length: 10 }, () => Math.random().toString(36).slice(2, 12));
@@ -116,16 +115,40 @@ function Login({ onLogin, onRegistered }) {
   const validateStep = (step) => {
     if (!isRegistering) return true;
     if (step === 1) {
-      if (!userName.trim() || userName.trim().length < 3) return setError("Username ≥ 3 chars"), false;
-      if (!password.trim() || password.length < 3) return setError("Password ≥ 3 chars"), false;
-      if (password !== confirmPassword) return setError("Passwords don't match"), false;
-      if (!firstName.trim()) return setError("Enter first name"), false;
-      if (!bio.trim()) return setError("Write a short bio"), false;
+      if (!userName.trim() || userName.trim().length < 3) {
+        setError("Username ≥ 3 chars");
+        return false;
+      }
+      if (!password.trim() || password.length < 3) {
+        setError("Password ≥ 3 chars");
+        return false;
+      }
+      if (password !== confirmPassword) {
+        setError("Passwords don't match");
+        return false;
+      }
+      if (!firstName.trim()) {
+        setError("Enter first name");
+        return false;
+      }
+      if (!bio.trim()) {
+        setError("Write a short bio");
+        return false;
+      }
     }
     if (step === 3) {
-      if (interests.length === 0) return setError("Select at least one interest"), false;
-      if (languages.length === 0) return setError("Add at least one language"), false;
-      if (!citeStatus) return setError("Select campus status"), false;
+      if (interests.length === 0) {
+        setError("Select at least one interest");
+        return false;
+      }
+      if (languages.length === 0) {
+        setError("Add at least one language");
+        return false;
+      }
+      if (!citeStatus) {
+        setError("Select campus status");
+        return false;
+      }
     }
     setError("");
     return true;
