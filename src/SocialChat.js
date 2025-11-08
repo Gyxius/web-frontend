@@ -621,10 +621,62 @@ function SocialChat({
 
   return (
     <div style={styles.container}>
-      {/* Back Button - Fixed at top */}
+      {/* Lemi Header - Fixed at top */}
       <div style={{
         position: "sticky",
         top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 101,
+        background: "white",
+        padding: "12px 20px",
+        borderBottom: `1px solid ${theme.border}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <svg width="40" height="40" viewBox="0 0 100 100" style={{ display: "block" }}>
+            <circle cx="50" cy="50" r="45" fill="#58CC02"/>
+            <circle cx="35" cy="40" r="8" fill="white"/>
+            <circle cx="65" cy="40" r="8" fill="white"/>
+            <circle cx="35" cy="40" r="4" fill="#2C5A00"/>
+            <circle cx="65" cy="40" r="4" fill="#2C5A00"/>
+            <path d="M 30 60 Q 50 75 70 60" stroke="white" strokeWidth="4" fill="none" strokeLinecap="round"/>
+          </svg>
+          <span style={{ fontSize: 24, fontWeight: 800, color: theme.text }}>Lemi</span>
+        </div>
+        <button
+          onClick={onHome}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 8,
+            fontSize: 20,
+            color: theme.textMuted,
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.color = theme.text;
+            e.target.style.transform = "scale(1.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.color = theme.textMuted;
+            e.target.style.transform = "scale(1)";
+          }}
+        >
+          🌙
+        </button>
+      </div>
+      
+      {/* Back Button */}
+      <div style={{
+        position: "sticky",
+        top: 65,
         left: 0,
         right: 0,
         zIndex: 100,
