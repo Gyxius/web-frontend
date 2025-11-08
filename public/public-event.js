@@ -367,10 +367,22 @@ function renderEvent(event) {
   // Chat messages
   const chatContainer = document.getElementById('style-MWXHT');
   if (chatContainer && event.chatMessages) {
+    // Get current logged-in user from localStorage
+    let currentUsername = null;
+    try {
+      const sessionUser = localStorage.getItem('sessionUser');
+      if (sessionUser) {
+        const user = JSON.parse(sessionUser);
+        currentUsername = user.username || user.name || user;
+      }
+    } catch (e) {
+      console.log('Could not parse session user');
+    }
+    
     if (event.chatMessages.length > 0) {
       chatContainer.innerHTML = event.chatMessages.map(msg => {
-        // Determine if message is from current user (we'll show "You" for Mitsu for now)
-        const isCurrentUser = msg.username === 'Mitsu';
+        // Determine if message is from current logged-in user
+        const isCurrentUser = currentUsername && msg.username === currentUsername;
         
         if (isCurrentUser) {
           // Right-aligned message with host avatar (use the same avatar as host section)
