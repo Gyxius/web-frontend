@@ -15,6 +15,46 @@ const POPULAR_COUNTRIES = [
 const POPULAR_CITIES = [
   'Paris','Madrid','Barcelona','Rome','Milan','Berlin','Munich','London','Manchester','New York','Los Angeles','Tokyo','Seoul','Beijing','Shanghai','São Paulo','Mexico City','Toronto','Montreal','Mumbai','Delhi','Casablanca','Lisbon','Amsterdam','Brussels'
 ];
+const LANGUAGE_OPTIONS = [
+  "Afrikaans","Akan","Albanian","Amharic","Arabic","Armenian","Assamese","Aymara",
+  "Azerbaijani","Bambara","Basque","Belarusian","Bengali","Berber","Bosnian","Breton",
+  "Bulgarian","Burmese","Catalan","Cebuano","Chichewa","Chinese","Mandarin Chinese","Cantonese",
+  "Corsican","Croatian","Czech","Danish","Dari","Dhivehi","Dutch","Dzongkha","English",
+  "Esperanto","Estonian","Faroese","Fijian","Filipino","Finnish","French","Galician",
+  "Georgian","German","Greek","Greenlandic","Guarani","Gujarati","Haitian Creole","Hausa",
+  "Hebrew","Hindi","Hiri Motu","Hungarian","Icelandic","Igbo","Ilocano","Indonesian",
+  "Irish","Italian","Japanese","Javanese","Kannada","Kazakh","Khmer","Kinyarwanda",
+  "Kirghiz","Kirundi","Konkani","Korean","Kurdish","Kyrgyz","Lao","Latvian","Lingala",
+  "Lithuanian","Luxembourgish","Macedonian","Malagasy","Malay","Malayalam","Maltese","Maori",
+  "Marathi","Marshallese","Moldovan","Mongolian","Montenegrin","Nepali","Northern Ndebele",
+  "Norwegian","Nyanja","Odia","Oromo","Ossetian","Papiamento","Pashto","Persian (Farsi)",
+  "Polish","Portuguese","Punjabi","Quechua","Romanian","Russian","Samoan","Sango",
+  "Sanskrit","Scottish Gaelic","Serbian","Shona","Sindhi","Sinhala","Slovak","Slovenian",
+  "Somali","Sotho","Spanish","Swahili","Swati","Swedish","Tagalog","Tajik","Tamil",
+  "Telugu","Tetum","Thai","Tibetan","Tigrinya","Tok Pisin","Tonga","Tsonga","Tswana",
+  "Turkish","Turkmen","Ukrainian","Urdu","Uzbek","Venda","Vietnamese","Wallisian",
+  "Welsh","Wolof","Xhosa","Yiddish","Yoruba","Zulu"
+];
+const FULL_LANGUAGES = [
+  "Afrikaans","Akan","Albanian","Amharic","Arabic","Armenian","Assamese","Aymara",
+  "Azerbaijani","Bambara","Basque","Belarusian","Bengali","Berber","Bosnian","Breton",
+  "Bulgarian","Burmese","Catalan","Cebuano","Chichewa","Chinese","Mandarin Chinese","Cantonese",
+  "Corsican","Croatian","Czech","Danish","Dari","Dhivehi","Dutch","Dzongkha","English",
+  "Esperanto","Estonian","Faroese","Fijian","Filipino","Finnish","French","Galician",
+  "Georgian","German","Greek","Greenlandic","Guarani","Gujarati","Haitian Creole","Hausa",
+  "Hebrew","Hindi","Hiri Motu","Hungarian","Icelandic","Igbo","Ilocano","Indonesian",
+  "Irish","Italian","Japanese","Javanese","Kannada","Kazakh","Khmer","Kinyarwanda",
+  "Kirghiz","Kirundi","Konkani","Korean","Kurdish","Kyrgyz","Lao","Latvian","Lingala",
+  "Lithuanian","Luxembourgish","Macedonian","Malagasy","Malay","Malayalam","Maltese","Maori",
+  "Marathi","Marshallese","Moldovan","Mongolian","Montenegrin","Nepali","Northern Ndebele",
+  "Norwegian","Nyanja","Odia","Oromo","Ossetian","Papiamento","Pashto","Persian (Farsi)",
+  "Polish","Portuguese","Punjabi","Quechua","Romanian","Russian","Samoan","Sango",
+  "Sanskrit","Scottish Gaelic","Serbian","Shona","Sindhi","Sinhala","Slovak","Slovenian",
+  "Somali","Sotho","Spanish","Swahili","Swati","Swedish","Tagalog","Tajik","Tamil",
+  "Telugu","Tetum","Thai","Tibetan","Tigrinya","Tok Pisin","Tonga","Tsonga","Tswana",
+  "Turkish","Turkmen","Ukrainian","Urdu","Uzbek","Venda","Vietnamese","Wallisian",
+  "Welsh","Wolof","Xhosa","Yiddish","Yoruba","Zulu"
+];
 
 function Login({ onLogin, onRegistered }) {
   // Auth basics
@@ -326,7 +366,12 @@ function Login({ onLogin, onRegistered }) {
       {sectionHeader('Languages')}
       <p style={{ fontSize:13, color:theme.textMuted, margin:'-4px 0 8px' }}>Add at least one language.</p>
       <div style={{ display:'flex', gap:8 }}>
-        <input type="text" placeholder="Type a language" value={languageInput} onChange={e=>setLanguageInput(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); addLanguage(); }}} style={{ ...inputStyle, margin:0 }} />
+        <select value={languageInput} onChange={e=>setLanguageInput(e.target.value)} style={{ ...inputStyle, margin:0 }}>
+          <option value="">Select a language</option>
+          {LANGUAGE_OPTIONS.filter(l => !languages.includes(l)).map(lang => (
+            <option key={lang} value={lang}>{lang}</option>
+          ))}
+        </select>
         <button type="button" onClick={addLanguage} style={{ padding:'12px 16px', background:theme.primary, border:'none', color:'white', fontWeight:700, borderRadius:12, cursor:'pointer' }}>Add</button>
       </div>
       <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:8 }}>
@@ -347,6 +392,7 @@ function Login({ onLogin, onRegistered }) {
                 <option value="">Select level</option>
                 <option value="Beginner">Beginner</option>
                 <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
                 <option value="Fluent">Fluent</option>
                 <option value="Native">Native</option>
               </select>
@@ -364,8 +410,8 @@ function Login({ onLogin, onRegistered }) {
           );
         })}
       </div>
-      {sectionHeader('Campus Status')}
-      <p style={{ fontSize:13, color:theme.textMuted, margin:'-4px 0 8px' }}>How are you connected to Cité campus?</p>
+      {sectionHeader('Are you connected to Cité Universitaire?')}
+      <p style={{ fontSize:13, color:theme.textMuted, margin:'-4px 0 8px' }}>Select your connection to Cité Internationale Universitaire de Paris.</p>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10 }}>
         {[{value:'yes',label:'🏠 Live on campus'},{value:'alumni',label:'🎓 Alumni'},{value:'visit',label:'🚶 Visit often'},{value:'no',label:'❌ No'}].map(o => (
           <button key={o.value} type="button" onClick={()=>setCiteStatus(o.value)} style={{ padding:'14px 16px', textAlign:'left', border:`3px solid ${citeStatus===o.value? theme.primary: theme.border}`, borderRadius:14, background: citeStatus===o.value? `${theme.primary}15`:'white', color:theme.text, fontWeight: citeStatus===o.value?700:600, cursor:'pointer', boxShadow: citeStatus===o.value? '0 2px 8px rgba(88,204,2,0.2)':'none', transition:'all .2s' }}>{o.label}</button>
