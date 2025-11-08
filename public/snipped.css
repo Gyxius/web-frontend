@@ -1121,3 +1121,23 @@ input {
   cursor: pointer;  
   transition: background 0.2s;  
 }  
+
+/* Mobile responsive chat input - stack vertically on small screens */
+@media (max-width: 640px) {
+  #style-PUgAR.style-PUgAR {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  #style-TNmnM.style-TNmnM {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+  
+  #style-PSWPF.style-PSWPF {
+    width: 100%;
+    padding: 12px 24px;
+  }
+}
+
