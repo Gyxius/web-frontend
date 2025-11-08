@@ -987,12 +987,56 @@ function SocialChat({
               <span style={{ fontSize: 18 }}>🗓</span>
               <span style={{ fontWeight: 600, color: '#374151' }}>{formatHumanDate(event?.date, event?.time)}</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <span style={{ fontSize: 18 }}>📍</span>
-              <span style={{ fontWeight: 600, color: '#374151' }}>
-                {event?.location === "cite" ? "Cité Internationale" : event?.location === "paris" ? "Paris" : event?.location || "Location TBD"}
-                {event?.venue && ` · ${event.venue}`}
-              </span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, color: '#374151' }}>
+                  {event?.location === "cite" ? "Cité Internationale" : event?.location === "paris" ? "Paris" : event?.location || "Location TBD"}
+                  {event?.venue && ` · ${event.venue}`}
+                </div>
+                {event?.address && (
+                  <div style={{ fontSize: 14, color: '#8B8B8B', marginTop: 4 }}>
+                    {event.address}
+                  </div>
+                )}
+                
+                {/* Small Map Preview */}
+                {event?.coordinates && event.coordinates.lat && event.coordinates.lng && (
+                  <div 
+                    ref={(el) => {
+                      if (el && !el.dataset.mapInitialized && window.L) {
+                        el.dataset.mapInitialized = 'true';
+                        const map = window.L.map(el, {
+                          center: [event.coordinates.lat, event.coordinates.lng],
+                          zoom: 15,
+                          zoomControl: true,
+                          scrollWheelZoom: false,
+                          dragging: true,
+                        });
+                        
+                        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                          attribution: '© OpenStreetMap',
+                          maxZoom: 19
+                        }).addTo(map);
+                        
+                        window.L.marker([event.coordinates.lat, event.coordinates.lng])
+                          .addTo(map)
+                          .bindPopup(event.venue || event.address || 'Event Location');
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      height: '200px',
+                      borderRadius: '12px',
+                      marginTop: '12px',
+                      border: '2px solid #E5E5E5',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      zIndex: 1
+                    }}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
