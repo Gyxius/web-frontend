@@ -91,10 +91,25 @@ async function fetchEventData(eventId) {
     
     // Fetch chat messages
     let chatMessages = [];
+    let messageUserProfiles = {};
     try {
       const chatResponse = await fetch(`${API_BASE}/api/chat/${eventId}`);
       if (chatResponse.ok) {
         chatMessages = await chatResponse.json();
+        
+        // Fetch profiles for all message senders
+        const senderUsernames = [...new Set(chatMessages.map(m => m.username))];
+        const senderProfiles = await Promise.all(
+          senderUsernames.map(username => fetchUserProfile(username))
+        );
+        
+        // Create a map of username to profile
+        senderUsernames.forEach((username, idx) => {
+          const profile = senderProfiles[idx];
+          if (profile) {
+            messageUserProfiles[username] = profile;
+          }
+        });
       }
     } catch (e) {
       console.error('Failed to fetch chat:', e);
@@ -207,6 +222,7 @@ async function fetchEventData(eventId) {
       hostAvatar: hostAvatar,
       coordinates: data.coordinates || null,
       chatMessages: chatMessages,
+      messageUserProfiles: messageUserProfiles,
       eventId: eventId,
       hasTemplateEvent: !!data.templateEventId,
     };
@@ -384,24 +400,39 @@ function renderEvent(event) {
         // Determine if message is from current logged-in user
         const isCurrentUser = currentUsername && msg.username === currentUsername;
         
+        // Get avatar for message sender
+        let avatarUrl = null;
+        const userProfile = event.messageUserProfiles && event.messageUserProfiles[msg.username];
+        if (userProfile && userProfile.avatar) {
+          if (userProfile.avatar.provider === 'dicebear') {
+            avatarUrl = `https://api.dicebear.com/7.x/${userProfile.avatar.style}/svg?seed=${userProfile.avatar.seed}`;
+          } else if (userProfile.avatar.provider === 'custom' && userProfile.avatar.url) {
+            avatarUrl = userProfile.avatar.url;
+          }
+        }
+        // Fallback to default avatar if none found
+        if (!avatarUrl) {
+          avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.username}`;
+        }
+        
         if (isCurrentUser) {
-          // Right-aligned message with host avatar (use the same avatar as host section)
+          // Right-aligned message with user's avatar
           return `
             <div style="display:flex;justify-content:flex-end;margin-bottom:12px;gap:8px;">
               <div style="background:#58CC02;color:white;padding:12px 16px;border-radius:18px 18px 4px 18px;max-width:70%;">
                 <span style="font-weight:600;margin-right:8px;">You</span>${msg.message}
               </div>
               <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;">
-                <img alt="avatar" src="${event.hostAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=mitsu'}" style="width:100%;height:100%;">
+                <img alt="avatar" src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;">
               </div>
             </div>
           `;
         } else {
-          // Left-aligned message with emoji/avatar
+          // Left-aligned message with sender's avatar
           return `
             <div style="display:flex;margin-bottom:12px;gap:8px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">
-                🙂
+              <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;">
+                <img alt="avatar" src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;">
               </div>
               <div style="background:#f5f5f5;padding:12px 16px;border-radius:18px 18px 18px 4px;max-width:70%;">
                 <span style="font-weight:600;margin-right:8px;">${msg.username}</span>${msg.message}
