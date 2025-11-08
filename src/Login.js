@@ -1,19 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import * as api from "./api";
 
 // Avatar styles and emoji options
 const AVATAR_STYLES = ['bottts','micah','adventurer','pixel-art','avataaars','lorelei','notionists','personas','thumbs','fun-emoji'];
 const EMOJI_OPTIONS = ['😊','😎','🤓','😃','🥳','🌟','🚀','💪','❤️','🎉','🔥','✨'];
 const INTERESTS_OPTIONS = ['Sports','Music','Art','Movies','Books','Gaming','Travel','Food','Technology','Fashion','Photography','Fitness'];
-
-const hashString = (s) => {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = ((h << 5) - h) + s.charCodeAt(i);
-    h |= 0;
-  }
-  return Math.abs(h);
-};
 
 function Login({ onLogin, onRegistered }) {
   const [userName, setUserName] = useState("");
