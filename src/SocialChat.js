@@ -386,16 +386,16 @@ function SocialChat({
       background: theme.card,
       padding: 24,
       borderRadius: theme.radius,
-      marginBottom: 20,
+      marginBottom: 32,
       border: `1px solid ${theme.border}`,
       boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
     },
 
     sectionTitle: {
       fontSize: 18,
-      fontWeight: 900,
+      fontWeight: 800,
       color: theme.text,
-      marginBottom: 16,
+      marginBottom: 12,
       display: "flex",
       alignItems: "center",
       gap: 8,
@@ -788,196 +788,213 @@ function SocialChat({
       </div>
 
       <div style={styles.contentWrapper}>
-        {/* Event Title with Edit Button */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <h1 style={styles.eventTitle}>{event?.name || "Event"}</h1>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button
-              onClick={async () => {
-                try {
-                  // public static files are copied to the build root as `/public-event.html` (not `/public/public-event.html`)
-                  const shareUrl = `${window.location.origin}/public-event.html?event=${encodeURIComponent(event?.id)}`;
-                  await navigator.clipboard.writeText(shareUrl);
-                  alert('Share link copied to clipboard!');
-                } catch (e) {
-                  alert('Could not copy share link.');
-                }
-              }}
-              style={{ padding: '8px 12px', borderRadius: 10, background: '#58CC02', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 700 }}
-            >
-              Share
-            </button>
-          </div>
-          
-          {/* Edit/Options Button - For host or admin */}
-          {((event?.host && event.host.name === currentUser) || (typeof currentUser === 'string' && currentUser.toLowerCase() === 'admin') || (typeof currentUser === 'object' && (currentUser?.username?.toLowerCase?.() === 'admin' || currentUser?.name === 'Admin')) || (event?.createdBy && String(event.createdBy).toLowerCase() === 'admin') || (event?.created_by && String(event.created_by).toLowerCase() === 'admin')) && (
-            <div style={{ position: "relative" }}>
+        {/* Event Header - Match public event page structure */}
+        <div style={{ marginBottom: 24 }}>
+          {/* Title Row with Action Buttons */}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+            <h1 style={styles.eventTitle}>{event?.name || "Event"}</h1>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexShrink: 0, marginLeft: 12 }}>
               <button
-                style={{
-                  background: "white",
-                  border: `2px solid ${theme.border}`,
-                  borderRadius: 12,
-                  width: 44,
-                  height: 44,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  fontSize: 18,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                  transition: "all 0.2s",
+                onClick={async () => {
+                  try {
+                    const shareUrl = `${window.location.origin}/public-event.html?event=${encodeURIComponent(event?.id)}`;
+                    await navigator.clipboard.writeText(shareUrl);
+                    alert('Share link copied to clipboard!');
+                  } catch (e) {
+                    alert('Could not copy share link.');
+                  }
                 }}
-                onClick={() => setShowOptionsMenu(!showOptionsMenu)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.05)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-                }}
+                style={{ padding: '8px 12px', borderRadius: 10, background: '#58CC02', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap' }}
               >
-                ⚙️
+                Share
               </button>
-              
-              {/* Dropdown Menu */}
-              {showOptionsMenu && (
-                <>
-                  {/* Backdrop to close menu */}
-                  <div
+            
+              {/* Edit/Options Button - For host or admin */}
+              {((event?.host && event.host.name === currentUser) || (typeof currentUser === 'string' && currentUser.toLowerCase() === 'admin') || (typeof currentUser === 'object' && (currentUser?.username?.toLowerCase?.() === 'admin' || currentUser?.name === 'Admin')) || (event?.createdBy && String(event.createdBy).toLowerCase() === 'admin') || (event?.created_by && String(event.created_by).toLowerCase() === 'admin')) && (
+                <div style={{ position: "relative" }}>
+                  <button
                     style={{
-                      position: "fixed",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      zIndex: 999,
+                      background: "white",
+                      border: `2px solid ${theme.border}`,
+                      borderRadius: 12,
+                      width: 44,
+                      height: 44,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      fontSize: 18,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      transition: "all 0.2s",
                     }}
-                    onClick={() => setShowOptionsMenu(false)}
-                  />
+                    onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "scale(1.05)";
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                    }}
+                  >
+                    ⚙️
+                  </button>
                   
-                  {/* Menu */}
-                  <div style={{
-                    position: "absolute",
-                    top: 52,
-                    right: 0,
-                    background: "white",
-                    borderRadius: 12,
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-                    zIndex: 1000,
-                    minWidth: 200,
-                    overflow: "hidden",
-                    border: `1px solid ${theme.border}`,
-                  }}>
-                    <button
-                      style={{
-                        width: "100%",
-                        padding: "14px 20px",
-                        border: "none",
+                  {/* Dropdown Menu */}
+                  {showOptionsMenu && (
+                    <>
+                      {/* Backdrop to close menu */}
+                      <div
+                        style={{
+                          position: "fixed",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 999,
+                        }}
+                        onClick={() => setShowOptionsMenu(false)}
+                      />
+                      
+                      {/* Menu */}
+                      <div style={{
+                        position: "absolute",
+                        top: 52,
+                        right: 0,
                         background: "white",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        color: theme.text,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        borderBottom: `1px solid ${theme.border}`,
-                      }}
-                      onClick={() => {
-                        setEditedEvent({
-                          name: event?.name || "",
-                          location: event?.location || "cite",
-                          date: event?.date || "",
-                          time: event?.time || "",
-                          description: event?.description || "",
-                          category: event?.category || "food",
-                          languages: event?.languages || [],
-                          capacity: event?.capacity || 6,
-                          imageUrl: event?.imageUrl || "",
-                        });
-                        setImageFile(null); // Clear any previous file selection
-                        setShowEditModal(true);
-                        setShowOptionsMenu(false);
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
-                      onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                    >
-                      <span>✏️</span> Edit Event
-                    </button>
-                    
-                    <button
-                      style={{
-                        width: "100%",
-                        padding: "14px 20px",
-                        border: "none",
-                        background: "white",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        color: theme.text,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        borderBottom: `1px solid ${theme.border}`,
-                      }}
-                      onClick={() => {
-                        setShowManageHostsModal(true);
-                        setShowOptionsMenu(false);
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
-                      onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                    >
-                      <span>👥</span> Manage Co-Hosts
-                    </button>
-                    
-                    <button
-                      style={{
-                        width: "100%",
-                        padding: "14px 20px",
-                        border: "none",
-                        background: "white",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        color: "#FF4B4B",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                      }}
-                      onClick={async () => {
-                        console.log("Delete button clicked");
-                        const confirmed = window.confirm("Are you sure you want to delete this event? This action cannot be undone.");
-                        console.log("User confirmed:", confirmed);
-                        if (confirmed) {
-                          setShowOptionsMenu(false);
-                          console.log("Calling onDeleteEvent with:", event);
-                          console.log("onDeleteEvent exists:", !!onDeleteEvent);
-                          if (onDeleteEvent) {
-                            try {
-                              await onDeleteEvent(event);
-                              console.log("onDeleteEvent completed");
-                            } catch (error) {
-                              console.error("Error in onDeleteEvent:", error);
+                        borderRadius: 12,
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+                        zIndex: 1000,
+                        minWidth: 200,
+                        overflow: "hidden",
+                        border: `1px solid ${theme.border}`,
+                      }}>
+                        <button
+                          style={{
+                            width: "100%",
+                            padding: "14px 20px",
+                            border: "none",
+                            background: "white",
+                            textAlign: "left",
+                            cursor: "pointer",
+                            fontSize: 15,
+                            fontWeight: 600,
+                            color: theme.text,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            borderBottom: `1px solid ${theme.border}`,
+                          }}
+                          onClick={() => {
+                            setEditedEvent({
+                              name: event?.name || "",
+                              location: event?.location || "cite",
+                              date: event?.date || "",
+                              time: event?.time || "",
+                              description: event?.description || "",
+                              category: event?.category || "food",
+                              languages: event?.languages || [],
+                              capacity: event?.capacity || 6,
+                              imageUrl: event?.imageUrl || "",
+                            });
+                            setImageFile(null);
+                            setShowEditModal(true);
+                            setShowOptionsMenu(false);
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                        >
+                          <span>✏️</span> Edit Event
+                        </button>
+                        
+                        <button
+                          style={{
+                            width: "100%",
+                            padding: "14px 20px",
+                            border: "none",
+                            background: "white",
+                            textAlign: "left",
+                            cursor: "pointer",
+                            fontSize: 15,
+                            fontWeight: 600,
+                            color: theme.text,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            borderBottom: `1px solid ${theme.border}`,
+                          }}
+                          onClick={() => {
+                            setShowManageHostsModal(true);
+                            setShowOptionsMenu(false);
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                        >
+                          <span>👥</span> Manage Co-Hosts
+                        </button>
+                        
+                        <button
+                          style={{
+                            width: "100%",
+                            padding: "14px 20px",
+                            border: "none",
+                            background: "white",
+                            textAlign: "left",
+                            cursor: "pointer",
+                            fontSize: 15,
+                            fontWeight: 600,
+                            color: "#FF4B4B",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                          }}
+                          onClick={async () => {
+                            console.log("Delete button clicked");
+                            const confirmed = window.confirm("Are you sure you want to delete this event? This action cannot be undone.");
+                            console.log("User confirmed:", confirmed);
+                            if (confirmed) {
+                              setShowOptionsMenu(false);
+                              console.log("Calling onDeleteEvent with:", event);
+                              console.log("onDeleteEvent exists:", !!onDeleteEvent);
+                              if (onDeleteEvent) {
+                                try {
+                                  await onDeleteEvent(event);
+                                  console.log("onDeleteEvent completed");
+                                } catch (error) {
+                                  console.error("Error in onDeleteEvent:", error);
+                                }
+                              } else {
+                                console.error("onDeleteEvent is not defined!");
+                              }
                             }
-                          } else {
-                            console.error("onDeleteEvent is not defined!");
-                          }
-                        }
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = "#FFF5F5"}
-                      onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                    >
-                      <span>🗑️</span> Delete Event
-                    </button>
-                  </div>
-                </>
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = "#FFF5F5"}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                        >
+                          <span>🗑️</span> Delete Event
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
-          )}
+          </div>
+          
+          {/* Event Metadata - Date and Location */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 16, color: '#6B7280' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 18 }}>🗓</span>
+              <span style={{ fontWeight: 600, color: '#374151' }}>{formatHumanDate(event?.date, event?.time)}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 18 }}>📍</span>
+              <span style={{ fontWeight: 600, color: '#374151' }}>
+                {event?.location === "cite" ? "Cité Internationale" : event?.location === "paris" ? "Paris" : event?.location || "Location TBD"}
+                {event?.venue && ` · ${event.venue}`}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Featured Event Notice - Only show for actual featured events */}
@@ -1033,84 +1050,20 @@ function SocialChat({
           </div>
         )}
 
-        {/* Event Meta Information */}
-        <div style={{ marginBottom: 24 }}>
-          {event?.location && (
-            <div style={styles.metaRow}>
-              <span style={styles.metaIcon}>📍</span>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>
-                  {event.location === "cite" ? "Cité Internationale" : event.location === "paris" ? "Paris" : event.location}
-                </div>
-                {(event.venue || event.address) && (
-                  <div style={{ fontSize: 14, color: "#8B8B8B" }}>
-                    {event.venue && <div>{event.venue}</div>}
-                    {event.address && <div>{event.address}</div>}
-                  </div>
-                )}
-                
-                {/* Small Map Preview */}
-                {event.coordinates && event.coordinates.lat && event.coordinates.lng && (
-                  <div 
-                    ref={(el) => {
-                      if (el && !el.dataset.mapInitialized && window.L) {
-                        el.dataset.mapInitialized = 'true';
-                        const map = window.L.map(el, {
-                          center: [event.coordinates.lat, event.coordinates.lng],
-                          zoom: 15,
-                          zoomControl: true,
-                          scrollWheelZoom: false,
-                          dragging: true,
-                        });
-                        
-                        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                          attribution: '© OpenStreetMap',
-                          maxZoom: 19
-                        }).addTo(map);
-                        
-                        window.L.marker([event.coordinates.lat, event.coordinates.lng])
-                          .addTo(map)
-                          .bindPopup(event.venue || event.address || 'Event Location');
-                      }
-                    }}
-                    style={{
-                      width: '100%',
-                      height: '200px',
-                      borderRadius: '12px',
-                      marginTop: '12px',
-                      border: '2px solid #E5E5E5',
-                      overflow: 'hidden',
-                      position: 'relative',
-                      zIndex: 1
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-          )}
-          
-          <div style={styles.metaRow}>
-            <span style={styles.metaIcon}>📅</span>
-            <span>{formatHumanDate(event?.date, event?.time)}</span>
-          </div>
-        </div>
-
         {/* Languages Section - Prominent Display */}
         {event?.languages && event.languages.length > 0 && (
           <div style={{
             background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
             padding: "20px 24px",
             borderRadius: theme.radius,
-            marginBottom: 24,
+            marginBottom: 32,
             boxShadow: "0 4px 16px rgba(88,204,2,0.25)",
           }}>
             <div style={{
-              fontSize: 13,
+              fontSize: 18,
               fontWeight: 800,
-              color: "rgba(255,255,255,0.9)",
+              color: "white",
               marginBottom: 12,
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
             }}>
               🗣️ Languages
             </div>
