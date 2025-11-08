@@ -657,23 +657,38 @@ function SocialChat({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: 8,
-            fontSize: 20,
-            color: theme.textMuted,
-            transition: "all 0.2s",
+            padding: 0,
             position: "absolute",
             right: 20,
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.color = theme.text;
-            e.target.style.transform = "scale(1.1)";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.color = theme.textMuted;
-            e.target.style.transform = "scale(1)";
+            width: 36,
+            height: 36,
+            borderRadius: "50%",
+            overflow: "hidden",
           }}
         >
-          🌙
+          {(() => {
+            const username = typeof currentUser === 'string' ? currentUser : (currentUser?.username || currentUser?.name);
+            const userProfile = serverProfiles[username] || getLocalUserProfile(username);
+            if (userProfile?.avatar?.provider === 'dicebear') {
+              return (
+                <img 
+                  src={`https://api.dicebear.com/6.x/${userProfile.avatar.style}/svg?seed=${encodeURIComponent(userProfile.avatar.seed || username)}`}
+                  alt="avatar" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              );
+            } else if (userProfile?.avatar?.provider === 'custom') {
+              return (
+                <img 
+                  src={userProfile.avatar.url}
+                  alt="custom avatar" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              );
+            } else {
+              return <span style={{ fontSize: 20 }}>👤</span>;
+            }
+          })()}
         </button>
       </div>
       
