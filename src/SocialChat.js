@@ -634,7 +634,6 @@ function SocialChat({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        position: "relative",
       }}>
         <img 
           src={`https://fast-api-backend-qlyb.onrender.com/static/assets/logo.png`}
