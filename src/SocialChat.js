@@ -633,19 +633,22 @@ function SocialChat({
         borderBottom: `1px solid ${theme.border}`,
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: "center",
+        position: "relative",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <svg width="40" height="40" viewBox="0 0 100 100" style={{ display: "block" }}>
-            <circle cx="50" cy="50" r="45" fill="#58CC02"/>
-            <circle cx="35" cy="40" r="8" fill="white"/>
-            <circle cx="65" cy="40" r="8" fill="white"/>
-            <circle cx="35" cy="40" r="4" fill="#2C5A00"/>
-            <circle cx="65" cy="40" r="4" fill="#2C5A00"/>
-            <path d="M 30 60 Q 50 75 70 60" stroke="white" strokeWidth="4" fill="none" strokeLinecap="round"/>
-          </svg>
-          <span style={{ fontSize: 24, fontWeight: 800, color: theme.text }}>Lemi</span>
-        </div>
+        <img 
+          src={`https://fast-api-backend-qlyb.onrender.com/static/assets/logo.png`}
+          alt="Lemi Logo" 
+          style={{ 
+            width: 36, 
+            height: 36, 
+            objectFit: 'contain', 
+            borderRadius: "50%",
+            position: "absolute",
+            left: 20,
+          }}
+        />
+        <span style={{ fontSize: 24, fontWeight: 800, color: theme.text }}>Lemi</span>
         <button
           onClick={onHome}
           style={{
@@ -659,6 +662,8 @@ function SocialChat({
             fontSize: 20,
             color: theme.textMuted,
             transition: "all 0.2s",
+            position: "absolute",
+            right: 20,
           }}
           onMouseEnter={(e) => {
             e.target.style.color = theme.text;
