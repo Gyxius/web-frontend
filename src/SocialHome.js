@@ -1098,102 +1098,125 @@ function SocialHome({
                 <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
                   Events hosted by community members
                 </div>
-                {sortedEvents.map((event, idx) => (
+                {sortedEvents.map((event, idx) => {
+                  const categoryBadge = getCategoryBadge(event.category);
+                  return (
                   <div key={idx} style={{ 
-                    background: theme.bg, 
-                    padding: 14, 
-                    borderRadius: 12, 
-                    marginBottom: 10,
+                    background: theme.card, 
+                    padding: 16, 
+                    borderRadius: 14, 
+                    marginBottom: 12,
                     border: `1px solid ${theme.track}`,
                     cursor: "pointer",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                   }}
                   onClick={() => setEventPreview(event)}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                      <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                      <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
                         {event.name}
-                        {event.languages && event.languages.length > 0 && (
-                          <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
-                            {" - "}
-                            {event.languages.map((lang, i) => {
-                              const flag = getLanguageFlag(lang);
-                              return <span key={i}>{flag} {lang}{i < event.languages.length - 1 ? " ↔ " : ""}</span>;
-                            })}
-                          </span>
-                        )}
                       </div>
                     </div>
-                    
-                    {/* Host Info */}
-                    {(() => {
-                      if (event.host) {
-                        return (
-                          <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
-                            👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
-                              {event.host.emoji} {event.host.name} {event.host.country}
-                            </span>
-                          </div>
-                        );
-                      } else if (event.createdBy) {
-                        // Fallback for older events without host object
-                        const hostUser = users.find(u => u.name === event.createdBy || u.username === event.createdBy);
-                        if (hostUser) {
-                          return (
-                            <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
-                              👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
-                                {hostUser.emoji} {hostUser.name} {hostUser.country}
-                              </span>
-                            </div>
-                          );
-                        }
-                      }
-                      return null;
-                    })()}
                     
                     {event.imageUrl && (
                       <div style={{
                         width: "100%",
-                        height: 140,
+                        height: 160,
                         borderRadius: 12,
-                        marginBottom: 10,
+                        marginBottom: 12,
                         backgroundImage: `url(${event.imageUrl})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                       }} />
                     )}
                     
-                    {event.location && (
-                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                        📍 {event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location}
-                        {event.venue && ` · ${event.venue}`}
-                      </div>
-                    )}
-                    
-                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                      ⏰ {formatDateOnly(event.date)}
-                    </div>
-                    
-                    {event.category && (
-                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                        🎯 {event.category}
-                      </div>
-                    )}
-                    
-                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
-                      👥 {(() => {
-                        const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
-                        return event.capacity 
-                          ? `${attendeeCount}/${event.capacity} spots filled` 
-                          : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {/* Host Info */}
+                      {(() => {
+                        if (event.host) {
+                          return (
+                            <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
+                              <span>👤</span>
+                              <span>
+                                Hosted by <span style={{ fontWeight: 700, color: theme.accent }}>
+                                  {event.host.emoji} {event.host.name}
+                                </span>
+                              </span>
+                            </div>
+                          );
+                        } else if (event.createdBy) {
+                          const hostUser = users.find(u => u.name === event.createdBy || u.username === event.createdBy);
+                          if (hostUser) {
+                            return (
+                              <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
+                                <span>👤</span>
+                                <span>
+                                  Hosted by <span style={{ fontWeight: 700, color: theme.accent }}>
+                                    {hostUser.emoji} {hostUser.name}
+                                  </span>
+                                </span>
+                              </div>
+                            );
+                          }
+                        }
+                        return null;
                       })()}
+                      
+                      {event.location && (
+                        <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
+                          <span>📍</span>
+                          <span style={{ fontWeight: 600 }}>
+                            {event.venue || (event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location)}
+                            {event.venue && event.location && `, ${event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location}`}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>🗓</span>
+                        <span style={{ fontWeight: 600 }}>{formatDateOnly(event.date)}</span>
+                      </div>
+                      
+                      <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>👥</span>
+                        <span>
+                          {(() => {
+                            const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                            return event.capacity 
+                              ? `${attendeeCount}/${event.capacity} spots filled` 
+                              : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                          })()}
+                        </span>
+                      </div>
+                      
+                      {event.category && (
+                        <div style={{ marginTop: 4 }}>
+                          <span style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "6px 12px",
+                            borderRadius: 999,
+                            background: categoryBadge.color,
+                            color: "white",
+                            fontSize: 13,
+                            fontWeight: 700,
+                          }}>
+                            <span>{categoryBadge.emoji}</span>
+                            <span>{categoryBadge.label}</span>
+                          </span>
+                        </div>
+                      )}
                     </div>
                     
                     <button
                       style={{
                         ...styles.joinButton,
-                        padding: "10px 16px",
-                        fontSize: 14,
+                        padding: "12px 16px",
+                        fontSize: 15,
+                        fontWeight: 700,
                         width: "100%",
+                        marginTop: 12,
                         opacity: (() => {
                           const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
                           return (event.capacity && attendeeCount >= event.capacity) ? 0.5 : 1;
@@ -1216,7 +1239,8 @@ function SocialHome({
                       {(event.capacity && event.crew && event.crew.length >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event"}
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             );
           })()}
@@ -1352,99 +1376,121 @@ function SocialHome({
               </div>
               {joinedEvents
                 .filter(item => !(item.host && item.host.name === userName))
-                .map((item, idx) => (
+                .map((item, idx) => {
+                  const categoryBadge = getCategoryBadge(item.category);
+                  return (
                   <div
                     key={`joined-${idx}`}
                     style={{ 
-                      background: theme.bg, 
-                      padding: 14, 
-                      borderRadius: 12, 
-                      marginBottom: 10,
+                      background: theme.card, 
+                      padding: 16, 
+                      borderRadius: 14, 
+                      marginBottom: 12,
                       border: `1px solid ${theme.track}`,
                       cursor: "pointer",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                     }}
                     onClick={() => onJoinedEventClick(item)}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                      <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                      <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
                         {String(item.name || item.type || item.category || "Event")}
-                        {item.languages && item.languages.length > 0 && (
-                          <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
-                            {" - "}
-                            {item.languages.map((lang, i) => {
-                              const flag = getLanguageFlag(lang);
-                              return <span key={i}>{flag} {lang}{i < item.languages.length - 1 ? " ↔ " : ""}</span>;
-                            })}
-                          </span>
-                        )}
                       </div>
                     </div>
-                    
-                    {/* Host Info */}
-                    {(() => {
-                      if (item.host) {
-                        return (
-                          <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
-                            👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
-                              {item.host.emoji} {item.host.name} {item.host.country}
-                            </span>
-                          </div>
-                        );
-                      } else if (item.createdBy) {
-                        // Fallback for older events without host object
-                        const hostUser = users.find(u => u.name === item.createdBy || u.username === item.createdBy);
-                        if (hostUser) {
-                          return (
-                            <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
-                              👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
-                                {hostUser.emoji} {hostUser.name} {hostUser.country}
-                              </span>
-                            </div>
-                          );
-                        }
-                      }
-                      return null;
-                    })()}
                     
                     {item.imageUrl && (
                       <div style={{
                         width: "100%",
-                        height: 140,
+                        height: 160,
                         borderRadius: 12,
-                        marginBottom: 10,
+                        marginBottom: 12,
                         backgroundImage: `url(${item.imageUrl})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                       }} />
                     )}
                     
-                    {item.location && (
-                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                        📍 {item.location === "cite" ? "Cité" : item.location === "paris" ? "Paris" : item.location}
-                        {item.venue && ` · ${item.venue}`}
-                      </div>
-                    )}
-                    
-                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                      ⏰ {formatDateOnly(item.date)}
-                    </div>
-                    
-                    {item.category && (
-                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                        🎯 {item.category}
-                      </div>
-                    )}
-                    
-                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
-                      👥 {(() => {
-                        const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
-                        return item.capacity 
-                          ? `${attendeeCount}/${item.capacity} spots filled` 
-                          : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {/* Host Info */}
+                      {(() => {
+                        if (item.host) {
+                          return (
+                            <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
+                              <span>👤</span>
+                              <span>
+                                Hosted by <span style={{ fontWeight: 700, color: theme.accent }}>
+                                  {item.host.emoji} {item.host.name}
+                                </span>
+                              </span>
+                            </div>
+                          );
+                        } else if (item.createdBy) {
+                          const hostUser = users.find(u => u.name === item.createdBy || u.username === item.createdBy);
+                          if (hostUser) {
+                            return (
+                              <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
+                                <span>👤</span>
+                                <span>
+                                  Hosted by <span style={{ fontWeight: 700, color: theme.accent }}>
+                                    {hostUser.emoji} {hostUser.name}
+                                  </span>
+                                </span>
+                              </div>
+                            );
+                          }
+                        }
+                        return null;
                       })()}
+                      
+                      {item.location && (
+                        <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
+                          <span>📍</span>
+                          <span style={{ fontWeight: 600 }}>
+                            {item.venue || (item.location === "cite" ? "Cité" : item.location === "paris" ? "Paris" : item.location)}
+                            {item.venue && item.location && `, ${item.location === "cite" ? "Cité" : item.location === "paris" ? "Paris" : item.location}`}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>🗓</span>
+                        <span style={{ fontWeight: 600 }}>{formatDateOnly(item.date)}</span>
+                      </div>
+                      
+                      <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>�</span>
+                        <span>
+                          {(() => {
+                            const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
+                            return item.capacity 
+                              ? `${attendeeCount}/${item.capacity} spots filled` 
+                              : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                          })()}
+                        </span>
+                      </div>
+                      
+                      {item.category && (
+                        <div style={{ marginTop: 4 }}>
+                          <span style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "6px 12px",
+                            borderRadius: 999,
+                            background: categoryBadge.color,
+                            color: "white",
+                            fontSize: 13,
+                            fontWeight: 700,
+                          }}>
+                            <span>{categoryBadge.emoji}</span>
+                            <span>{categoryBadge.label}</span>
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
             </div>
           ) : (
             <div style={styles.highlightCard}>
@@ -1471,87 +1517,90 @@ function SocialHome({
               </div>
               {joinedEvents
                 .filter(item => item.host && item.host.name === userName)
-                .map((item, idx) => (
+                .map((item, idx) => {
+                  const categoryBadge = getCategoryBadge(item.category);
+                  return (
                   <div
                     key={`hosted-${idx}`}
                     style={{ 
-                      background: theme.bg, 
-                      padding: 14, 
-                      borderRadius: 12, 
-                      marginBottom: 10,
+                      background: theme.card, 
+                      padding: 16, 
+                      borderRadius: 14, 
+                      marginBottom: 12,
                       border: `1px solid ${theme.track}`,
                       cursor: "pointer",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                     }}
                     onClick={() => onJoinedEventClick(item)}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                      <div style={{ fontWeight: 800, fontSize: 16, color: theme.text, flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                      <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
                         {String(item.name || item.type || item.category || "Event")}
-                        {item.languages && item.languages.length > 0 && (
-                          <span style={{ fontSize: 14, fontWeight: 600, color: theme.textMuted }}>
-                            {" - "}
-                            {item.languages.map((lang, i) => {
-                              const flag = getLanguageFlag(lang);
-                              return <span key={i}>{flag} {lang}{i < item.languages.length - 1 ? " ↔ " : ""}</span>;
-                            })}
-                          </span>
-                        )}
                       </div>
                     </div>
-                    
-                    {/* Host Info */}
-                    {(() => {
-                      if (item.host) {
-                        return (
-                          <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
-                            👤 Hosted by: <span style={{ fontWeight: 700, color: theme.accent }}>
-                              {item.host.emoji} {item.host.name} {item.host.country}
-                            </span>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })()}
                     
                     {item.imageUrl && (
                       <div style={{
                         width: "100%",
-                        height: 140,
+                        height: 160,
                         borderRadius: 12,
-                        marginBottom: 10,
+                        marginBottom: 12,
                         backgroundImage: `url(${item.imageUrl})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                       }} />
                     )}
                     
-                    {item.location && (
-                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                        📍 {item.location === "cite" ? "Cité" : item.location === "paris" ? "Paris" : item.location}
-                        {item.venue && ` · ${item.venue}`}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {item.location && (
+                        <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
+                          <span>📍</span>
+                          <span style={{ fontWeight: 600 }}>
+                            {item.venue || (item.location === "cite" ? "Cité" : item.location === "paris" ? "Paris" : item.location)}
+                            {item.venue && item.location && `, ${item.location === "cite" ? "Cité" : item.location === "paris" ? "Paris" : item.location}`}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>🗓</span>
+                        <span style={{ fontWeight: 600 }}>{formatDateOnly(item.date)}</span>
                       </div>
-                    )}
-                    
-                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                      ⏰ {formatDateOnly(item.date)}
-                    </div>
-                    
-                    {item.category && (
-                      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 6 }}>
-                        🎯 {item.category}
+                      
+                      <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>👥</span>
+                        <span>
+                          {(() => {
+                            const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
+                            return item.capacity 
+                              ? `${attendeeCount}/${item.capacity} spots filled` 
+                              : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                          })()}
+                        </span>
                       </div>
-                    )}
-                    
-                    <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 10 }}>
-                      👥 {(() => {
-                        const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
-                        return item.capacity 
-                          ? `${attendeeCount}/${item.capacity} spots filled` 
-                          : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
-                      })()}
+                      
+                      {item.category && (
+                        <div style={{ marginTop: 4 }}>
+                          <span style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "6px 12px",
+                            borderRadius: 999,
+                            background: categoryBadge.color,
+                            color: "white",
+                            fontSize: 13,
+                            fontWeight: 700,
+                          }}>
+                            <span>{categoryBadge.emoji}</span>
+                            <span>{categoryBadge.label}</span>
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
             </div>
           ) : (
             <div style={styles.highlightCard}>
