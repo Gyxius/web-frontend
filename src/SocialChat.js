@@ -2,6 +2,39 @@ import React, { useState, useEffect, useRef } from "react";
 import * as api from "./api";
 import { getCountryFlag } from "./countryFlags";
 
+// Convert ISO date and 24h time to human-friendly format
+// Example: "2025-11-05" + "20:30" → "Wednesday, 5 November · 8:30 PM"
+function formatHumanDate(isoDate, time24) {
+  if (!isoDate) return "";
+  
+  try {
+    const [year, month, day] = isoDate.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    
+    // Get day of week
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayOfWeek = dayNames[date.getDay()];
+    
+    // Get month name
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthName = monthNames[date.getMonth()];
+    
+    // Format time if provided
+    let timeStr = "";
+    if (time24) {
+      const [hours, minutes] = time24.split(":").map(Number);
+      const period = hours >= 12 ? "PM" : "AM";
+      const hours12 = hours % 12 || 12;
+      timeStr = ` · ${hours12}:${String(minutes).padStart(2, "0")} ${period}`;
+    }
+    
+    return `${dayOfWeek}, ${day} ${monthName}${timeStr}`;
+  } catch (e) {
+    console.error("Error formatting date:", e);
+    return isoDate;
+  }
+}
+
 function SocialChat({
   event,
   initialMessages = [],
@@ -1058,7 +1091,7 @@ function SocialChat({
           
           <div style={styles.metaRow}>
             <span style={styles.metaIcon}>📅</span>
-            <span>{event?.date ? `${event.date} at ${event.time}` : event?.time}</span>
+            <span>{formatHumanDate(event?.date, event?.time)}</span>
           </div>
         </div>
 
@@ -1151,7 +1184,7 @@ function SocialChat({
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span>⏰</span>
-                  <span>{templateEvent.date}</span>
+                  <span>{formatHumanDate(templateEvent.date, templateEvent.time)}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span>🎯</span>
@@ -1220,7 +1253,7 @@ function SocialChat({
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span>⏰</span>
-                      <span>{hangout.date}</span>
+                      <span>{formatHumanDate(hangout.date, hangout.time)}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span>🎯</span>
