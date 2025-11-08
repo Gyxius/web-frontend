@@ -660,6 +660,4 @@ function addAttendeeClickHandlers() {
 
 document.addEventListener('DOMContentLoaded', () => {
   main();
-  // Refresh every 10 seconds for real-time updates
-  setInterval(main, 10000);
 });
