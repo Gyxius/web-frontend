@@ -1463,7 +1463,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                         }
                         
                         const data = await response.json();
-                        const fullUrl = `${process.env.REACT_APP_API_URL || "http://localhost:8000"}${data.url}`;
+                        // Backend returns full URL from R2 CDN, don't prepend API URL
+                        const fullUrl = data.url.startsWith('http') ? data.url : `${process.env.REACT_APP_API_URL || "http://localhost:8000"}${data.url}`;
                         setCreateEventForm({ ...createEventForm, imageUrl: fullUrl });
                       } catch (error) {
                         console.error("Error uploading image:", error);
