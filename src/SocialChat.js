@@ -1234,7 +1234,7 @@ function SocialChat({
               lineHeight: 1.5,
             }}>
               {relatedHangouts.length > 0
-                ? "Join a hangout or create your own — meet up before, during, or after the event!"
+                ? "Organize a language exchange or hangout related to this event! Create a pre-drinks, coffee meetup, or post-event gathering with your preferred time and languages."
                 : "No hangouts yet — be the first to start one for this event 🎉"
               }
             </div>
@@ -1536,46 +1536,6 @@ function SocialChat({
                 })}
               </div>
             )}
-
-            {/* Create Hangout Button */}
-            <button
-              style={{
-                background: 'linear-gradient(135deg, #58CC02, #37B300)',
-                color: 'white',
-                border: 'none',
-                borderRadius: 14,
-                padding: '14px 20px',
-                fontWeight: 800,
-                fontSize: 15,
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(88,204,2,0.3)',
-                width: '100%',
-                marginTop: relatedHangouts.length > 0 ? 16 : 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                transition: 'all 0.2s ease',
-              }}
-              onClick={() => {
-                if (onCreateHangout) {
-                  onCreateHangout(event);
-                } else {
-                  onHome();
-                }
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(88,204,2,0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(88,204,2,0.3)';
-              }}
-            >
-              <span style={{ fontSize: 18 }}>+</span>
-              <span>Create Hangout</span>
-            </button>
           </div>
         )}
 
