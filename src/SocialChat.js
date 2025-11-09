@@ -654,6 +654,11 @@ function SocialChat({
 
   return (
     <div style={styles.container}>
+      <style>{`
+        .hangout-card:hover .join-button-hover {
+          opacity: 1 !important;
+        }
+      `}</style>
       {/* Lemi Header - Fixed at top */}
       <div style={{
         position: "sticky",
@@ -1209,61 +1214,368 @@ function SocialChat({
         )}
 
         {/* Related Hangouts (shown on featured events) */}
-        {event?.isFeatured && relatedHangouts.length > 0 && (
+        {event?.isFeatured && (
           <div style={styles.section}>
-            <div style={styles.sectionTitle}>
-              🎪 Related Hangouts ({relatedHangouts.length})
+            <div style={{
+              fontSize: 18,
+              fontWeight: 900,
+              color: theme.text,
+              marginBottom: 8,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}>
+              👋 Meet Others Going
             </div>
-            <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-              People have organized these gatherings based on this event:
+            <div style={{
+              fontSize: 14,
+              color: theme.textMuted,
+              marginBottom: 16,
+              lineHeight: 1.5,
+            }}>
+              {relatedHangouts.length > 0
+                ? "Join a hangout or create your own — meet up before, during, or after the event!"
+                : "No hangouts yet — be the first to start one for this event 🎉"
+              }
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {relatedHangouts.map((hangout) => (
-                <div
-                  key={hangout.id}
-                  style={{
-                    ...styles.card,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    backgroundColor: theme.name === 'dark' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.05)',
-                    border: `1px solid ${theme.name === 'dark' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.15)'}`,
-                  }}
-                  onClick={() => {
-                    if (onEventClick) onEventClick(hangout);
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.2)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-                  }}
-                >
-                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>
-                    {hangout.name}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, color: theme.textMuted }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>📍</span>
-                      <span>{hangout.location || 'Cité'} · {hangout.venue || 'Venue TBD'}</span>
+
+            {relatedHangouts.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {relatedHangouts.map((hangout) => {
+                  const isJoined = hangout.eventParticipants?.some(p => 
+                    (typeof p === 'string' ? p : p.name) === currentUser?.name || 
+                    (typeof p === 'string' ? p : p.username) === currentUser?.username
+                  );
+                  const attendees = hangout.eventParticipants || [];
+                  const attendeeCount = Math.max(attendees.length, hangout.host ? 1 : 0);
+                  const capacity = hangout.capacity;
+                  
+                  // Get hangout type emoji
+                  const hangoutEmoji = 
+                    hangout.category === 'drinks' ? '🍹' :
+                    hangout.category === 'food' ? '🍽️' :
+                    hangout.category === 'party' ? '🎉' :
+                    hangout.category === 'language' ? '💬' :
+                    hangout.category === 'sports' ? '⚽' :
+                    hangout.category === 'arts' ? '🎨' :
+                    hangout.category === 'music' ? '🎵' : '🎯';
+
+                  // Get category badge color
+                  const badgeColor =
+                    hangout.category === 'drinks' ? '#FF6B6B' :
+                    hangout.category === 'food' ? '#FFA500' :
+                    hangout.category === 'party' ? '#9B59B6' :
+                    hangout.category === 'language' ? '#1CB0F6' :
+                    hangout.category === 'sports' ? '#58CC02' :
+                    hangout.category === 'arts' ? '#E91E63' :
+                    hangout.category === 'music' ? '#FF69B4' : '#667eea';
+
+                  return (
+                    <div
+                      key={hangout.id}
+                      style={{
+                        background: isJoined 
+                          ? 'linear-gradient(135deg, rgba(88,204,2,0.08) 0%, rgba(55,179,0,0.08) 100%)'
+                          : theme.card,
+                        border: isJoined 
+                          ? `2px solid ${theme.primary}`
+                          : `1px solid ${theme.border}`,
+                        borderRadius: 16,
+                        padding: 16,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                        position: 'relative',
+                      }}
+                      onClick={() => {
+                        if (onEventClick) onEventClick(hangout);
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-3px)";
+                        e.currentTarget.style.boxShadow = isJoined 
+                          ? "0 6px 20px rgba(88,204,2,0.25)"
+                          : "0 6px 20px rgba(0,0,0,0.12)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
+                      }}
+                    >
+                      {/* Joined Badge */}
+                      {isJoined && (
+                        <div style={{
+                          position: 'absolute',
+                          top: 12,
+                          right: 12,
+                          background: theme.primary,
+                          color: 'white',
+                          padding: '4px 10px',
+                          borderRadius: 20,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}>
+                          ✓ Joined
+                        </div>
+                      )}
+
+                      {/* Hangout Header */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
+                        {/* Icon */}
+                        <div style={{
+                          fontSize: 32,
+                          lineHeight: 1,
+                          flexShrink: 0,
+                        }}>
+                          {hangoutEmoji}
+                        </div>
+
+                        {/* Title & Badge */}
+                        <div style={{ flex: 1 }}>
+                          <div style={{
+                            fontWeight: 700,
+                            fontSize: 17,
+                            color: theme.text,
+                            marginBottom: 6,
+                            lineHeight: 1.3,
+                            paddingRight: isJoined ? 70 : 0,
+                          }}>
+                            {hangout.name}
+                          </div>
+                          
+                          {/* Category Badge */}
+                          <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            padding: '4px 10px',
+                            borderRadius: 12,
+                            background: badgeColor,
+                            color: 'white',
+                            fontSize: 12,
+                            fontWeight: 600,
+                          }}>
+                            {hangout.category || 'Hangout'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr',
+                        gap: 8,
+                        marginBottom: 14,
+                        fontSize: 14,
+                        color: theme.textMuted,
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 16 }}>📍</span>
+                          <span style={{ fontWeight: 500 }}>{hangout.venue || hangout.location || 'Location TBD'}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 16 }}>🕗</span>
+                          <span style={{ fontWeight: 500 }}>{formatHumanDate(hangout.date, hangout.time)}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 16 }}>👥</span>
+                          <span style={{ fontWeight: 600 }}>
+                            {capacity 
+                              ? `${attendeeCount}/${capacity} attending`
+                              : `${attendeeCount} ${attendeeCount === 1 ? 'person' : 'people'} going`
+                            }
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Attendees Avatars */}
+                      {attendees.length > 0 && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          paddingTop: 12,
+                          borderTop: `1px solid ${theme.border}`,
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', marginLeft: -4 }}>
+                            {attendees.slice(0, 4).map((attendee, idx) => {
+                              const user = typeof attendee === 'string' 
+                                ? { name: attendee, emoji: '�' }
+                                : attendee;
+                              const enrichedUser = enrichUserWithProfile(user);
+                              const flag = (enrichedUser.homeCountries || [enrichedUser.homeCountry || enrichedUser.country])
+                                .filter(Boolean)[0];
+
+                              return (
+                                <div
+                                  key={idx}
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    border: '2px solid white',
+                                    background: theme.bg,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: 16,
+                                    marginLeft: idx > 0 ? -8 : 0,
+                                    position: 'relative',
+                                    zIndex: attendees.length - idx,
+                                    overflow: 'hidden',
+                                  }}
+                                >
+                                  {enrichedUser.avatar && enrichedUser.avatar.provider === 'dicebear' ? (
+                                    <img 
+                                      src={`https://api.dicebear.com/6.x/${enrichedUser.avatar.style}/svg?seed=${encodeURIComponent(enrichedUser.avatar.seed || enrichedUser.name)}`}
+                                      alt={enrichedUser.name}
+                                      style={{ width: '100%', height: '100%' }}
+                                    />
+                                  ) : enrichedUser.avatar && enrichedUser.avatar.provider === 'custom' ? (
+                                    <img 
+                                      src={enrichedUser.avatar.url}
+                                      alt={enrichedUser.name}
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                  ) : (
+                                    <span>{enrichedUser.emoji || '👤'}</span>
+                                  )}
+                                  {flag && (
+                                    <div style={{
+                                      position: 'absolute',
+                                      bottom: -2,
+                                      right: -2,
+                                      fontSize: 10,
+                                      background: 'white',
+                                      borderRadius: '50%',
+                                      width: 14,
+                                      height: 14,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                    }}>
+                                      {getCountryFlag(flag)}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                            {attendees.length > 4 && (
+                              <div style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                border: '2px solid white',
+                                background: theme.textMuted,
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                marginLeft: -8,
+                              }}>
+                                +{attendees.length - 4}
+                              </div>
+                            )}
+                          </div>
+                          {attendees.length <= 3 && (
+                            <div style={{ fontSize: 13, color: theme.textMuted, fontWeight: 500 }}>
+                              {attendees.slice(0, 3).map((a, i) => {
+                                const user = typeof a === 'string' ? { name: a } : a;
+                                const enrichedUser = enrichUserWithProfile(user);
+                                const flag = (enrichedUser.homeCountries || [enrichedUser.homeCountry || enrichedUser.country])
+                                  .filter(Boolean)[0];
+                                return (
+                                  <span key={i}>
+                                    {i > 0 && ', '}
+                                    {enrichedUser.firstName || enrichedUser.name}
+                                    {flag && ` ${getCountryFlag(flag)}`}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Join Button Overlay (appears on hover) */}
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 16,
+                        right: 16,
+                        opacity: 0,
+                        transition: 'opacity 0.2s ease',
+                      }}
+                      className="join-button-hover">
+                        <button
+                          style={{
+                            background: isJoined ? theme.textMuted : theme.primary,
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: 12,
+                            padding: '8px 16px',
+                            fontWeight: 700,
+                            fontSize: 13,
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            pointerEvents: 'all',
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onEventClick) onEventClick(hangout);
+                          }}
+                        >
+                          {isJoined ? '👁️ View' : '🎉 Join'}
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>⏰</span>
-                      <span>{formatHumanDate(hangout.date, hangout.time)}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>🎯</span>
-                      <span>{hangout.category || 'social'}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>👥</span>
-                      <span>{Math.max(hangout.eventParticipants?.length || 0, 1)} attendees</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Create Hangout Button */}
+            <button
+              style={{
+                background: 'linear-gradient(135deg, #58CC02, #37B300)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 14,
+                padding: '14px 20px',
+                fontWeight: 800,
+                fontSize: 15,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(88,204,2,0.3)',
+                width: '100%',
+                marginTop: relatedHangouts.length > 0 ? 16 : 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                transition: 'all 0.2s ease',
+              }}
+              onClick={() => {
+                if (onCreateHangout) {
+                  onCreateHangout(event);
+                } else {
+                  onHome();
+                }
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(88,204,2,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(88,204,2,0.3)';
+              }}
+            >
+              <span style={{ fontSize: 18 }}>+</span>
+              <span>Create Hangout</span>
+            </button>
           </div>
         )}
 
