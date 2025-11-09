@@ -111,8 +111,13 @@ function SocialChat({
           if (n) names.add(n);
         });
 
-        if (names.size === 0) return;
-        const fetches = Array.from(names).map(async (username) => {
+        // Filter out "Admin" or "admin" which are not real user accounts
+        const validNames = Array.from(names).filter(name => 
+          name.toLowerCase() !== 'admin'
+        );
+
+        if (validNames.length === 0) return;
+        const fetches = validNames.map(async (username) => {
           try {
             const p = await api.getUserProfile(username);
             if (p) {
