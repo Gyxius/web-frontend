@@ -153,6 +153,9 @@ function SocialChat({
     category: event?.category || "food",
     languages: event?.languages || [],
     imageUrl: event?.imageUrl || "",
+    targetInterests: event?.targetInterests || [],
+    targetCiteConnection: event?.targetCiteConnection || [],
+    targetReasons: event?.targetReasons || [],
   });
 
   // Sync editedEvent with event prop changes
@@ -167,6 +170,9 @@ function SocialChat({
       languages: event?.languages || [],
       capacity: event?.capacity || 6,
       imageUrl: event?.imageUrl || "",
+      targetInterests: event?.targetInterests || [],
+      targetCiteConnection: event?.targetCiteConnection || [],
+      targetReasons: event?.targetReasons || [],
     });
   }, [event]);
 
