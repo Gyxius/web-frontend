@@ -1295,7 +1295,7 @@ function SocialHome({
               cursor: "pointer",
               boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             }}
-            onClick={() => onJoinedEventClick && onJoinedEventClick(event)}
+            onClick={() => setEventPreview(event)}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                 <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
@@ -1329,6 +1329,19 @@ function SocialHome({
                 <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
                   <span>🗓</span>
                   <span style={{ fontWeight: 600 }}>{formatDateOnly(event.date) || event.time}</span>
+                </div>
+                
+                <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>👥</span>
+                  <span>
+                    {(() => {
+                      // Count: host (if exists) + participants, avoiding double-counting
+                      const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
+                      return event.capacity 
+                        ? `${attendeeCount}/${event.capacity} spots filled` 
+                        : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                    })()}
+                  </span>
                 </div>
                 
                 {event.category && (
