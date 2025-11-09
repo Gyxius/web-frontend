@@ -1181,7 +1181,8 @@ function SocialHome({
                         <span>👥</span>
                         <span>
                           {(() => {
-                            const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                            // Count: host (if exists) + participants, avoiding double-counting
+                            const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
                             return event.capacity 
                               ? `${attendeeCount}/${event.capacity} spots filled` 
                               : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
@@ -1218,17 +1219,17 @@ function SocialHome({
                         width: "100%",
                         marginTop: 12,
                         opacity: (() => {
-                          const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                          const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
                           return (event.capacity && attendeeCount >= event.capacity) ? 0.5 : 1;
                         })(),
                         cursor: (() => {
-                          const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                          const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
                           return (event.capacity && attendeeCount >= event.capacity) ? "not-allowed" : "pointer";
                         })(),
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        const attendeeCount = (event.crew?.length || 0) + (event.participants?.length || 0);
+                        const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
                         if (event.capacity && attendeeCount >= event.capacity) {
                           alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
                           return;
@@ -1571,7 +1572,7 @@ function SocialHome({
                         <span>👥</span>
                         <span>
                           {(() => {
-                            const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
+                            const attendeeCount = (item.host ? 1 : 0) + (item.participants?.length || 0);
                             return item.capacity 
                               ? `${attendeeCount}/${item.capacity} spots filled` 
                               : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
@@ -1884,7 +1885,7 @@ function SocialHome({
                       )}
                       <div style={styles.details}>
                         👥 {(() => {
-                          const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
+                          const attendeeCount = (item.host ? 1 : 0) + (item.participants?.length || 0);
                           return item.capacity 
                             ? `${attendeeCount}/${item.capacity} spots filled` 
                             : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
@@ -3420,10 +3421,19 @@ function SocialHome({
 
             {/* Participants */}
             {(() => {
-              const allParticipants = [
-                ...(eventPreview.crew || []),
-                ...(eventPreview.participants || [])
-              ];
+              // Combine host and participants, avoiding duplicates
+              const allParticipants = [];
+              if (eventPreview.host) {
+                allParticipants.push(eventPreview.host.name);
+              }
+              if (eventPreview.participants) {
+                eventPreview.participants.forEach(p => {
+                  const pName = typeof p === 'string' ? p : p.name;
+                  if (!allParticipants.includes(pName)) {
+                    allParticipants.push(p);
+                  }
+                });
+              }
               
               if (allParticipants.length === 0) return null;
               
@@ -3469,9 +3479,30 @@ function SocialHome({
 
             {/* Action Buttons */}
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              {/* Check if this is a featured/admin event */}
-              {(eventPreview.isFeatured || (eventPreview.createdBy && eventPreview.createdBy.toLowerCase() === 'admin')) ? (
-                // Featured event - show "Create Your Own" button
+              {/* For featured events, show Join button */}
+              <button
+                style={{
+                  flex: 1,
+                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                  color: "white",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: 16,
+                  fontWeight: 900,
+                  fontSize: 16,
+                  cursor: "pointer",
+                  boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                }}
+                onClick={() => {
+                  onJoinPublicEvent && onJoinPublicEvent(eventPreview);
+                  setEventPreview(null);
+                }}
+              >
+                🎉 Join This Event
+              </button>
+              
+              {/* For featured events, also show "Create Your Own" button */}
+              {(eventPreview.isFeatured || (eventPreview.createdBy && eventPreview.createdBy.toLowerCase() === 'admin')) && (
                 <button
                   style={{
                     flex: 1,
@@ -3508,29 +3539,8 @@ function SocialHome({
                 >
                   ✨ Create Your Own Event
                 </button>
-              ) : (
-                // Regular event - show "Join Event" button
-                <button
-                  style={{
-                    flex: 1,
-                    background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
-                    color: "white",
-                    border: "none",
-                    borderRadius: 14,
-                    padding: 16,
-                    fontWeight: 900,
-                    fontSize: 16,
-                    cursor: "pointer",
-                    boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
-                  }}
-                  onClick={() => {
-                    onJoinPublicEvent && onJoinPublicEvent(eventPreview);
-                    setEventPreview(null);
-                  }}
-                >
-                  🎉 Join This Event
-                </button>
               )}
+              
               {adminMode && !adminEditMode && (
                 <button
                   style={{

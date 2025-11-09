@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import * as api from "./api";
 import { FULL_LANGUAGES } from "./constants/languages";
+import { FULL_COUNTRIES } from "./constants/countries";
 
 // Avatar styles & options
 const AVATAR_STYLES = [
@@ -10,13 +11,10 @@ const EMOJI_OPTIONS = ['😊','😎','🤓','😃','🥳','🌟','🚀','💪','
 const INTERESTS_OPTIONS = [
   'Sports','Music','Art','Movies','Books','Gaming','Travel','Food','Technology','Fashion','Photography','Fitness'
 ];
-const POPULAR_COUNTRIES = [
-  'France','Spain','Italy','Germany','United Kingdom','United States','China','Japan','South Korea','Brazil','Mexico','Canada','India','Morocco','Algeria','Tunisia','Portugal','Netherlands','Belgium','Switzerland','Poland','Turkey','Greece','Romania'
-];
 const POPULAR_CITIES = [
   'Paris','Madrid','Barcelona','Rome','Milan','Berlin','Munich','London','Manchester','New York','Los Angeles','Tokyo','Seoul','Beijing','Shanghai','São Paulo','Mexico City','Toronto','Montreal','Mumbai','Delhi','Casablanca','Lisbon','Amsterdam','Brussels'
 ];
-// using shared FULL_LANGUAGES
+// using shared FULL_LANGUAGES and FULL_COUNTRIES
 
 function Login({ onLogin, onRegistered }) {
   // Auth basics
@@ -300,7 +298,8 @@ function Login({ onLogin, onRegistered }) {
       <input type="text" placeholder="Major (Ex: Computer Science)" value={major} onChange={e=>setMajor(e.target.value)} style={inputStyle} />
       {sectionHeader('Current Location')}
       <select value={currentCountry} onChange={e=>setCurrentCountry(e.target.value)} style={inputStyle}>
-        {POPULAR_COUNTRIES.map(c=> <option key={c} value={c}>{c}</option>)}
+        {FULL_COUNTRIES.filter(c => c !== 'France').map(c=> <option key={c} value={c}>{c}</option>)}
+        <option key="France" value="France">France</option>
       </select>
       <select value={currentCity} onChange={e=>setCurrentCity(e.target.value)} style={inputStyle}>
         {POPULAR_CITIES.map(c=> <option key={c} value={c}>{c}</option>)}
@@ -309,7 +308,7 @@ function Login({ onLogin, onRegistered }) {
       <div style={{ display:'flex', gap:8 }}>
         <select value={homeCountryInput} onChange={e=>setHomeCountryInput(e.target.value)} style={{ ...inputStyle, margin:0 }}>
           <option value="">Select a country</option>
-          {POPULAR_COUNTRIES.filter(c=>!homeCountries.includes(c)).map(c=> <option key={c} value={c}>{c}</option>)}
+          {FULL_COUNTRIES.filter(c=>!homeCountries.includes(c)).map(c=> <option key={c} value={c}>{c}</option>)}
         </select>
         <button type="button" onClick={addHomeCountry} style={{ padding:'12px 16px', background:theme.primary, border:'none', color:'white', fontWeight:700, borderRadius:12, cursor:'pointer' }}>Add</button>
       </div>
