@@ -181,6 +181,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     imageUrl: "", // Image URL for the event
     isPublic: true, // Default to public events
     isFeatured: false, // Default to not featured
+    targetInterests: [], // Array of interests to target
+    targetCiteConnection: [], // Array of Cité connection statuses to target
+    targetReasons: [], // Array of "What Brings You Here" reasons to target
   });
 
   // Create Place state
@@ -1499,6 +1502,162 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
               )}
             </div>
 
+            {/* Target Interests */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
+                🎯 Target Interests (Optional)
+              </label>
+              <p style={{ fontSize: 12, color: theme.textMuted, marginBottom: 8 }}>
+                Select interests to show this event only to users with matching interests. Leave empty to show to everyone.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {["Sports", "Music", "Art", "Movies", "Books", "Gaming", "Travel", "Food", "Technology", "Fashion", "Photography", "Fitness"].map((interest) => {
+                  const isSelected = createEventForm.targetInterests.includes(interest);
+                  return (
+                    <button
+                      key={interest}
+                      type="button"
+                      style={{
+                        padding: "8px",
+                        borderRadius: 10,
+                        border: `2px solid ${isSelected ? theme.primary : theme.border}`,
+                        background: isSelected ? theme.primary : theme.card,
+                        color: isSelected ? "white" : theme.text,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                      onClick={() => {
+                        if (isSelected) {
+                          setCreateEventForm({
+                            ...createEventForm,
+                            targetInterests: createEventForm.targetInterests.filter(i => i !== interest)
+                          });
+                        } else {
+                          setCreateEventForm({
+                            ...createEventForm,
+                            targetInterests: [...createEventForm.targetInterests, interest]
+                          });
+                        }
+                      }}
+                    >
+                      {interest}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Target Cité Connection */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
+                🏛️ Target Cité Connection (Optional)
+              </label>
+              <p style={{ fontSize: 12, color: theme.textMuted, marginBottom: 8 }}>
+                Select connection types to target. Leave empty to show to everyone.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
+                {[
+                  { value: "yes", label: "🏠 Live on campus", desc: "Current residents" },
+                  { value: "alumni", label: "🎓 Alumni", desc: "Former residents" },
+                  { value: "visit", label: "🚶 Visit often", desc: "Regular visitors" },
+                  { value: "no", label: "❌ No connection", desc: "Not connected to Cité" },
+                ].map((option) => {
+                  const isSelected = createEventForm.targetCiteConnection.includes(option.value);
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      style={{
+                        padding: "10px",
+                        borderRadius: 10,
+                        border: `2px solid ${isSelected ? theme.primary : theme.border}`,
+                        background: isSelected ? theme.primary : theme.card,
+                        color: isSelected ? "white" : theme.text,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        textAlign: "left",
+                      }}
+                      onClick={() => {
+                        if (isSelected) {
+                          setCreateEventForm({
+                            ...createEventForm,
+                            targetCiteConnection: createEventForm.targetCiteConnection.filter(c => c !== option.value)
+                          });
+                        } else {
+                          setCreateEventForm({
+                            ...createEventForm,
+                            targetCiteConnection: [...createEventForm.targetCiteConnection, option.value]
+                          });
+                        }
+                      }}
+                    >
+                      <div>{option.label}</div>
+                      <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>{option.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Target Purpose of Stay */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>
+                ✈️ Target Purpose of Stay (Optional)
+              </label>
+              <p style={{ fontSize: 12, color: theme.textMuted, marginBottom: 8 }}>
+                Select purpose categories to target. Leave empty to show to everyone.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
+                {[
+                  { value: "erasmus", label: "🎓 Erasmus / Exchange" },
+                  { value: "degree", label: "📚 Degree student" },
+                  { value: "working", label: "💼 Working / Internship" },
+                  { value: "visiting", label: "✈️ Visiting / Short stay" },
+                  { value: "local", label: "🏘️ Local resident" },
+                  { value: "other", label: "🌍 Other" },
+                ].map((option) => {
+                  const isSelected = createEventForm.targetReasons.includes(option.value);
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      style={{
+                        padding: "10px",
+                        borderRadius: 10,
+                        border: `2px solid ${isSelected ? theme.primary : theme.border}`,
+                        background: isSelected ? theme.primary : theme.card,
+                        color: isSelected ? "white" : theme.text,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        textAlign: "left",
+                      }}
+                      onClick={() => {
+                        if (isSelected) {
+                          setCreateEventForm({
+                            ...createEventForm,
+                            targetReasons: createEventForm.targetReasons.filter(r => r !== option.value)
+                          });
+                        } else {
+                          setCreateEventForm({
+                            ...createEventForm,
+                            targetReasons: [...createEventForm.targetReasons, option.value]
+                          });
+                        }
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <button
               style={{
                 ...styles.primaryBtn,
@@ -1534,7 +1693,10 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   is_featured: createEventForm.isFeatured,
                   event_type: "custom", // Mark as admin-created
                   capacity: null, // No capacity limit for admin events
-                  created_by: "admin"
+                  created_by: "admin",
+                  target_interests: createEventForm.targetInterests.length > 0 ? createEventForm.targetInterests : null,
+                  target_cite_connection: createEventForm.targetCiteConnection.length > 0 ? createEventForm.targetCiteConnection : null,
+                  target_reasons: createEventForm.targetReasons.length > 0 ? createEventForm.targetReasons : null,
                 };
                 
                 // Create event via API
@@ -1570,6 +1732,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   imageUrl: "",
                   isPublic: true, // Reset to default public
                   isFeatured: false, // Reset to not featured
+                  targetInterests: [],
+                  targetCiteConnection: [],
+                  targetReasons: [],
                 });
                 
                 // Switch to "All Events" tab to show the newly created event
