@@ -3072,6 +3072,7 @@ function SocialHome({
               background: theme.card,
               borderRadius: 18,
               padding: isMobile ? 24 : 32,
+              paddingBottom: isMobile ? 32 : 40,
               maxWidth: 600,
               width: "100%",
               maxHeight: "90vh",
@@ -3491,7 +3492,7 @@ function SocialHome({
             })()}
 
             {/* Action Buttons */}
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
               {/* For featured events, show Join button */}
               <button
                 style={{
