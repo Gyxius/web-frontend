@@ -4362,8 +4362,13 @@ function SocialHome({
             onEditProfile && onEditProfile();
           }}
           onViewPublicProfile={() => {
+            // Close notifications first
+            setShowNotificationsInbox(false);
+            // Force show public profile view, not edit mode
             if (onUserClick) {
-              onUserClick(currentUser);
+              // Pass a flag or create a modified user object to bypass the edit check
+              const userForPublicView = { ...currentUser, _forcePublicView: true };
+              onUserClick(userForPublicView);
             }
           }}
           onSignOut={onSignOut}

@@ -898,8 +898,12 @@ function App() {
             const currentUserKey = user?.username || user?.name;
             const clickedUserKey = clickedUser?.username || clickedUser?.name;
             
-            // If clicking on own profile, go to edit profile
-            if (currentUserKey === clickedUserKey) {
+            // If forcing public view (from "View My Public Profile" button), always show public profile
+            if (clickedUser?._forcePublicView) {
+              setSelectedProfile(clickedUser);
+            }
+            // If clicking on own profile normally, go to edit profile
+            else if (currentUserKey === clickedUserKey) {
               setShowEditProfile(true);
             } else {
               // Otherwise show the other user's profile
