@@ -91,6 +91,9 @@ function SocialHome({
     capacity: 6, // Maximum number of participants
     imageUrl: "", // Background image for the event
     templateEventId: null, // ID of template event if created from featured event
+    targetInterests: [], // Array of interests to target
+    targetCiteConnection: [], // Array of Cité connection statuses to target
+    targetReasons: [], // Array of "What Brings You Here" reasons to target
   });
   const [showAllLanguages, setShowAllLanguages] = useState(false);
 
@@ -2034,14 +2037,14 @@ function SocialHome({
         <div style={styles.modalOverlay} onClick={() => {
           setShowCreateEventModal(false);
           setCreateEventStep(1);
-          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
+          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
           setShowAllLanguages(false);
         }}>
           <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "visible", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
             
             {/* Progress Indicator */}
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 24 }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(step => (
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(step => (
                 <div
                   key={step}
                   style={{
@@ -2947,6 +2950,258 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
+                    onClick={() => setCreateEventStep(10)}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 10: Target Interests (Optional) */}
+            {createEventStep === 10 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  Target specific interests? 🎯
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Choose interests to show this event to people who share them (optional - leave empty for everyone)
+                </p>
+                
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr 1fr", gap: 12, marginBottom: 32 }}>
+                  {["Sports", "Music", "Art", "Movies", "Books", "Gaming", "Travel", "Food", "Technology", "Fashion", "Photography", "Fitness"].map((interest) => {
+                    const isSelected = newEvent.targetInterests.includes(interest);
+                    return (
+                      <button
+                        key={interest}
+                        style={{
+                          padding: isMobile ? "12px 8px" : "14px 12px",
+                          borderRadius: 12,
+                          border: `2px solid ${isSelected ? theme.primary : theme.border}`,
+                          background: isSelected ? theme.primary : theme.card,
+                          color: isSelected ? "white" : theme.text,
+                          fontSize: isMobile ? 14 : 15,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                        }}
+                        onClick={() => {
+                          if (isSelected) {
+                            setNewEvent({...newEvent, targetInterests: newEvent.targetInterests.filter(i => i !== interest)});
+                          } else {
+                            setNewEvent({...newEvent, targetInterests: [...newEvent.targetInterests, interest]});
+                          }
+                        }}
+                      >
+                        {interest}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(9)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                      color: "white",
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                    }}
+                    onClick={() => setCreateEventStep(11)}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 11: Target Cité Connection (Optional) */}
+            {createEventStep === 11 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  Target by Cité connection? 🏛️
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Show this event only to specific Cité groups (optional - leave empty for everyone)
+                </p>
+                
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 32 }}>
+                  {[
+                    { value: "yes", label: "🏠 Live on campus", desc: "Current Cité residents" },
+                    { value: "alumni", label: "🎓 Alumni", desc: "Former Cité residents" },
+                    { value: "visit", label: "🚶 Visit often", desc: "Regular visitors" },
+                    { value: "no", label: "❌ No connection", desc: "Not connected to Cité" },
+                  ].map((option) => {
+                    const isSelected = newEvent.targetCiteConnection.includes(option.value);
+                    return (
+                      <button
+                        key={option.value}
+                        style={{
+                          padding: isMobile ? 16 : 20,
+                          borderRadius: 14,
+                          border: `2px solid ${isSelected ? theme.primary : theme.border}`,
+                          background: isSelected ? theme.primary : theme.card,
+                          color: isSelected ? "white" : theme.text,
+                          fontSize: isMobile ? 15 : 16,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                          textAlign: "left",
+                        }}
+                        onClick={() => {
+                          if (isSelected) {
+                            setNewEvent({...newEvent, targetCiteConnection: newEvent.targetCiteConnection.filter(c => c !== option.value)});
+                          } else {
+                            setNewEvent({...newEvent, targetCiteConnection: [...newEvent.targetCiteConnection, option.value]});
+                          }
+                        }}
+                      >
+                        <div>{option.label}</div>
+                        <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>{option.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(10)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                      color: "white",
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                    }}
+                    onClick={() => setCreateEventStep(12)}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 12: Target by What Brings You Here (Optional) */}
+            {createEventStep === 12 && (
+              <div style={{ textAlign: "center", ...fadeIn }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  Target by purpose of stay? ✈️
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Show this event to specific groups (optional - leave empty for everyone)
+                </p>
+                
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 32 }}>
+                  {[
+                    { value: "erasmus", label: "🎓 Erasmus / Exchange" },
+                    { value: "degree", label: "📚 Degree student" },
+                    { value: "working", label: "💼 Working / Internship" },
+                    { value: "visiting", label: "✈️ Visiting / Short stay" },
+                    { value: "local", label: "🏘️ Local resident" },
+                    { value: "other", label: "🌍 Other" },
+                  ].map((option) => {
+                    const isSelected = newEvent.targetReasons.includes(option.value);
+                    return (
+                      <button
+                        key={option.value}
+                        style={{
+                          padding: isMobile ? 16 : 20,
+                          borderRadius: 14,
+                          border: `2px solid ${isSelected ? theme.primary : theme.border}`,
+                          background: isSelected ? theme.primary : theme.card,
+                          color: isSelected ? "white" : theme.text,
+                          fontSize: isMobile ? 15 : 16,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                          textAlign: "left",
+                        }}
+                        onClick={() => {
+                          if (isSelected) {
+                            setNewEvent({...newEvent, targetReasons: newEvent.targetReasons.filter(r => r !== option.value)});
+                          } else {
+                            setNewEvent({...newEvent, targetReasons: [...newEvent.targetReasons, option.value]});
+                          }
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(11)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                      color: "white",
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                    }}
                     onClick={async () => {
                       // Create event via API
                       try {
@@ -2972,6 +3227,9 @@ function SocialHome({
                           created_by: userName,
                           is_featured: false,
                           template_event_id: newEvent.templateEventId || null,
+                          target_interests: newEvent.targetInterests.length > 0 ? newEvent.targetInterests : null,
+                          target_cite_connection: newEvent.targetCiteConnection.length > 0 ? newEvent.targetCiteConnection : null,
+                          target_reasons: newEvent.targetReasons.length > 0 ? newEvent.targetReasons : null,
                         };
                         
                         console.log("STEP 4: Prepared eventData:", JSON.stringify(eventData, null, 2));
@@ -2995,7 +3253,7 @@ function SocialHome({
                         
                         console.log("STEP 9: Resetting form and closing modal...");
                         // Reset form and close
-                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
+                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
