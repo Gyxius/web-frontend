@@ -748,24 +748,6 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
         </div>
 
         <div style={styles.section}>
-          <label style={styles.label}>House in Cité</label>
-          {isEditing ? (
-            <select
-              style={styles.input}
-              value={editedProfile.house || ""}
-              onChange={(e) => setEditedProfile({ ...editedProfile, house: e.target.value })}
-            >
-              <option value="">Select your house</option>
-              {availableHouses.map(house => (
-                <option key={house} value={house}>{house}</option>
-              ))}
-            </select>
-          ) : (
-            <div style={styles.value}>{profile.house || "Not specified"}</div>
-          )}
-        </div>
-
-        <div style={styles.section}>
           <label style={styles.label}>Home Countries</label>
           {isEditing ? (
             <div>

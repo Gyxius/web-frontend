@@ -298,8 +298,7 @@ function Login({ onLogin, onRegistered }) {
       <input type="text" placeholder="Major (Ex: Computer Science)" value={major} onChange={e=>setMajor(e.target.value)} style={inputStyle} />
       {sectionHeader('Current Location')}
       <select value={currentCountry} onChange={e=>setCurrentCountry(e.target.value)} style={inputStyle}>
-        {FULL_COUNTRIES.filter(c => c !== 'France').map(c=> <option key={c} value={c}>{c}</option>)}
-        <option key="France" value="France">France</option>
+        {FULL_COUNTRIES.map(c=> <option key={c} value={c}>{c}</option>)}
       </select>
       <select value={currentCity} onChange={e=>setCurrentCity(e.target.value)} style={inputStyle}>
         {POPULAR_CITIES.map(c=> <option key={c} value={c}>{c}</option>)}
