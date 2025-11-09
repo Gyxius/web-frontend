@@ -2049,6 +2049,165 @@ function SocialChat({
               </div>
             </div>
 
+            {/* Target Interests */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                🎯 Target Interests (Optional)
+              </label>
+              <p style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                Select interests to show this event only to users with matching interests. Leave empty to show to everyone.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                {["Sports", "Music", "Art", "Movies", "Books", "Gaming", "Travel", "Food", "Technology", "Fashion", "Photography", "Fitness"].map((interest) => {
+                  const isSelected = (editedEvent.targetInterests || []).includes(interest);
+                  return (
+                    <button
+                      key={interest}
+                      type="button"
+                      style={{
+                        padding: "10px 8px",
+                        borderRadius: 10,
+                        border: `2px solid ${isSelected ? theme.primary : theme.border}`,
+                        background: isSelected ? theme.primary : theme.card,
+                        color: isSelected ? "white" : theme.text,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                      onClick={() => {
+                        const currentTargets = editedEvent.targetInterests || [];
+                        if (isSelected) {
+                          setEditedEvent({
+                            ...editedEvent,
+                            targetInterests: currentTargets.filter(i => i !== interest)
+                          });
+                        } else {
+                          setEditedEvent({
+                            ...editedEvent,
+                            targetInterests: [...currentTargets, interest]
+                          });
+                        }
+                      }}
+                    >
+                      {interest}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Target Cité Connection */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                🏛️ Target Cité Connection (Optional)
+              </label>
+              <p style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                Select connection types to target. Leave empty to show to everyone.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
+                {[
+                  { value: "yes", label: "🏠 Live on campus", desc: "Current residents" },
+                  { value: "alumni", label: "🎓 Alumni", desc: "Former residents" },
+                  { value: "visit", label: "🚶 Visit often", desc: "Regular visitors" },
+                  { value: "no", label: "❌ No connection", desc: "Not connected to Cité" },
+                ].map((option) => {
+                  const isSelected = (editedEvent.targetCiteConnection || []).includes(option.value);
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      style={{
+                        padding: "12px",
+                        borderRadius: 10,
+                        border: `2px solid ${isSelected ? theme.primary : theme.border}`,
+                        background: isSelected ? theme.primary : theme.card,
+                        color: isSelected ? "white" : theme.text,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        textAlign: "left",
+                      }}
+                      onClick={() => {
+                        const currentTargets = editedEvent.targetCiteConnection || [];
+                        if (isSelected) {
+                          setEditedEvent({
+                            ...editedEvent,
+                            targetCiteConnection: currentTargets.filter(c => c !== option.value)
+                          });
+                        } else {
+                          setEditedEvent({
+                            ...editedEvent,
+                            targetCiteConnection: [...currentTargets, option.value]
+                          });
+                        }
+                      }}
+                    >
+                      <div>{option.label}</div>
+                      <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>{option.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Target Purpose of Stay */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                ✈️ Target Purpose of Stay (Optional)
+              </label>
+              <p style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                Select purpose categories to target. Leave empty to show to everyone.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
+                {[
+                  { value: "erasmus", label: "🎓 Erasmus / Exchange" },
+                  { value: "degree", label: "📚 Degree student" },
+                  { value: "working", label: "💼 Working / Internship" },
+                  { value: "visiting", label: "✈️ Visiting / Short stay" },
+                  { value: "local", label: "🏘️ Local resident" },
+                  { value: "other", label: "🌍 Other" },
+                ].map((option) => {
+                  const isSelected = (editedEvent.targetReasons || []).includes(option.value);
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      style={{
+                        padding: "12px",
+                        borderRadius: 10,
+                        border: `2px solid ${isSelected ? theme.primary : theme.border}`,
+                        background: isSelected ? theme.primary : theme.card,
+                        color: isSelected ? "white" : theme.text,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        textAlign: "left",
+                      }}
+                      onClick={() => {
+                        const currentTargets = editedEvent.targetReasons || [];
+                        if (isSelected) {
+                          setEditedEvent({
+                            ...editedEvent,
+                            targetReasons: currentTargets.filter(r => r !== option.value)
+                          });
+                        } else {
+                          setEditedEvent({
+                            ...editedEvent,
+                            targetReasons: [...currentTargets, option.value]
+                          });
+                        }
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
                 Description
