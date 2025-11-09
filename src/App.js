@@ -391,6 +391,9 @@ function App() {
               capacity: updatedEvent.capacity || null,
               image_url: updatedEvent.imageUrl || "",
               created_by: username,
+              target_interests: updatedEvent.targetInterests || null,
+              target_cite_connection: updatedEvent.targetCiteConnection || null,
+              target_reasons: updatedEvent.targetReasons || null,
             };
             await api.updateEvent(updatedEvent.id, eventData);
             const allEvents = await api.getAllEvents();
@@ -692,6 +695,9 @@ function App() {
               capacity: updatedEvent.capacity || null,
               image_url: updatedEvent.imageUrl || "",
               created_by: username,
+              target_interests: updatedEvent.targetInterests || null,
+              target_cite_connection: updatedEvent.targetCiteConnection || null,
+              target_reasons: updatedEvent.targetReasons || null,
             };
             
             // Update via API
