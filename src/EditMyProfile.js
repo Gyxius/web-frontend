@@ -62,6 +62,8 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
       languageLevels: { "English": "Fluent", "French": "Native" },
       bio: "",
       interests: [],
+      citeStatus: "",
+      cityReasons: [],
     };
   });
 
@@ -134,6 +136,8 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
             languageLevels: { "English": "Fluent", "French": "Native" },
             bio: "",
             interests: [],
+            citeStatus: "",
+            cityReasons: [],
             ...serverProfile // Server values override defaults
           };
           // If server profile doesn't include an avatar, generate a quick default and persist it
@@ -950,6 +954,126 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
               )
             )}
           </div>
+        </div>
+
+        {/* Cité Universitaire Connection */}
+        <div style={styles.section}>
+          <label style={styles.label}>Connection to Cité Universitaire</label>
+          {isEditing ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+              {[
+                { value: 'yes', label: '🏠 Live on campus' },
+                { value: 'alumni', label: '🎓 Alumni' },
+                { value: 'visit', label: '🚶 Visit often' },
+                { value: 'no', label: '❌ No connection' }
+              ].map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setEditedProfile({ ...editedProfile, citeStatus: option.value })}
+                  style={{
+                    padding: '12px 14px',
+                    textAlign: 'left',
+                    border: `3px solid ${editedProfile.citeStatus === option.value ? theme.primary : theme.border}`,
+                    borderRadius: 14,
+                    background: editedProfile.citeStatus === option.value ? `${theme.primary}15` : 'white',
+                    color: theme.text,
+                    fontWeight: editedProfile.citeStatus === option.value ? 700 : 600,
+                    cursor: 'pointer',
+                    transition: 'all .2s',
+                    boxShadow: editedProfile.citeStatus === option.value ? '0 2px 8px rgba(88,204,2,0.2)' : 'none',
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div style={styles.value}>
+              {profile.citeStatus === 'yes' ? '🏠 Live on campus' :
+               profile.citeStatus === 'alumni' ? '🎓 Alumni' :
+               profile.citeStatus === 'visit' ? '🚶 Visit often' :
+               profile.citeStatus === 'no' ? '❌ No connection' :
+               'Not specified'}
+            </div>
+          )}
+        </div>
+
+        {/* House in Cité - Only show if connected to Cité */}
+        {(isEditing ? (editedProfile.citeStatus === 'yes' || editedProfile.citeStatus === 'alumni') : (profile.citeStatus === 'yes' || profile.citeStatus === 'alumni')) && (
+          <div style={styles.section}>
+            <label style={styles.label}>House in Cité</label>
+            {isEditing ? (
+              <select
+                style={styles.input}
+                value={editedProfile.house || ""}
+                onChange={(e) => setEditedProfile({ ...editedProfile, house: e.target.value })}
+              >
+                <option value="">Select your house</option>
+                {availableHouses.map(house => (
+                  <option key={house} value={house}>{house}</option>
+                ))}
+              </select>
+            ) : (
+              <div style={styles.value}>{profile.house || "Not specified"}</div>
+            )}
+          </div>
+        )}
+
+        {/* What Brings You Here */}
+        <div style={styles.section}>
+          <label style={styles.label}>What Brings You Here?</label>
+          {isEditing ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+              {[
+                "🎓 Erasmus / Exchange",
+                "📚 Degree student",
+                "💼 Working / Internship",
+                "✈️ Visiting / Short stay",
+                "🏘️ Local resident",
+                "🌍 Other"
+              ].map(reason => {
+                const isSelected = (editedProfile.cityReasons || []).includes(reason);
+                return (
+                  <button
+                    key={reason}
+                    type="button"
+                    onClick={() => {
+                      const current = editedProfile.cityReasons || [];
+                      const updated = isSelected
+                        ? current.filter(r => r !== reason)
+                        : [...current, reason];
+                      setEditedProfile({ ...editedProfile, cityReasons: updated });
+                    }}
+                    style={{
+                      padding: '12px 14px',
+                      textAlign: 'left',
+                      border: `3px solid ${isSelected ? theme.primary : theme.border}`,
+                      borderRadius: 14,
+                      background: isSelected ? `${theme.primary}15` : 'white',
+                      color: theme.text,
+                      fontWeight: isSelected ? 700 : 600,
+                      cursor: 'pointer',
+                      transition: 'all .2s',
+                      boxShadow: isSelected ? '0 2px 8px rgba(88,204,2,0.2)' : 'none',
+                    }}
+                  >
+                    {reason}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={styles.chipContainer}>
+              {(profile.cityReasons || []).length > 0 ? (
+                (profile.cityReasons || []).map(reason => (
+                  <span key={reason} style={styles.chip(true)}>{reason}</span>
+                ))
+              ) : (
+                <div style={styles.value}>Not specified</div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Invitations */}
