@@ -4361,6 +4361,11 @@ function SocialHome({
             setActiveBottomTab("profile");
             onEditProfile && onEditProfile();
           }}
+          onViewPublicProfile={() => {
+            if (onUserClick) {
+              onUserClick(currentUser);
+            }
+          }}
           onSignOut={onSignOut}
           onEventClick={(event) => {
             if (onJoinedEventClick) {

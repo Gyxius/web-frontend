@@ -7,6 +7,7 @@ function NotificationsInbox({
   notifications,
   onClose,
   onViewProfile,
+  onViewPublicProfile,
   onSignOut,
   onEventClick,
   onMarkAsRead,
@@ -316,6 +317,23 @@ function NotificationsInbox({
           onMouseLeave={(e) => e.target.style.background = theme.primary}
         >
           See My Profile
+        </button>
+
+        <button 
+          style={{
+            ...styles.profileButton,
+            background: theme.accent,
+          }}
+          onClick={() => {
+            if (onViewPublicProfile) {
+              onViewPublicProfile();
+              onClose();
+            }
+          }}
+          onMouseEnter={(e) => e.target.style.background = '#1591C7'}
+          onMouseLeave={(e) => e.target.style.background = theme.accent}
+        >
+          👁️ View My Public Profile
         </button>
 
         <button
