@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import * as api from "./api";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
+import { FULL_LANGUAGES } from "./constants/languages";
 
 // AVATAR_STYLES and hashString are module-level to keep identity stable across renders
 const AVATAR_STYLES = ['bottts','micah','adventurer','pixel-art','avataaars','lorelei','notionists','personas','thumbs','fun-emoji'];
@@ -171,27 +172,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
     return match || trimmed;
   };
 
-  // Full language list for suggestions (broad coverage of official/common languages)
-  const fullLanguages = [
-    "Afrikaans","Akan","Albanian","Amharic","Arabic","Armenian","Assamese","Aymara",
-    "Azerbaijani","Bambara","Basque","Belarusian","Bengali","Berber","Bosnian","Breton",
-    "Bulgarian","Burmese","Catalan","Cebuano","Chichewa","Chinese","Mandarin Chinese","Cantonese",
-    "Corsican","Croatian","Czech","Danish","Dari","Dhivehi","Dutch","Dzongkha","English",
-    "Esperanto","Estonian","Faroese","Fijian","Filipino","Finnish","French","Galician",
-    "Georgian","German","Greek","Greenlandic","Guarani","Gujarati","Haitian Creole","Hausa",
-    "Hebrew","Hindi","Hiri Motu","Hungarian","Icelandic","Igbo","Ilocano","Indonesian",
-    "Irish","Italian","Japanese","Javanese","Kannada","Kazakh","Khmer","Kinyarwanda",
-    "Kirghiz","Kirundi","Konkani","Korean","Kurdish","Kyrgyz","Lao","Latvian","Lingala",
-    "Lithuanian","Luxembourgish","Macedonian","Malagasy","Malay","Malayalam","Maltese","Maori",
-    "Marathi","Marshallese","Moldovan","Mongolian","Montenegrin","Nepali","Northern Ndebele",
-    "Norwegian","Nyanja","Odia","Oromo","Ossetian","Papiamento","Pashto","Persian (Farsi)",
-    "Polish","Portuguese","Punjabi","Quechua","Romanian","Russian","Samoan","Sango",
-    "Sanskrit","Scottish Gaelic","Serbian","Shona","Sindhi","Sinhala","Slovak","Slovenian",
-    "Somali","Sotho","Spanish","Swahili","Swati","Swedish","Tagalog","Tajik","Tamil",
-    "Telugu","Tetum","Thai","Tibetan","Tigrinya","Tok Pisin","Tonga","Tsonga","Tswana",
-    "Turkish","Turkmen","Ukrainian","Urdu","Uzbek","Venda","Vietnamese","Wallisian",
-    "Welsh","Wolof","Xhosa","Yiddish","Yoruba","Zulu"
-  ];
+  // Languages source unified via shared constants
 
   // Note: replaced the old fixed Countries From chips with a searchable multi-select below.
 
@@ -335,7 +316,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
   const canonicalizeLanguage = (val) => {
     if (!val) return "";
     const trimmed = String(val).trim();
-    const match = fullLanguages.find(l => l.toLowerCase() === trimmed.toLowerCase());
+  const match = FULL_LANGUAGES.find(l => l.toLowerCase() === trimmed.toLowerCase());
     return match || trimmed;
   };
 
@@ -908,7 +889,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
                 >Add</button>
               </div>
               <datalist id="language-list">
-                {fullLanguages.map((l) => (
+                {FULL_LANGUAGES.map((l) => (
                   <option key={l} value={l} />
                 ))}
               </datalist>

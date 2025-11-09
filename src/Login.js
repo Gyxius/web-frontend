@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import * as api from "./api";
+import { FULL_LANGUAGES } from "./constants/languages";
 
 // Avatar styles & options
 const AVATAR_STYLES = [
@@ -15,46 +16,7 @@ const POPULAR_COUNTRIES = [
 const POPULAR_CITIES = [
   'Paris','Madrid','Barcelona','Rome','Milan','Berlin','Munich','London','Manchester','New York','Los Angeles','Tokyo','Seoul','Beijing','Shanghai','São Paulo','Mexico City','Toronto','Montreal','Mumbai','Delhi','Casablanca','Lisbon','Amsterdam','Brussels'
 ];
-const LANGUAGE_OPTIONS = [
-  "Afrikaans","Akan","Albanian","Amharic","Arabic","Armenian","Assamese","Aymara",
-  "Azerbaijani","Bambara","Basque","Belarusian","Bengali","Berber","Bosnian","Breton",
-  "Bulgarian","Burmese","Catalan","Cebuano","Chichewa","Chinese","Mandarin Chinese","Cantonese",
-  "Corsican","Croatian","Czech","Danish","Dari","Dhivehi","Dutch","Dzongkha","English",
-  "Esperanto","Estonian","Faroese","Fijian","Filipino","Finnish","French","Galician",
-  "Georgian","German","Greek","Greenlandic","Guarani","Gujarati","Haitian Creole","Hausa",
-  "Hebrew","Hindi","Hiri Motu","Hungarian","Icelandic","Igbo","Ilocano","Indonesian",
-  "Irish","Italian","Japanese","Javanese","Kannada","Kazakh","Khmer","Kinyarwanda",
-  "Kirghiz","Kirundi","Konkani","Korean","Kurdish","Kyrgyz","Lao","Latvian","Lingala",
-  "Lithuanian","Luxembourgish","Macedonian","Malagasy","Malay","Malayalam","Maltese","Maori",
-  "Marathi","Marshallese","Moldovan","Mongolian","Montenegrin","Nepali","Northern Ndebele",
-  "Norwegian","Nyanja","Odia","Oromo","Ossetian","Papiamento","Pashto","Persian (Farsi)",
-  "Polish","Portuguese","Punjabi","Quechua","Romanian","Russian","Samoan","Sango",
-  "Sanskrit","Scottish Gaelic","Serbian","Shona","Sindhi","Sinhala","Slovak","Slovenian",
-  "Somali","Sotho","Spanish","Swahili","Swati","Swedish","Tagalog","Tajik","Tamil",
-  "Telugu","Tetum","Thai","Tibetan","Tigrinya","Tok Pisin","Tonga","Tsonga","Tswana",
-  "Turkish","Turkmen","Ukrainian","Urdu","Uzbek","Venda","Vietnamese","Wallisian",
-  "Welsh","Wolof","Xhosa","Yiddish","Yoruba","Zulu"
-];
-const FULL_LANGUAGES = [
-  "Afrikaans","Akan","Albanian","Amharic","Arabic","Armenian","Assamese","Aymara",
-  "Azerbaijani","Bambara","Basque","Belarusian","Bengali","Berber","Bosnian","Breton",
-  "Bulgarian","Burmese","Catalan","Cebuano","Chichewa","Chinese","Mandarin Chinese","Cantonese",
-  "Corsican","Croatian","Czech","Danish","Dari","Dhivehi","Dutch","Dzongkha","English",
-  "Esperanto","Estonian","Faroese","Fijian","Filipino","Finnish","French","Galician",
-  "Georgian","German","Greek","Greenlandic","Guarani","Gujarati","Haitian Creole","Hausa",
-  "Hebrew","Hindi","Hiri Motu","Hungarian","Icelandic","Igbo","Ilocano","Indonesian",
-  "Irish","Italian","Japanese","Javanese","Kannada","Kazakh","Khmer","Kinyarwanda",
-  "Kirghiz","Kirundi","Konkani","Korean","Kurdish","Kyrgyz","Lao","Latvian","Lingala",
-  "Lithuanian","Luxembourgish","Macedonian","Malagasy","Malay","Malayalam","Maltese","Maori",
-  "Marathi","Marshallese","Moldovan","Mongolian","Montenegrin","Nepali","Northern Ndebele",
-  "Norwegian","Nyanja","Odia","Oromo","Ossetian","Papiamento","Pashto","Persian (Farsi)",
-  "Polish","Portuguese","Punjabi","Quechua","Romanian","Russian","Samoan","Sango",
-  "Sanskrit","Scottish Gaelic","Serbian","Shona","Sindhi","Sinhala","Slovak","Slovenian",
-  "Somali","Sotho","Spanish","Swahili","Swati","Swedish","Tagalog","Tajik","Tamil",
-  "Telugu","Tetum","Thai","Tibetan","Tigrinya","Tok Pisin","Tonga","Tsonga","Tswana",
-  "Turkish","Turkmen","Ukrainian","Urdu","Uzbek","Venda","Vietnamese","Wallisian",
-  "Welsh","Wolof","Xhosa","Yiddish","Yoruba","Zulu"
-];
+// using shared FULL_LANGUAGES
 
 function Login({ onLogin, onRegistered }) {
   // Auth basics
@@ -368,7 +330,7 @@ function Login({ onLogin, onRegistered }) {
       <div style={{ display:'flex', gap:8 }}>
         <select value={languageInput} onChange={e=>setLanguageInput(e.target.value)} style={{ ...inputStyle, margin:0 }}>
           <option value="">Select a language</option>
-          {LANGUAGE_OPTIONS.filter(l => !languages.includes(l)).map(lang => (
+          {FULL_LANGUAGES.filter(l => !languages.includes(l)).map(lang => (
             <option key={lang} value={lang}>{lang}</option>
           ))}
         </select>
@@ -410,7 +372,7 @@ function Login({ onLogin, onRegistered }) {
           );
         })}
       </div>
-      {sectionHeader('Are you connected to Cité Universitaire?')}
+  {sectionHeader('Are you connected to Cité universitaire ?')}
       <p style={{ fontSize:13, color:theme.textMuted, margin:'-4px 0 8px' }}>Select your connection to Cité Internationale Universitaire de Paris.</p>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10 }}>
         {[{value:'yes',label:'🏠 Live on campus'},{value:'alumni',label:'🎓 Alumni'},{value:'visit',label:'🚶 Visit often'},{value:'no',label:'❌ No'}].map(o => (

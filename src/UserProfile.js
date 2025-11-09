@@ -113,19 +113,37 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, is
           </div>
         )}
 
-        {(fullUser.age || fullUser.house || fullUser.building || fullUser.residence || fullUser.homeCountries) && (
+        {(fullUser.age || fullUser.house || fullUser.building || fullUser.residence || fullUser.homeCountries || fullUser.citeStatus || (fullUser.cityReasons && fullUser.cityReasons.length)) && (
           <div style={{ marginTop: 16, padding: 16, background: theme.bg, borderRadius: 12 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, marginBottom: 8 }}>DETAILS</div>
             {fullUser.age && <div style={{ fontSize: 14, color: theme.text, marginBottom: 4 }}>🎂 Age: {fullUser.age}</div>}
             {(fullUser.house || fullUser.building || fullUser.residence) && (
               <div style={{ fontSize: 14, color: theme.text, marginBottom: 4 }}>🏠 House: {fullUser.house || fullUser.building || fullUser.residence}</div>
             )}
+            {fullUser.citeStatus && (
+              <div style={{ fontSize: 14, color: theme.text, marginBottom: 4 }}>🏫 Cité Status: {({
+                yes: 'Lives on campus',
+                alumni: 'Alumni (lived before)',
+                visit: 'Visits often',
+                no: 'Not connected'
+              })[fullUser.citeStatus] || fullUser.citeStatus}</div>
+            )}
             {fullUser.homeCountries && fullUser.homeCountries.length > 0 && (
               <div style={{ fontSize: 14, color: theme.text, marginBottom: 4 }}>
                 🌍 Home: {Array.isArray(fullUser.homeCountries) ? fullUser.homeCountries.join(', ') : fullUser.homeCountries}
               </div>
             )}
-            {realPoints > 0 && <div style={{ fontSize: 14, color: theme.text }}>⭐ Points: {realPoints}</div>}
+            {fullUser.cityReasons && fullUser.cityReasons.length > 0 && (
+              <div style={{ marginTop: 6 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, marginBottom: 4 }}>WHY HERE</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {fullUser.cityReasons.map((r, idx) => (
+                    <span key={idx} style={{ padding: '4px 10px', background: theme.primaryDark, color: 'white', borderRadius: 14, fontSize: 12, fontWeight: 600 }}>{r.replace(/^([🎓📚💼✈️🏘️🌍]\s*)/, '')}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {realPoints > 0 && <div style={{ fontSize: 14, color: theme.text, marginTop: 6 }}>⭐ Points: {realPoints}</div>}
           </div>
         )}
 
