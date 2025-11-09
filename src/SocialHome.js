@@ -3057,10 +3057,12 @@ function SocialHome({
             bottom: 0,
             background: "rgba(0,0,0,0.5)",
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "center",
             zIndex: 1000,
             padding: 20,
+            paddingTop: "5vh",
+            overflowY: "auto",
           }}
           onClick={() => {
             setEventPreview(null);
@@ -3075,10 +3077,10 @@ function SocialHome({
               paddingBottom: isMobile ? 32 : 40,
               maxWidth: 600,
               width: "100%",
-              maxHeight: "90vh",
-              overflowY: "auto",
+              maxHeight: "none",
               boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
               position: "relative",
+              marginBottom: 20,
             }}
             onClick={(e) => e.stopPropagation()}
           >
