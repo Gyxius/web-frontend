@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as api from "./api";
 import { getCountryFlag } from "./countryFlags";
+import ImageCropper from "./ImageCropper";
 
 // Helper to check if end time is valid (can be next day)
 // Returns false only if end time is same as or before start time on same day
@@ -165,6 +166,8 @@ function SocialChat({
     return () => { mounted = false; };
   }, [event?.id, event?.crew, event?.crew_full, event?.host]);
   const [imageFile, setImageFile] = useState(null); // Store uploaded file for later upload
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
   const [editedEvent, setEditedEvent] = useState({
     name: event?.name || "",
     location: event?.location || "cite",
@@ -2339,11 +2342,11 @@ function SocialChat({
                         return;
                       }
                       
-                      // Store the file for upload and create preview
-                      setImageFile(file);
+                      // Show cropper
                       const reader = new FileReader();
                       reader.onloadend = () => {
-                        setEditedEvent({...editedEvent, imageUrl: reader.result});
+                        setImageToCrop(reader.result);
+                        setShowImageCropper(true);
                       };
                       reader.readAsDataURL(file);
                     }
@@ -2719,6 +2722,40 @@ function SocialChat({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Image Cropper Modal */}
+      {showImageCropper && imageToCrop && (
+        <ImageCropper
+          image={imageToCrop}
+          onCropComplete={async (croppedImageUrl) => {
+            // Convert cropped blob URL to file
+            try {
+              const response = await fetch(croppedImageUrl);
+              const blob = await response.blob();
+              const file = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
+              
+              setImageFile(file);
+              // Show preview
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                setEditedEvent({...editedEvent, imageUrl: reader.result});
+              };
+              reader.readAsDataURL(file);
+              
+              setShowImageCropper(false);
+              setImageToCrop(null);
+            } catch (error) {
+              console.error("Error processing cropped image:", error);
+              alert("Failed to process cropped image. Please try again.");
+            }
+          }}
+          onCancel={() => {
+            setShowImageCropper(false);
+            setImageToCrop(null);
+          }}
+          theme={theme}
+        />
       )}
     </div>
   );

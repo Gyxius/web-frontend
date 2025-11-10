@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import users from "./users";
 import LocationPicker from "./LocationPicker";
 import * as api from "./api";
+import ImageCropper from "./ImageCropper";
 
 // Helper to check if end time is valid (can be next day)
 function isValidEndTime(startTime, endTime) {
@@ -183,6 +184,10 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
   useEffect(() => {
     try { localStorage.setItem('lemi_invites', JSON.stringify(invites)); } catch {}
   }, [invites]);
+  
+  // Image cropper state
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
   
   // Create Event state
   const [createEventForm, setCreateEventForm] = useState({
@@ -1489,28 +1494,13 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                       const file = e.target.files?.[0];
                       if (!file) return;
                       
-                      // Show loading state
-                      const formData = new FormData();
-                      formData.append("file", file);
-                      
-                      try {
-                        const response = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/upload-image`, {
-                          method: "POST",
-                          body: formData,
-                        });
-                        
-                        if (!response.ok) {
-                          throw new Error("Upload failed");
-                        }
-                        
-                        const data = await response.json();
-                        // Backend returns full URL from R2 CDN, don't prepend API URL
-                        const fullUrl = data.url.startsWith('http') ? data.url : `${process.env.REACT_APP_API_URL || "http://localhost:8000"}${data.url}`;
-                        setCreateEventForm({ ...createEventForm, imageUrl: fullUrl });
-                      } catch (error) {
-                        console.error("Error uploading image:", error);
-                        alert("Failed to upload image. Please try again.");
-                      }
+                      // First, load the image for cropping
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setImageToCrop(reader.result);
+                        setShowImageCropper(true);
+                      };
+                      reader.readAsDataURL(file);
                       
                       // Reset input
                       e.target.value = "";
@@ -2618,6 +2608,49 @@ function InviteList({ invites, onUpdate }) {
           </div>
         </div>
       ))}
+
+      {/* Image Cropper Modal */}
+      {showImageCropper && imageToCrop && (
+        <ImageCropper
+          image={imageToCrop}
+          onCropComplete={async (croppedImageUrl) => {
+            // Convert the cropped image URL (blob URL) to a file and upload it
+            try {
+              const response = await fetch(croppedImageUrl);
+              const blob = await response.blob();
+              const file = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
+              
+              // Upload to server
+              const formData = new FormData();
+              formData.append("file", file);
+              
+              const uploadResponse = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/upload-image`, {
+                method: "POST",
+                body: formData,
+              });
+              
+              if (!uploadResponse.ok) {
+                throw new Error("Upload failed");
+              }
+              
+              const data = await uploadResponse.json();
+              const fullUrl = data.url.startsWith('http') ? data.url : `${process.env.REACT_APP_API_URL || "http://localhost:8000"}${data.url}`;
+              setCreateEventForm({ ...createEventForm, imageUrl: fullUrl });
+              
+              setShowImageCropper(false);
+              setImageToCrop(null);
+            } catch (error) {
+              console.error("Error uploading cropped image:", error);
+              alert("Failed to upload image. Please try again.");
+            }
+          }}
+          onCancel={() => {
+            setShowImageCropper(false);
+            setImageToCrop(null);
+          }}
+          theme={theme}
+        />
+      )}
     </div>
   );
 }

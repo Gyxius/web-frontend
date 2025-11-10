@@ -5,6 +5,7 @@ import LocationPicker from "./LocationPicker";
 import "./SocialHome.animations.css";
 import { createEvent, getEventById, updateEvent } from "./api";
 import NotificationsInbox from "./NotificationsInbox";
+import ImageCropper from "./ImageCropper";
 
 // Helper to check if end time is valid (can be next day)
 function isValidEndTime(startTime, endTime) {
@@ -93,6 +94,10 @@ function SocialHome({
   const [showWhereModal, setShowWhereModal] = useState(false);
   const [showWhenModal, setShowWhenModal] = useState(false);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
+
+  // Image cropper state
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
 
   // Create event form state
   const [newEvent, setNewEvent] = useState({
@@ -2921,7 +2926,8 @@ function SocialHome({
                         
                         const reader = new FileReader();
                         reader.onloadend = () => {
-                          setNewEvent({...newEvent, imageUrl: reader.result});
+                          setImageToCrop(reader.result);
+                          setShowImageCropper(true);
                         };
                         reader.readAsDataURL(file);
                       }
@@ -4709,6 +4715,23 @@ function SocialHome({
           followRequests={followRequestsIncoming}
           onAcceptFollowRequest={onAcceptFollowRequestFrom}
           onDeclineFollowRequest={onDeclineFollowRequestFrom}
+        />
+      )}
+
+      {/* Image Cropper Modal */}
+      {showImageCropper && imageToCrop && (
+        <ImageCropper
+          image={imageToCrop}
+          onCropComplete={(croppedImage) => {
+            setNewEvent({...newEvent, imageUrl: croppedImage});
+            setShowImageCropper(false);
+            setImageToCrop(null);
+          }}
+          onCancel={() => {
+            setShowImageCropper(false);
+            setImageToCrop(null);
+          }}
+          theme={theme}
         />
       )}
     </div>
