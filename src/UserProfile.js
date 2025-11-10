@@ -257,7 +257,10 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, is
             {joinedEvents.map((event, idx) => (
               <div key={idx} style={{ background: theme.bg, borderRadius: 12, padding: 16, marginBottom: 12, border: `1px solid ${theme.border}` }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: theme.text, marginBottom: 8 }}>{event.name}</div>
-                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 4 }}>⏰ {event.time || event.date || ""}</div>
+                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 4 }}>
+                  ⏰ {event.time || event.date || ""}
+                  {event.endTime && ` – ${event.endTime}`}
+                </div>
                 <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>💶 Budget: €{event.budget || event.price || ""}</div>
                 <button 
                   style={{ 

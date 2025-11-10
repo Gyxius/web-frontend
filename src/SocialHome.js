@@ -85,6 +85,7 @@ function SocialHome({
     coordinates: null, // { lat, lng }
     date: "",
     time: "",
+  endTime: "",
     description: "",
     category: "food",
     languages: [], // Array of languages that will be spoken
@@ -110,6 +111,7 @@ function SocialHome({
         coordinates: templateEventToCreate.coordinates || null,
         date: templateEventToCreate.date || "", // Copy date from template
         time: templateEventToCreate.time || "", // Copy time from template
+  endTime: templateEventToCreate.endTime || "",
         description: "", // User writes their own hangout description
         category: templateEventToCreate.category || "food",
         languages: [], // User customizes languages
@@ -2043,7 +2045,7 @@ function SocialHome({
         <div style={styles.modalOverlay} onClick={() => {
           setShowCreateEventModal(false);
           setCreateEventStep(1);
-          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
+          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
           setShowAllLanguages(false);
         }}>
           <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "visible", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
@@ -2373,31 +2375,63 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 5: Time */}
+            {/* Step 5: Time Range */}
             {createEventStep === 5 && (
               <div style={{ textAlign: "center", ...fadeIn }}>
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
-                  What time? ⏰
+                  What time does it run? ⏰
                 </h3>
-                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
-                  Pick a time
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 24 }}>
+                  Choose a start time and optionally an end time
                 </p>
-                <input
-                  type="time"
-                  value={newEvent.time}
-                  onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
-                  style={{ 
-                    width: "100%", 
-                    padding: isMobile ? 14 : 16, 
-                    borderRadius: 14, 
-                    border: `2px solid ${theme.border}`, 
-                    fontSize: isMobile ? 16 : 18, 
-                    boxSizing: "border-box",
-                    textAlign: "center",
-                    fontWeight: 600,
-                  }}
-                  autoFocus
-                />
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 8 }}>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, color: theme.text }}>Start Time *</p>
+                    <input
+                      type="time"
+                      value={newEvent.time}
+                      onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+                      style={{ 
+                        width: "100%", 
+                        padding: isMobile ? 14 : 16, 
+                        borderRadius: 14, 
+                        border: `2px solid ${theme.border}`, 
+                        fontSize: isMobile ? 16 : 18, 
+                        boxSizing: "border-box",
+                        textAlign: "center",
+                        fontWeight: 600,
+                      }}
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, color: theme.text }}>End Time (optional)</p>
+                    <input
+                      type="time"
+                      value={newEvent.endTime}
+                      onChange={(e) => setNewEvent({...newEvent, endTime: e.target.value})}
+                      style={{ 
+                        width: "100%", 
+                        padding: isMobile ? 14 : 16, 
+                        borderRadius: 14, 
+                        border: `2px solid ${theme.border}`, 
+                        fontSize: isMobile ? 16 : 18, 
+                        boxSizing: "border-box",
+                        textAlign: "center",
+                        fontWeight: 600,
+                      }}
+                    />
+                  </div>
+                </div>
+                {newEvent.endTime && newEvent.time && (() => {
+                  const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
+                  const startM = toMin(newEvent.time);
+                  const endM = toMin(newEvent.endTime);
+                  if (startM !== null && endM !== null && endM <= startM) {
+                    return <div style={{ color: "#FF4B4B", fontSize: 13, marginBottom: 8 }}>End time must be after start time.</div>;
+                  }
+                  return null;
+                })()}
                 <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
                   <button
                     style={{
@@ -2415,24 +2449,30 @@ function SocialHome({
                   >
                     ← Back
                   </button>
-                  <button
-                    style={{
-                      flex: 1,
-                      background: newEvent.time ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
-                      color: newEvent.time ? "white" : theme.textMuted,
-                      border: "none",
-                      borderRadius: 14,
-                      padding: isMobile ? "14px" : "16px",
-                      fontWeight: 900,
-                      fontSize: isMobile ? 16 : 18,
-                      cursor: newEvent.time ? "pointer" : "not-allowed",
-                      boxShadow: newEvent.time ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
-                    }}
-                    onClick={() => newEvent.time && setCreateEventStep(6)}
-                    disabled={!newEvent.time}
-                  >
-                    Next →
-                  </button>
+                  {(() => {
+                    const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
+                    const invalidRange = newEvent.time && newEvent.endTime && toMin(newEvent.endTime) <= toMin(newEvent.time);
+                    return (
+                      <button
+                        style={{
+                          flex: 1,
+                          background: newEvent.time && !invalidRange ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
+                          color: newEvent.time && !invalidRange ? "white" : theme.textMuted,
+                          border: "none",
+                          borderRadius: 14,
+                          padding: isMobile ? "14px" : "16px",
+                          fontWeight: 900,
+                          fontSize: isMobile ? 16 : 18,
+                          cursor: newEvent.time && !invalidRange ? "pointer" : "not-allowed",
+                          boxShadow: newEvent.time && !invalidRange ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                        }}
+                        onClick={() => newEvent.time && !invalidRange && setCreateEventStep(6)}
+                        disabled={!newEvent.time || invalidRange}
+                      >
+                        Next →
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -3223,6 +3263,7 @@ function SocialHome({
                           coordinates: newEvent.coordinates,
                           date: newEvent.date,
                           time: newEvent.time,
+                          end_time: newEvent.endTime || null,
                           description: newEvent.description || "",
                           category: newEvent.category,
                           languages: newEvent.languages,
@@ -3259,7 +3300,7 @@ function SocialHome({
                         
                         console.log("STEP 9: Resetting form and closing modal...");
                         // Reset form and close
-                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
+                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
@@ -3300,7 +3341,7 @@ function SocialHome({
               onClick={() => {
                 setShowCreateEventModal(false);
                 setCreateEventStep(1);
-                setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
+                setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
                 setShowAllLanguages(false);
               }}
             >
@@ -4090,7 +4131,7 @@ function SocialHome({
                         {event.name}
                       </div>
                       <div style={{ fontSize: 13, color: theme.textMuted }}>
-                        ⏰ {event.time}
+                        ⏰ {event.time}{event.endTime ? `–${event.endTime}` : ""}
                       </div>
                       {event.venue && (
                         <div style={{ fontSize: 13, color: theme.textMuted }}>

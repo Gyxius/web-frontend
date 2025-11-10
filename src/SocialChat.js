@@ -996,7 +996,10 @@ function SocialChat({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 16, color: '#6B7280' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 18 }}>🗓</span>
-              <span style={{ fontWeight: 600, color: '#374151' }}>{formatHumanDate(event?.date, event?.time)}</span>
+              <span style={{ fontWeight: 600, color: '#374151' }}>
+                {formatHumanDate(event?.date, event?.time)}
+                {event?.endTime && ` – ${event.endTime}`}
+              </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <span style={{ fontSize: 18 }}>📍</span>
@@ -1139,7 +1142,10 @@ function SocialChat({
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span>⏰</span>
-                  <span>{formatHumanDate(templateEvent.date, templateEvent.time)}</span>
+                  <span>
+                    {formatHumanDate(templateEvent.date, templateEvent.time)}
+                    {templateEvent.endTime && ` – ${templateEvent.endTime}`}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span>🎯</span>
@@ -1357,7 +1363,10 @@ function SocialChat({
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ fontSize: 16 }}>🕗</span>
-                          <span style={{ fontWeight: 500 }}>{formatHumanDate(hangout.date, hangout.time)}</span>
+                          <span style={{ fontWeight: 500 }}>
+                            {formatHumanDate(hangout.date, hangout.time)}
+                            {hangout.endTime && ` – ${hangout.endTime}`}
+                          </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ fontSize: 16 }}>👥</span>

@@ -175,6 +175,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     coordinates: null,
     date: "",
     time: "",
+    endTime: "",
     category: "food",
     languages: [], // Array of languages for exchange
     description: "",
@@ -802,7 +803,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   >
                     <div style={{ fontWeight: 900, color: theme.text }}>{p.name}</div>
                     <div style={{ fontSize: 13.5, color: theme.textMuted }}>
-                      📍 {p.location}{p.place ? ` · ${p.place}` : ''} · ⏰ {p.date} at {p.time}
+                      📍 {p.location}{p.place ? ` · ${p.place}` : ''} · ⏰ {p.date} at {p.time}{p.endTime ? ` – ${p.endTime}` : ''}
                     </div>
                     <div style={{ fontSize: 13.5, color: theme.textMuted }}>
                       🎯 {p.category}{p.languages && p.languages.length ? ` · 🗣️ ${p.languages.join(', ')}` : ''}
@@ -1252,7 +1253,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 />
               </div>
               <div>
-                <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Time</label>
+                <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>Start Time</label>
                 <input
                   type="time"
                   value={createEventForm.time}
@@ -1268,6 +1269,33 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 />
               </div>
             </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: -8 }}>
+              <div />
+              <div>
+                <label style={{ display: "block", fontWeight: 800, color: theme.text, marginBottom: 6 }}>End Time (optional)</label>
+                <input
+                  type="time"
+                  value={createEventForm.endTime}
+                  onChange={(e) => setCreateEventForm({ ...createEventForm, endTime: e.target.value })}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: `1px solid ${theme.border}`,
+                    fontSize: 14,
+                    outline: "none",
+                  }}
+                />
+              </div>
+            </div>
+            {createEventForm.endTime && createEventForm.time && (() => {
+              const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
+              const s = toMin(createEventForm.time); const e = toMin(createEventForm.endTime);
+              if (s !== null && e !== null && e <= s) {
+                return <div style={{ color: "#FF4B4B", fontSize: 12, marginTop: 6, marginBottom: 6 }}>End time must be after start time.</div>;
+              }
+              return null;
+            })()}
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
               <div>
@@ -1671,6 +1699,15 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   alert("Please fill in all required fields: Event Name, Date, and Time");
                   return;
                 }
+                // Validate time range if end time provided
+                if (createEventForm.endTime) {
+                  const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
+                  const s = toMin(createEventForm.time); const e = toMin(createEventForm.endTime);
+                  if (s !== null && e !== null && e <= s) {
+                    alert("End time must be after start time.");
+                    return;
+                  }
+                }
                 if (!createEventForm.address || !createEventForm.coordinates) {
                   alert("Please provide an exact address using the location picker");
                   return;
@@ -1686,6 +1723,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   coordinates: createEventForm.coordinates,
                   date: createEventForm.date,
                   time: createEventForm.time,
+                  end_time: createEventForm.endTime || null,
                   category: createEventForm.category,
                   languages: createEventForm.languages,
                   description: createEventForm.description,
@@ -1727,6 +1765,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   coordinates: null,
                   date: "",
                   time: "",
+                  endTime: "",
                   category: "food",
                   languages: [],
                   description: "",
@@ -2151,9 +2190,10 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                     </div>
                   )}
                   
-                  {/* Line 3: Date */}
+                  {/* Line 3: Date & Time */}
                   <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 4 }}>
                     ⏰ {formatDateOnly(ev.date) || ev.time}
+                    {ev.endTime && ` – ${ev.endTime}`}
                   </div>
                   
                   {/* Line 4: Category */}
@@ -2373,7 +2413,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                           {joined.map((ev, i) => (
                             <li key={i} style={{ fontSize: 14.5, color: theme.text }}>
                               <b>{String(ev.name || ev.id)}</b>
-                              {ev.date ? ` · ${ev.date}` : ''}{ev.time ? ` at ${ev.time}` : ''}
+                              {ev.date ? ` · ${ev.date}` : ''}{ev.time ? ` at ${ev.time}` : ''}{ev.endTime ? ` – ${ev.endTime}` : ''}
                               {ev.location ? ` · ${ev.location}` : ''}
                             </li>
                           ))}

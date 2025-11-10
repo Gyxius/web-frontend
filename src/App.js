@@ -860,7 +860,7 @@ function App() {
               // Award 1 point for joining an event
               const newPoints = addPoints(currentUserKey, 1);
               // Show success message
-              alert(`🎉 Success! You joined "${event.name}"!\n\n📍 ${event.location}${event.place ? ` - ${event.place}` : ''}\n⏰ ${event.date} at ${event.time}\n\n⭐ +1 point earned! You now have ${newPoints} points!\n\nCheck your "My Joined Events" section below to see it!`);
+              alert(`🎉 Success! You joined "${event.name}"!\n\n📍 ${event.location}${event.place ? ` - ${event.place}` : ''}\n⏰ ${event.date} at ${event.time}${event.endTime ? ` – ${event.endTime}` : ''}\n\n⭐ +1 point earned! You now have ${newPoints} points!\n\nCheck your "My Joined Events" section below to see it!`);
             } catch (error) {
               console.error("Failed to join event:", error);
               alert("Failed to join event. Please try again.");
