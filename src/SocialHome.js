@@ -3837,8 +3837,20 @@ function SocialHome({
                     </div>
                   </div>
                   <div>
-                    <label style={{ fontWeight: 800, fontSize: 13 }}>Address</label>
-                    <input type="text" value={adminEditForm.address} onChange={(e)=>setAdminEditForm(prev=>({...prev,address:e.target.value}))} style={{ width:"100%", padding:10, border:"1px solid #EEF2F7", borderRadius:10 }} />
+                    <label style={{ fontWeight: 800, fontSize: 13 }}>📍 Venue & Address</label>
+                    <LocationPicker
+                      theme={theme}
+                      initialAddress={adminEditForm.address || ""}
+                      filterMode="all"
+                      onLocationSelect={(location) => {
+                        setAdminEditForm(prev => ({
+                          ...prev,
+                          venue: location.name,
+                          address: location.address,
+                          coordinates: { lat: location.lat, lng: location.lng }
+                        }));
+                      }}
+                    />
                   </div>
                   <div>
                     <label style={{ fontWeight: 800, fontSize: 13 }}>Description</label>
