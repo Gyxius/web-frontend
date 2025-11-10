@@ -126,6 +126,7 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
     if (initialCoordinates && initialCoordinates.lat && initialCoordinates.lng) {
       initMap(initialCoordinates.lat, initialCoordinates.lng);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load all Cité houses when filterMode is "cite" and field is empty
