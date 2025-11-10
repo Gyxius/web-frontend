@@ -3393,6 +3393,7 @@ function SocialHome({
             padding: 20,
             paddingTop: "5vh",
             overflowY: "auto",
+            paddingBottom: 100,
           }}
           onClick={() => {
             setEventPreview(null);
@@ -3404,7 +3405,7 @@ function SocialHome({
               background: theme.card,
               borderRadius: 18,
               padding: isMobile ? 24 : 32,
-              paddingBottom: isMobile ? 32 : 40,
+              paddingBottom: isMobile ? 100 : 120,
               maxWidth: 600,
               width: "100%",
               maxHeight: "none",
@@ -3414,40 +3415,71 @@ function SocialHome({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header with close button and admin controls */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+            {/* COMPONENT 1: HEADER BLOCK */}
+            {/* Header with navigation and utility actions */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
               <button
                 onClick={() => setEventPreview(null)}
                 style={{
                   background: "transparent",
                   border: "none",
-                  fontSize: 20,
+                  fontSize: 16,
+                  fontWeight: 600,
                   cursor: "pointer",
-                  color: theme.textSecondary,
+                  color: theme.textMuted,
                   padding: 0,
                 }}
               >
                 ← Back to Events
               </button>
               
-              {/* Admin Controls - Show for Admin user or in adminMode */}
-              {(currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin" || userName === "admin") && (
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                {/* Share button (utility action) */}
                 <button
                   onClick={() => {
-                    setShowAdminMenu(!showAdminMenu);
+                    // Share functionality
+                    if (navigator.share) {
+                      navigator.share({
+                        title: eventPreview.name,
+                        text: `Join me at ${eventPreview.name}!`,
+                        url: window.location.href,
+                      }).catch(() => {});
+                    } else {
+                      navigator.clipboard.writeText(window.location.href);
+                      alert("Link copied to clipboard!");
+                    }
                   }}
                   style={{
                     background: "transparent",
                     border: "none",
-                    fontSize: 24,
+                    fontSize: 20,
                     cursor: "pointer",
-                    color: theme.textSecondary,
+                    color: theme.textMuted,
                     padding: 0,
                   }}
                 >
-                  ⚙️
+                  🔗
                 </button>
-              )}
+                
+                {/* Admin Controls */}
+                {(currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin" || userName === "admin") && (
+                  <button
+                    onClick={() => {
+                      setShowAdminMenu(!showAdminMenu);
+                    }}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      fontSize: 20,
+                      cursor: "pointer",
+                      color: theme.textMuted,
+                      padding: 0,
+                    }}
+                  >
+                    ⚙️
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Admin Dropdown Menu */}
@@ -3528,12 +3560,18 @@ function SocialHome({
               </div>
             )}
 
-            {/* Event Title */}
-            <h2 style={{ fontSize: 28, fontWeight: 900, color: theme.text, marginBottom: 16 }}>
+            {/* Event Title - Large, prominent */}
+            <h2 style={{ 
+              fontSize: isMobile ? 24 : 28, 
+              fontWeight: 900, 
+              color: theme.text, 
+              marginBottom: 20,
+              lineHeight: 1.2,
+            }}>
               {eventPreview.name}
             </h2>
 
-            {/* Event Image */}
+            {/* Event Banner Image */}
             {eventPreview.imageUrl && (
               <div style={{
                 width: "100%",
@@ -3546,13 +3584,114 @@ function SocialHome({
               }} />
             )}
 
-            {/* Languages */}
+            {/* Host Badge - Prominent positioning near title */}
+            {(() => {
+              const getHostInfo = () => {
+                if (eventPreview.host) {
+                  return eventPreview.host;
+                } else if (eventPreview.createdBy) {
+                  return users.find(u => u.name === eventPreview.createdBy || u.username === eventPreview.createdBy);
+                }
+                return null;
+              };
+              
+              const hostInfo = getHostInfo();
+              
+              if (!hostInfo) return null;
+              
+              return (
+                <div style={{ 
+                  background: theme.bg, 
+                  padding: 16, 
+                  borderRadius: 12, 
+                  marginBottom: 20,
+                  border: `1px solid ${theme.border}`,
+                }}>
+                  <div style={{ 
+                    fontSize: 12, 
+                    fontWeight: 800, 
+                    color: theme.textMuted, 
+                    marginBottom: 8,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}>
+                    👤 HOSTED BY
+                  </div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: theme.text }}>
+                    {hostInfo.emoji || ""} {hostInfo.name} {hostInfo.country || ""}
+                  </div>
+                  {hostInfo.bio && (
+                    <div style={{ fontSize: 14, color: theme.textMuted, marginTop: 6, fontStyle: "italic" }}>
+                      "{hostInfo.bio}"
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Logistics Bar - Scannable list with emojis */}
+            <div style={{ 
+              marginBottom: 20,
+              display: "grid",
+              gap: 12,
+            }}>
+              {/* Date & Time */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <span style={{ fontSize: 18 }}>📅</span>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>
+                    {eventPreview.date || "TBA"}
+                  </div>
+                  {eventPreview.time && (
+                    <div style={{ fontSize: 14, color: theme.textMuted }}>
+                      {eventPreview.time}
+                      {eventPreview.endTime && ` – ${eventPreview.endTime}`}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Location */}
+              {eventPreview.location && (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <span style={{ fontSize: 18 }}>📍</span>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>
+                      {eventPreview.location === "cite" ? "Cité Internationale" : eventPreview.location === "paris" ? "Paris" : eventPreview.location}
+                    </div>
+                    {eventPreview.venue && (
+                      <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, marginTop: 2 }}>
+                        {eventPreview.venue}
+                      </div>
+                    )}
+                    {eventPreview.address && (
+                      <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 2, lineHeight: 1.4 }}>
+                        {eventPreview.address}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Category */}
+              {eventPreview.category && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 18 }}>🎯</span>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>
+                    {getCategoryEmoji(eventPreview.category)} {eventPreview.category}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* COMPONENT 2: DESCRIPTION BLOCK */}
+            {/* Languages - If present, show prominently */}
             {eventPreview.languages && eventPreview.languages.length > 0 && (
               <div style={{
                 background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
                 padding: "16px 20px",
                 borderRadius: 12,
-                marginBottom: 16,
+                marginBottom: 20,
               }}>
                 <div style={{
                   fontSize: 12,
@@ -3582,87 +3721,17 @@ function SocialHome({
               </div>
             )}
 
-            {/* Host Info */}
-            {(() => {
-              if (eventPreview.host) {
-                return (
-                  <div style={{ 
-                    background: theme.bg, 
-                    padding: 16, 
-                    borderRadius: 12, 
-                    marginBottom: 16 
-                  }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
-                      👤 HOSTED BY
-                    </div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: theme.text }}>
-                      {eventPreview.host.emoji} {eventPreview.host.name} {eventPreview.host.country}
-                    </div>
-                    {eventPreview.host.bio && (
-                      <div style={{ fontSize: 14, color: theme.textMuted, marginTop: 4 }}>
-                        "{eventPreview.host.bio}"
-                      </div>
-                    )}
-                  </div>
-                );
-              } else if (eventPreview.createdBy) {
-                const hostUser = users.find(u => u.name === eventPreview.createdBy || u.username === eventPreview.createdBy);
-                if (hostUser) {
-                  return (
-                    <div style={{ 
-                      background: theme.bg, 
-                      padding: 16, 
-                      borderRadius: 12, 
-                      marginBottom: 16 
-                    }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
-                        👤 HOSTED BY
-                      </div>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: theme.text }}>
-                        {hostUser.emoji} {hostUser.name} {hostUser.country}
-                      </div>
-                      {hostUser.bio && (
-                        <div style={{ fontSize: 14, color: theme.textMuted, marginTop: 4 }}>
-                          "{hostUser.bio}"
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-              }
-              return null;
-            })()}
-
-            {/* Event Details */}
-            <div style={{ marginBottom: 16 }}>
-              {eventPreview.location && (
-                <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 8, display: "flex", alignItems: "flex-start", gap: 8 }}>
-                  <span>📍</span>
-                  <div>
-                    <div style={{ fontWeight: 600, color: theme.text }}>
-                      {eventPreview.location === "cite" ? "Cité Internationale" : eventPreview.location === "paris" ? "Paris" : eventPreview.location}
-                    </div>
-                    {eventPreview.venue && <div style={{ fontSize: 14 }}>{eventPreview.venue}</div>}
-                    {eventPreview.address && <div style={{ fontSize: 13 }}>{eventPreview.address}</div>}
-                  </div>
-                </div>
-              )}
-              
-              <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 8 }}>
-                📅 {eventPreview.date ? `${eventPreview.date} at ${eventPreview.time}` : eventPreview.time}
-              </div>
-              
-              {eventPreview.category && (
-                <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 8 }}>
-                  🎯 {getCategoryEmoji(eventPreview.category)} {eventPreview.category}
-                </div>
-              )}
-            </div>
-
-            {/* Description */}
+            {/* Description - Formatted for scannability */}
             {eventPreview.description && (
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ 
+                  fontSize: 13, 
+                  fontWeight: 800, 
+                  color: theme.textMuted, 
+                  marginBottom: 12,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}>
                   📝 ABOUT THIS EVENT
                 </div>
                 <div style={{ 
@@ -3671,8 +3740,9 @@ function SocialHome({
                   lineHeight: 1.6,
                   whiteSpace: "pre-wrap",
                   background: theme.bg,
-                  padding: 16,
+                  padding: 18,
                   borderRadius: 12,
+                  border: `1px solid ${theme.border}`,
                 }}>
                   {eventPreview.description}
                 </div>
@@ -3765,7 +3835,8 @@ function SocialHome({
               </div>
             )}
 
-            {/* Participants */}
+            {/* COMPONENT 3: PARTICIPANTS BLOCK */}
+            {/* Participants - Visual avatars with social proof */}
             {(() => {
               // Combine host and participants, avoiding duplicates
               const allParticipants = [];
@@ -3784,11 +3855,18 @@ function SocialHome({
               if (allParticipants.length === 0) return null;
               
               return (
-                <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: theme.textMuted, marginBottom: 8 }}>
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ 
+                    fontSize: 13, 
+                    fontWeight: 800, 
+                    color: theme.textMuted, 
+                    marginBottom: 12,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}>
                     👥 PARTICIPANTS ({allParticipants.length})
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                     {allParticipants.slice(0, 10).map((member, i) => {
                       const userInfo = typeof member === "object" && member !== null
                         ? member
@@ -3796,24 +3874,30 @@ function SocialHome({
                       return (
                         <div key={i} style={{
                           background: theme.bg,
-                          padding: "6px 12px",
+                          padding: "10px 16px",
                           borderRadius: 999,
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: 600,
                           color: theme.text,
+                          border: `1px solid ${theme.border}`,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
                         }}>
-                          {userInfo.emoji} {userInfo.name}
+                          {userInfo.emoji && <span style={{ fontSize: 18 }}>{userInfo.emoji}</span>}
+                          <span>{userInfo.name}</span>
                         </div>
                       );
                     })}
                     {allParticipants.length > 10 && (
                       <div style={{
                         background: theme.bg,
-                        padding: "6px 12px",
+                        padding: "10px 16px",
                         borderRadius: 999,
                         fontSize: 14,
                         fontWeight: 600,
                         color: theme.textMuted,
+                        border: `1px solid ${theme.border}`,
                       }}>
                         +{allParticipants.length - 10} more
                       </div>
@@ -3823,36 +3907,33 @@ function SocialHome({
               );
             })()}
 
-            {/* Action Buttons */}
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
-              {/* For featured events, show Join button */}
-              <button
-                style={{
-                  flex: 1,
-                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
-                  color: "white",
-                  border: "none",
-                  borderRadius: 14,
-                  padding: 16,
-                  fontWeight: 900,
-                  fontSize: 16,
-                  cursor: "pointer",
-                  boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
-                }}
-                onClick={() => {
-                  onJoinPublicEvent && onJoinPublicEvent(eventPreview);
-                  setEventPreview(null);
-                }}
-              >
-                🎉 Join This Event
-              </button>
-              
-              {/* For featured events, also show "Create Your Own" button */}
-              {(eventPreview.isFeatured || (eventPreview.createdBy && eventPreview.createdBy.toLowerCase() === 'admin')) && (
+          </div>
+
+          {/* COMPONENT 4: CTA BLOCK (Sticky Footer) */}
+          {!adminEditMode && (
+            <div style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: "white",
+              borderTop: `2px solid ${theme.border}`,
+              padding: isMobile ? "16px 20px" : "20px 24px",
+              boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+              zIndex: 1001,
+            }}>
+              <div style={{ 
+                maxWidth: 600, 
+                margin: "0 auto",
+                display: "flex",
+                gap: 12,
+                flexDirection: isMobile ? "column" : "row",
+              }}>
+                {/* Primary Action: Join This Event */}
                 <button
                   style={{
                     flex: 1,
-                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
                     color: "white",
                     border: "none",
                     borderRadius: 14,
@@ -3860,84 +3941,77 @@ function SocialHome({
                     fontWeight: 900,
                     fontSize: 16,
                     cursor: "pointer",
-                    boxShadow: "0 6px 16px rgba(102,126,234,0.28)",
+                    boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 8px 20px rgba(88,204,2,0.35)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 6px 16px rgba(88,204,2,0.28)";
                   }}
                   onClick={() => {
-                    // Pre-fill the create event form with template data
-                    setNewEvent({
-                      name: eventPreview.name,
-                      location: eventPreview.location || "cite",
-                      venue: eventPreview.venue || "",
-                      address: eventPreview.address || "",
-                      coordinates: eventPreview.coordinates || null,
-                      date: "",
-                      time: "",
-                      description: "",
-                      category: eventPreview.category || "food",
-                      languages: [],
-                      imageUrl: eventPreview.imageUrl || "",
-                      templateEventId: eventPreview.id,
-                    });
+                    onJoinPublicEvent && onJoinPublicEvent(eventPreview);
                     setEventPreview(null);
-                    setShowCreateEventModal(true);
-                    setCreateEventStep(1);
                   }}
                 >
-                  ✨ Create Your Own Event
+                  🎉 Join This Event
                 </button>
-              )}
-              
-              {adminMode && !adminEditMode && (
-                <button
-                  style={{
-                    padding: "16px 24px",
-                    background: "#1CB0F6",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 14,
-                    fontWeight: 900,
-                    fontSize: 16,
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    // open edit mode (duplicate of top edit button for convenience)
-                    setAdminEditMode(true);
-                    setAdminEditForm({
-                      name: eventPreview.name || "",
-                      description: eventPreview.description || "",
-                      location: eventPreview.location || "cite",
-                      venue: eventPreview.venue || "",
-                      address: eventPreview.address || "",
-                      coordinates: eventPreview.coordinates || null,
-                      date: eventPreview.date || "",
-                      time: eventPreview.time || "",
-                      category: eventPreview.category || "food",
-                      languages: Array.isArray(eventPreview.languages) ? eventPreview.languages.slice() : [],
-                      capacity: eventPreview.capacity || null,
-                      imageUrl: eventPreview.imageUrl || "",
-                    });
-                  }}
-                >
-                  ✏️ Edit
-                </button>
-              )}
-              <button
-                style={{
-                  padding: "16px 24px",
-                  background: theme.bg,
-                  color: theme.text,
-                  border: `2px solid ${theme.border}`,
-                  borderRadius: 14,
-                  fontWeight: 900,
-                  fontSize: 16,
-                  cursor: "pointer",
-                }}
-                onClick={() => setEventPreview(null)}
-              >
-                Close
-              </button>
+                
+                {/* Secondary Action: Create Your Own Event (for featured events only) */}
+                {(eventPreview.isFeatured || (eventPreview.createdBy && eventPreview.createdBy.toLowerCase() === 'admin')) && (
+                  <button
+                    style={{
+                      flex: 1,
+                      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                      color: "white",
+                      border: "none",
+                      borderRadius: 14,
+                      padding: 16,
+                      fontWeight: 900,
+                      fontSize: 16,
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(102,126,234,0.28)",
+                      transition: "transform 0.2s, box-shadow 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = "0 8px 20px rgba(102,126,234,0.35)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 6px 16px rgba(102,126,234,0.28)";
+                    }}
+                    onClick={() => {
+                      // Pre-fill the create event form with template data
+                      setNewEvent({
+                        name: eventPreview.name,
+                        location: eventPreview.location || "cite",
+                        venue: eventPreview.venue || "",
+                        address: eventPreview.address || "",
+                        coordinates: eventPreview.coordinates || null,
+                        date: "",
+                        time: "",
+                        endTime: "",
+                        description: "",
+                        category: eventPreview.category || "food",
+                        languages: [],
+                        imageUrl: eventPreview.imageUrl || "",
+                        templateEventId: eventPreview.id,
+                      });
+                      setEventPreview(null);
+                      setShowCreateEventModal(true);
+                      setCreateEventStep(1);
+                    }}
+                  >
+                    ✨ Create Your Own Event
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
