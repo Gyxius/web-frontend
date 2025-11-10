@@ -2,6 +2,27 @@ import React, { useState, useEffect, useRef } from "react";
 import * as api from "./api";
 import { getCountryFlag } from "./countryFlags";
 
+// Helper to check if end time is valid (can be next day)
+// Returns false only if end time is same as or before start time on same day
+function isValidEndTime(startTime, endTime) {
+  if (!startTime || !endTime) return true;
+  
+  // Convert times to minutes for comparison
+  const [startH, startM] = startTime.split(":").map(Number);
+  const [endH, endM] = endTime.split(":").map(Number);
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+  
+  // If end time is less than start time, assume it's next day (valid)
+  // Only invalid if end time equals or is just slightly after start on same day
+  if (endMinutes <= startMinutes && endMinutes > startMinutes - 60) {
+    // Within 1 hour of start time or equal - likely same day, invalid
+    return false;
+  }
+  
+  return true;
+}
+
 // Convert ISO date and 24h time to human-friendly format
 // Example: "2025-11-05" + "20:30" → "Wednesday, 5 November · 8:30 PM"
 function formatHumanDate(isoDate, time24) {
@@ -1987,7 +2008,7 @@ function SocialChat({
                   boxSizing: "border-box",
                 }}
               />
-              {editedEvent.time && editedEvent.endTime && editedEvent.endTime <= editedEvent.time && (
+              {editedEvent.time && editedEvent.endTime && !isValidEndTime(editedEvent.time, editedEvent.endTime) && (
                 <p style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>
                   End time must be after start time
                 </p>
@@ -2458,7 +2479,7 @@ function SocialChat({
                 }}
                 onClick={async () => {
                   // Validate end time
-                  if (editedEvent.time && editedEvent.endTime && editedEvent.endTime <= editedEvent.time) {
+                  if (editedEvent.time && editedEvent.endTime && !isValidEndTime(editedEvent.time, editedEvent.endTime)) {
                     alert("End time must be after start time");
                     return;
                   }

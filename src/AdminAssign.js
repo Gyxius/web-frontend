@@ -3,6 +3,24 @@ import users from "./users";
 import LocationPicker from "./LocationPicker";
 import * as api from "./api";
 
+// Helper to check if end time is valid (can be next day)
+function isValidEndTime(startTime, endTime) {
+  if (!startTime || !endTime) return true;
+  
+  const [startH, startM] = startTime.split(":").map(Number);
+  const [endH, endM] = endTime.split(":").map(Number);
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+  
+  // If end time is less than start time, assume it's next day (valid)
+  // Only invalid if end time equals or is just slightly after start on same day
+  if (endMinutes <= startMinutes && endMinutes > startMinutes - 60) {
+    return false;
+  }
+  
+  return true;
+}
+
 // Default places for event creation
 const defaultPlaces = {
   Cité: [
@@ -1288,14 +1306,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 />
               </div>
             </div>
-            {createEventForm.endTime && createEventForm.time && (() => {
-              const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
-              const s = toMin(createEventForm.time); const e = toMin(createEventForm.endTime);
-              if (s !== null && e !== null && e <= s) {
-                return <div style={{ color: "#FF4B4B", fontSize: 12, marginTop: 6, marginBottom: 6 }}>End time must be after start time.</div>;
-              }
-              return null;
-            })()}
+            {createEventForm.endTime && createEventForm.time && !isValidEndTime(createEventForm.time, createEventForm.endTime) && (
+              <div style={{ color: "#FF4B4B", fontSize: 12, marginTop: 6, marginBottom: 6 }}>End time must be after start time.</div>
+            )}
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
               <div>
@@ -1700,13 +1713,9 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   return;
                 }
                 // Validate time range if end time provided
-                if (createEventForm.endTime) {
-                  const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
-                  const s = toMin(createEventForm.time); const e = toMin(createEventForm.endTime);
-                  if (s !== null && e !== null && e <= s) {
-                    alert("End time must be after start time.");
-                    return;
-                  }
+                if (createEventForm.endTime && !isValidEndTime(createEventForm.time, createEventForm.endTime)) {
+                  alert("End time must be after start time.");
+                  return;
                 }
                 if (!createEventForm.address || !createEventForm.coordinates) {
                   alert("Please provide an exact address using the location picker");

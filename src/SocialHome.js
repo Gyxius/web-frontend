@@ -6,6 +6,24 @@ import "./SocialHome.animations.css";
 import { createEvent, getEventById, updateEvent } from "./api";
 import NotificationsInbox from "./NotificationsInbox";
 
+// Helper to check if end time is valid (can be next day)
+function isValidEndTime(startTime, endTime) {
+  if (!startTime || !endTime) return true;
+  
+  const [startH, startM] = startTime.split(":").map(Number);
+  const [endH, endM] = endTime.split(":").map(Number);
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+  
+  // If end time is less than start time, assume it's next day (valid)
+  // Only invalid if end time equals or is just slightly after start on same day
+  if (endMinutes <= startMinutes && endMinutes > startMinutes - 60) {
+    return false;
+  }
+  
+  return true;
+}
+
 function SocialHome({
   userName = "Guest",
   currentUser,
@@ -2423,15 +2441,9 @@ function SocialHome({
                     />
                   </div>
                 </div>
-                {newEvent.endTime && newEvent.time && (() => {
-                  const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
-                  const startM = toMin(newEvent.time);
-                  const endM = toMin(newEvent.endTime);
-                  if (startM !== null && endM !== null && endM <= startM) {
-                    return <div style={{ color: "#FF4B4B", fontSize: 13, marginBottom: 8 }}>End time must be after start time.</div>;
-                  }
-                  return null;
-                })()}
+                {newEvent.endTime && newEvent.time && !isValidEndTime(newEvent.time, newEvent.endTime) && (
+                  <div style={{ color: "#FF4B4B", fontSize: 13, marginBottom: 8 }}>End time must be after start time.</div>
+                )}
                 <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
                   <button
                     style={{
@@ -3249,6 +3261,12 @@ function SocialHome({
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
                     onClick={async () => {
+                      // Validate end time before creating
+                      if (newEvent.time && newEvent.endTime && !isValidEndTime(newEvent.time, newEvent.endTime)) {
+                        alert("End time must be after start time");
+                        return;
+                      }
+                      
                       // Create event via API
                       try {
                         console.log("STEP 1: Button clicked, starting event creation");
