@@ -78,57 +78,53 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMo
   const searchTimeoutRef = useRef(null);
 
   // Load all Cité houses when filterMode is "cite" and field is empty
-  const loadAllCiteHouses = async () => {
+  const loadAllCiteHouses = () => {
     if (filterMode !== "cite") return;
     
-    setIsSearching(true);
-    try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
-      
-      // Fetch multiple Cité houses in parallel to build initial list
-      const housesToFetch = [
-        "Maison du Mexique, Cité Universitaire",
-        "Fondation des États-Unis, Cité Universitaire",
-        "Maison du Brésil, Cité Universitaire",
-        "Maison de l'Argentine, Cité Universitaire",
-        "Maison du Japon, Cité Universitaire",
-        "Collège d'Espagne, Cité Universitaire",
-        "Maison Heinrich Heine, Cité Universitaire",
-        "Maison de la Grèce, Cité Universitaire",
-      ];
-      
-      const results = await Promise.all(
-        housesToFetch.map(house =>
-          fetch(`${API_URL}/api/geocode?q=${encodeURIComponent(house)}&limit=1&countrycodes=fr`)
-            .then(r => r.json())
-            .catch(() => [])
-        )
-      );
-      
-      // Flatten and deduplicate results
-      const allResults = results.flat().filter(r => r && r.place_id);
-      const uniqueResults = Array.from(
-        new Map(allResults.map(item => [item.place_id, item])).values()
-      );
-      
-      setSuggestions(uniqueResults);
-      setShowSuggestions(true);
-    } catch (error) {
-      console.error("Error loading Cité houses:", error);
-      setSuggestions([]);
-    } finally {
-      setIsSearching(false);
-    }
+    // Create suggestion objects from CITE_HOUSES constant
+    // Take first 12 houses as initial suggestions
+    const initialHouses = CITE_HOUSES.slice(0, 12).map((house, index) => ({
+      place_id: `cite_house_${index}`,
+      name: house,
+      display_name: `${house}, Cité Universitaire, Paris 14e, France`,
+      lat: "48.8205877", // Default Cité Universitaire coordinates
+      lon: "2.3390071",
+      isCiteHouse: true, // Flag to identify these as pre-defined houses
+    }));
+    
+    setSuggestions(initialHouses);
+    setShowSuggestions(true);
   };
 
   // Search for locations using Nominatim (OpenStreetMap's geocoding service)
   const searchLocation = async (query) => {
     // For cite mode with empty query, show all houses
     if (filterMode === "cite" && (!query || query.length === 0)) {
-      await loadAllCiteHouses();
+      loadAllCiteHouses();
       return;
     }
     
+    // For cite mode, filter from our CITE_HOUSES list
+    if (filterMode === "cite") {
+      const queryLower = query.toLowerCase();
+      const matchingHouses = CITE_HOUSES
+        .filter(house => house.toLowerCase().includes(queryLower))
+        .slice(0, 12) // Limit results
+        .map((house, index) => ({
+          place_id: `cite_house_${index}_${house}`,
+          name: house,
+          display_name: `${house}, Cité Universitaire, Paris 14e, France`,
+          lat: "48.8205877",
+          lon: "2.3390071",
+          isCiteHouse: true,
+        }));
+      
+      setSuggestions(matchingHouses);
+      setShowSuggestions(matchingHouses.length > 0);
+      return;
+    }
+    
+    // For non-cite mode (Paris), use geocoding API
     if (!query || query.length < 2) {
       setSuggestions([]);
       return;
@@ -139,48 +135,15 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMo
       // Using backend proxy to avoid CORS issues
       const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
       
-      // For cite mode, add "Cité Universitaire" to improve results
-      const searchQuery = filterMode === "cite" 
-        ? `${query}, Cité Universitaire, Paris`
-        : query;
-      
       const response = await fetch(
         `${API_URL}/api/geocode?` +
-        `q=${encodeURIComponent(searchQuery)}&` +
-        `limit=20&` + // Request more results for better filtering
-        `countrycodes=fr` // Restrict to France
+        `q=${encodeURIComponent(query)}&` +
+        `limit=8&` +
+        `countrycodes=fr`
       );
       const data = await response.json();
       
-      // Filter results based on filterMode
-      let filteredData = data;
-      if (filterMode === "cite") {
-        // Only show addresses that match Cité house names
-        filteredData = data.filter(suggestion => {
-          const displayName = suggestion.display_name || "";
-          const name = suggestion.name || "";
-          
-          // Check if any Cité house name appears in the result
-          return CITE_HOUSES.some(house => 
-            displayName.toLowerCase().includes(house.toLowerCase()) ||
-            name.toLowerCase().includes(house.toLowerCase())
-          );
-        });
-        
-        // Sort by relevance - exact name matches first
-        filteredData.sort((a, b) => {
-          const aName = (a.name || "").toLowerCase();
-          const bName = (b.name || "").toLowerCase();
-          const queryLower = query.toLowerCase();
-          
-          const aExact = aName.startsWith(queryLower) ? 0 : 1;
-          const bExact = bName.startsWith(queryLower) ? 0 : 1;
-          
-          return aExact - bExact;
-        });
-      }
-      
-      setSuggestions(filteredData.slice(0, 8)); // Show more results for cite mode
+      setSuggestions(data.slice(0, 8));
       setShowSuggestions(true);
     } catch (error) {
       console.error("Error searching location:", error);

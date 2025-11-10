@@ -75,6 +75,9 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAc
   useEffect(() => {
     if (startEditing) setIsEditing(true);
   }, [startEditing]);
+  
+  // INVITE CODE FEATURE DISABLED - Uncomment below to re-enable
+  /*
   // Single reusable invite code for this user
   const [inviteCode, setInviteCode] = useState(null);
   const [inviteLoading, setInviteLoading] = useState(true);
@@ -109,6 +112,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAc
     })();
     return () => { cancelled = true; };
   }, [loadOrCreateInviteCode]);
+  */
 
   // Try loading server-saved profile on mount (and cache locally)
   useEffect(() => {
@@ -489,6 +493,8 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAc
     },
   };
 
+  // INVITE CODE FEATURE DISABLED - Uncomment below to re-enable
+  /*
   const createOrRotateInvite = async () => {
     try {
       const res = await api.createOrRotateInviteCode(userName);
@@ -499,6 +505,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAc
       alert('Could not generate invite code.');
     }
   };
+  */
 
   return (
     <div style={styles.container}>
@@ -1094,7 +1101,8 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAc
           )}
         </div>
 
-        {/* Invitations */}
+        {/* INVITE CODE FEATURE DISABLED - Uncomment below to re-enable */}
+        {/*
         {!isEditing && (
           <div style={styles.section}>
             <label style={styles.label}>Invitations</label>
@@ -1132,6 +1140,7 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAc
             </div>
           </div>
         )}
+        */}
 
         {/* Sign Out Button - Always visible when not editing */}
         {!isEditing && (
