@@ -2524,6 +2524,49 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
           </div>
         </div>
       )}
+
+      {/* Image Cropper Modal */}
+      {showImageCropper && imageToCrop && (
+        <ImageCropper
+          image={imageToCrop}
+          onCropComplete={async (croppedImageUrl) => {
+            // Convert the cropped image URL (blob URL) to a file and upload it
+            try {
+              const response = await fetch(croppedImageUrl);
+              const blob = await response.blob();
+              const file = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
+              
+              // Upload to server
+              const formData = new FormData();
+              formData.append("file", file);
+              
+              const uploadResponse = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/upload-image`, {
+                method: "POST",
+                body: formData,
+              });
+              
+              if (!uploadResponse.ok) {
+                throw new Error("Upload failed");
+              }
+              
+              const data = await uploadResponse.json();
+              const fullUrl = data.url.startsWith('http') ? data.url : `${process.env.REACT_APP_API_URL || "http://localhost:8000"}${data.url}`;
+              setCreateEventForm({ ...createEventForm, imageUrl: fullUrl });
+              
+              setShowImageCropper(false);
+              setImageToCrop(null);
+            } catch (error) {
+              console.error("Error uploading cropped image:", error);
+              alert("Failed to upload image. Please try again.");
+            }
+          }}
+          onCancel={() => {
+            setShowImageCropper(false);
+            setImageToCrop(null);
+          }}
+          theme={theme}
+        />
+      )}
     </div>
   );
 }
@@ -2608,49 +2651,6 @@ function InviteList({ invites, onUpdate }) {
           </div>
         </div>
       ))}
-
-      {/* Image Cropper Modal */}
-      {showImageCropper && imageToCrop && (
-        <ImageCropper
-          image={imageToCrop}
-          onCropComplete={async (croppedImageUrl) => {
-            // Convert the cropped image URL (blob URL) to a file and upload it
-            try {
-              const response = await fetch(croppedImageUrl);
-              const blob = await response.blob();
-              const file = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
-              
-              // Upload to server
-              const formData = new FormData();
-              formData.append("file", file);
-              
-              const uploadResponse = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/upload-image`, {
-                method: "POST",
-                body: formData,
-              });
-              
-              if (!uploadResponse.ok) {
-                throw new Error("Upload failed");
-              }
-              
-              const data = await uploadResponse.json();
-              const fullUrl = data.url.startsWith('http') ? data.url : `${process.env.REACT_APP_API_URL || "http://localhost:8000"}${data.url}`;
-              setCreateEventForm({ ...createEventForm, imageUrl: fullUrl });
-              
-              setShowImageCropper(false);
-              setImageToCrop(null);
-            } catch (error) {
-              console.error("Error uploading cropped image:", error);
-              alert("Failed to upload image. Please try again.");
-            }
-          }}
-          onCancel={() => {
-            setShowImageCropper(false);
-            setImageToCrop(null);
-          }}
-          theme={theme}
-        />
-      )}
     </div>
   );
 }
