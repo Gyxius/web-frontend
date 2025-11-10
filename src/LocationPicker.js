@@ -77,9 +77,59 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMo
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef(null);
 
+  // Load all Cité houses when filterMode is "cite" and field is empty
+  const loadAllCiteHouses = async () => {
+    if (filterMode !== "cite") return;
+    
+    setIsSearching(true);
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      
+      // Fetch multiple Cité houses in parallel to build initial list
+      const housesToFetch = [
+        "Maison du Mexique, Cité Universitaire",
+        "Fondation des États-Unis, Cité Universitaire",
+        "Maison du Brésil, Cité Universitaire",
+        "Maison de l'Argentine, Cité Universitaire",
+        "Maison du Japon, Cité Universitaire",
+        "Collège d'Espagne, Cité Universitaire",
+        "Maison Heinrich Heine, Cité Universitaire",
+        "Maison de la Grèce, Cité Universitaire",
+      ];
+      
+      const results = await Promise.all(
+        housesToFetch.map(house =>
+          fetch(`${API_URL}/api/geocode?q=${encodeURIComponent(house)}&limit=1&countrycodes=fr`)
+            .then(r => r.json())
+            .catch(() => [])
+        )
+      );
+      
+      // Flatten and deduplicate results
+      const allResults = results.flat().filter(r => r && r.place_id);
+      const uniqueResults = Array.from(
+        new Map(allResults.map(item => [item.place_id, item])).values()
+      );
+      
+      setSuggestions(uniqueResults);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error("Error loading Cité houses:", error);
+      setSuggestions([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   // Search for locations using Nominatim (OpenStreetMap's geocoding service)
   const searchLocation = async (query) => {
-    if (!query || query.length < 3) {
+    // For cite mode with empty query, show all houses
+    if (filterMode === "cite" && (!query || query.length === 0)) {
+      await loadAllCiteHouses();
+      return;
+    }
+    
+    if (!query || query.length < 2) {
       setSuggestions([]);
       return;
     }
@@ -88,9 +138,15 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMo
     try {
       // Using backend proxy to avoid CORS issues
       const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      
+      // For cite mode, add "Cité Universitaire" to improve results
+      const searchQuery = filterMode === "cite" 
+        ? `${query}, Cité Universitaire, Paris`
+        : query;
+      
       const response = await fetch(
         `${API_URL}/api/geocode?` +
-        `q=${encodeURIComponent(query)}&` +
+        `q=${encodeURIComponent(searchQuery)}&` +
         `limit=20&` + // Request more results for better filtering
         `countrycodes=fr` // Restrict to France
       );
@@ -110,9 +166,21 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMo
             name.toLowerCase().includes(house.toLowerCase())
           );
         });
+        
+        // Sort by relevance - exact name matches first
+        filteredData.sort((a, b) => {
+          const aName = (a.name || "").toLowerCase();
+          const bName = (b.name || "").toLowerCase();
+          const queryLower = query.toLowerCase();
+          
+          const aExact = aName.startsWith(queryLower) ? 0 : 1;
+          const bExact = bName.startsWith(queryLower) ? 0 : 1;
+          
+          return aExact - bExact;
+        });
       }
       
-      setSuggestions(filteredData.slice(0, 5)); // Limit to top 5 after filtering
+      setSuggestions(filteredData.slice(0, 8)); // Show more results for cite mode
       setShowSuggestions(true);
     } catch (error) {
       console.error("Error searching location:", error);
@@ -135,7 +203,16 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMo
     // Set new timeout for search
     searchTimeoutRef.current = setTimeout(() => {
       searchLocation(value);
-    }, 500); // Wait 500ms after user stops typing
+    }, 300); // Shorter delay for better UX
+  };
+  
+  // Handle focus - show all Cité houses if in cite mode and field is empty
+  const handleFocus = () => {
+    if (filterMode === "cite" && !address) {
+      loadAllCiteHouses();
+    } else if (suggestions.length > 0) {
+      setShowSuggestions(true);
+    }
   };
 
   // Initialize or update map
@@ -212,10 +289,10 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMo
     <div style={{ position: "relative" }}>
       <input
         type="text"
-        placeholder="Search for a location (e.g., Fleurus Bar, Cité Universitaire)"
+        placeholder={filterMode === "cite" ? "Select a Cité house" : "Search for a location (e.g., Fleurus Bar, Cité Universitaire)"}
         value={address}
         onChange={handleInputChange}
-        onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+        onFocus={handleFocus}
         style={{
           width: "100%",
           padding: 12,
