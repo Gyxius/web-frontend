@@ -1713,6 +1713,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 }
                 logAdminActivity(`Created new event: ${createEventForm.name} at ${createEventForm.address}`);
                 
+                console.log("AdminAssign - Creating event with endTime:", createEventForm.endTime);
+                
                 // Create new event object
                 const newEvent = {
                   name: createEventForm.name,
@@ -1736,6 +1738,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   target_cite_connection: createEventForm.targetCiteConnection.length > 0 ? createEventForm.targetCiteConnection : null,
                   target_reasons: createEventForm.targetReasons.length > 0 ? createEventForm.targetReasons : null,
                 };
+                
+                console.log("AdminAssign - Sending to API:", newEvent);
                 
                 // Create event via API
                 try {
