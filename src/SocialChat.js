@@ -1663,7 +1663,7 @@ function SocialChat({
                     </div>
                     <div style={styles.hostInfo}>
                       <div style={styles.hostName}>
-                        {enrichedItem.name} {(enrichedItem.homeCountries || [enrichedItem.homeCountry || (enrichedItem.countriesFrom && enrichedItem.countriesFrom[0]) || enrichedItem.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
+                        {((enrichedItem.username || enrichedItem.name || '').toLowerCase() === 'admin') ? 'Admin' : enrichedItem.name} {(enrichedItem.homeCountries || [enrichedItem.homeCountry || (enrichedItem.countriesFrom && enrichedItem.countriesFrom[0]) || enrichedItem.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                       </div>
                       <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                         {(enrichedItem.university || enrichedItem.building || enrichedItem.house || enrichedItem.residence) && (
@@ -1707,7 +1707,7 @@ function SocialChat({
                   avatarUrl = sender.avatar.url;
                 }
               }
-              const displayName = mine ? 'You' : (sender && sender.name) || m.from;
+              const displayName = mine ? 'You' : (((sender?.username || sender?.name || m.from || '').toLowerCase() === 'admin') ? 'Admin' : ((sender && sender.name) || m.from));
               // Check if current user is the host
               const isHost = event?.host === currentUser || event?.host?.name === currentUser || event?.host?.username === currentUser;
               
@@ -2509,7 +2509,7 @@ function SocialChat({
                         <span style={{ fontSize: 24 }}>{coHost.emoji || "👤"}</span>
                         <div>
                           <div style={{ fontWeight: 700, color: theme.text }}>
-                            {coHost.name} {coHost.country && `${coHost.country}`}
+                            {((coHost.username || coHost.name || '').toLowerCase() === 'admin') ? 'Admin' : coHost.name} {coHost.country && `${coHost.country}`}
                           </div>
                           {coHost.bio && (
                             <div style={{ fontSize: 14, color: theme.textMuted }}>
@@ -2530,7 +2530,8 @@ function SocialChat({
                           fontSize: 14,
                         }}
                         onClick={() => {
-                          if (window.confirm(`Remove ${coHost.name} as co-host?`)) {
+                          const coHostDisplay = ((coHost.username || coHost.name || '').toLowerCase() === 'admin') ? 'Admin' : coHost.name;
+                          if (window.confirm(`Remove ${coHostDisplay} as co-host?`)) {
                             const updatedCoHosts = event.coHosts.filter((_, i) => i !== idx);
                             const updatedEvent = {
                               ...event,
