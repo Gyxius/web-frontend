@@ -7,6 +7,68 @@ import { createEvent, getEventById, updateEvent } from "./api";
 import NotificationsInbox from "./NotificationsInbox";
 import ImageCropper from "./ImageCropper";
 
+// Helper to format long addresses to concise format
+function formatAddressForDisplay(fullAddress) {
+  if (!fullAddress) return '';
+  
+  // If address is already short (3 or fewer commas), return as is
+  const commaCount = (fullAddress.match(/,/g) || []).length;
+  if (commaCount <= 3) return fullAddress;
+  
+  try {
+    // Split the address by commas
+    const parts = fullAddress.split(',').map(p => p.trim());
+    
+    // Try to extract: venue, house number, street, postal code, city
+    // Example: "Le Fleurus, 10, Boulevard Jourdan, Quartier..., Paris 14e..., Paris, Île-de-France, France métropolitaine, 75014, France"
+    // Target: "Le Fleurus, 10 Boulevard Jourdan, 75014 Paris"
+    
+    let venue = parts[0];
+    let street = '';
+    let postalCode = '';
+    let city = '';
+    
+    // Look for postal code (5 digits)
+    const postalCodeIndex = parts.findIndex(p => /^\d{5}$/.test(p.trim()));
+    if (postalCodeIndex !== -1) {
+      postalCode = parts[postalCodeIndex];
+    }
+    
+    // Look for Paris/city name (before Île-de-France)
+    const cityIndex = parts.findIndex(p => p.toLowerCase().includes('paris') && !p.toLowerCase().includes('arrondissement'));
+    if (cityIndex !== -1) {
+      city = parts[cityIndex];
+    }
+    
+    // Build street from parts[1] and parts[2] if they look like number and street
+    if (parts.length > 2) {
+      const maybeNumber = parts[1].trim();
+      const maybeStreet = parts[2].trim();
+      if (/^\d+/.test(maybeNumber)) {
+        street = `${maybeNumber} ${maybeStreet}`;
+      } else {
+        street = maybeStreet;
+      }
+    }
+    
+    // Build concise address
+    let result = venue;
+    if (street) {
+      result += `, ${street}`;
+    }
+    if (postalCode && city) {
+      result += `, ${postalCode} ${city}`;
+    } else if (city) {
+      result += `, ${city}`;
+    }
+    
+    return result || fullAddress;
+  } catch (e) {
+    // If anything fails, return original address
+    return fullAddress;
+  }
+}
+
 // Helper to check if end time is valid (can be next day)
 function isValidEndTime(startTime, endTime) {
   if (!startTime || !endTime) return true;
@@ -3666,7 +3728,7 @@ function SocialHome({
                     )}
                     {eventPreview.address && (
                       <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 2, lineHeight: 1.4 }}>
-                        {eventPreview.address}
+                        {formatAddressForDisplay(eventPreview.address)}
                       </div>
                     )}
                   </div>
