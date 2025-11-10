@@ -3907,33 +3907,36 @@ function SocialHome({
               );
             })()}
 
-          </div>
-
-          {/* COMPONENT 4: CTA BLOCK (Sticky Footer) */}
-          {!adminEditMode && (
-            <div style={{
-              position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              background: "white",
-              borderTop: `2px solid ${theme.border}`,
-              padding: isMobile ? "16px 20px" : "20px 24px",
-              boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
-              zIndex: 1001,
-            }}>
-              <div style={{ 
-                maxWidth: 600, 
-                margin: "0 auto",
-                display: "flex",
-                gap: 12,
-                flexDirection: isMobile ? "column" : "row",
-              }}>
-                {/* Primary Action: Join This Event */}
+            {/* Action Buttons */}
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
+              {/* Join This Event Button */}
+              <button
+                style={{
+                  flex: 1,
+                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                  color: "white",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: 16,
+                  fontWeight: 900,
+                  fontSize: 16,
+                  cursor: "pointer",
+                  boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                }}
+                onClick={() => {
+                  onJoinPublicEvent && onJoinPublicEvent(eventPreview);
+                  setEventPreview(null);
+                }}
+              >
+                🎉 Join This Event
+              </button>
+              
+              {/* For featured events, also show "Create Your Own" button */}
+              {(eventPreview.isFeatured || (eventPreview.createdBy && eventPreview.createdBy.toLowerCase() === 'admin')) && (
                 <button
                   style={{
                     flex: 1,
-                    background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                     color: "white",
                     border: "none",
                     borderRadius: 14,
@@ -3941,77 +3944,86 @@ function SocialHome({
                     fontWeight: 900,
                     fontSize: 16,
                     cursor: "pointer",
-                    boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
-                    transition: "transform 0.2s, box-shadow 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 8px 20px rgba(88,204,2,0.35)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 6px 16px rgba(88,204,2,0.28)";
+                    boxShadow: "0 6px 16px rgba(102,126,234,0.28)",
                   }}
                   onClick={() => {
-                    onJoinPublicEvent && onJoinPublicEvent(eventPreview);
+                    // Pre-fill the create event form with template data
+                    setNewEvent({
+                      name: eventPreview.name,
+                      location: eventPreview.location || "cite",
+                      venue: eventPreview.venue || "",
+                      address: eventPreview.address || "",
+                      coordinates: eventPreview.coordinates || null,
+                      date: "",
+                      time: "",
+                      endTime: "",
+                      description: "",
+                      category: eventPreview.category || "food",
+                      languages: [],
+                      imageUrl: eventPreview.imageUrl || "",
+                      templateEventId: eventPreview.id,
+                    });
                     setEventPreview(null);
+                    setShowCreateEventModal(true);
+                    setCreateEventStep(1);
                   }}
                 >
-                  🎉 Join This Event
+                  ✨ Create Your Own Event
                 </button>
-                
-                {/* Secondary Action: Create Your Own Event (for featured events only) */}
-                {(eventPreview.isFeatured || (eventPreview.createdBy && eventPreview.createdBy.toLowerCase() === 'admin')) && (
-                  <button
-                    style={{
-                      flex: 1,
-                      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 14,
-                      padding: 16,
-                      fontWeight: 900,
-                      fontSize: 16,
-                      cursor: "pointer",
-                      boxShadow: "0 6px 16px rgba(102,126,234,0.28)",
-                      transition: "transform 0.2s, box-shadow 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 8px 20px rgba(102,126,234,0.35)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 6px 16px rgba(102,126,234,0.28)";
-                    }}
-                    onClick={() => {
-                      // Pre-fill the create event form with template data
-                      setNewEvent({
-                        name: eventPreview.name,
-                        location: eventPreview.location || "cite",
-                        venue: eventPreview.venue || "",
-                        address: eventPreview.address || "",
-                        coordinates: eventPreview.coordinates || null,
-                        date: "",
-                        time: "",
-                        endTime: "",
-                        description: "",
-                        category: eventPreview.category || "food",
-                        languages: [],
-                        imageUrl: eventPreview.imageUrl || "",
-                        templateEventId: eventPreview.id,
-                      });
-                      setEventPreview(null);
-                      setShowCreateEventModal(true);
-                      setCreateEventStep(1);
-                    }}
-                  >
-                    ✨ Create Your Own Event
-                  </button>
-                )}
-              </div>
+              )}
+              
+              {adminMode && !adminEditMode && (
+                <button
+                  style={{
+                    padding: "16px 24px",
+                    background: "#1CB0F6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 14,
+                    fontWeight: 900,
+                    fontSize: 16,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    // open edit mode (duplicate of top edit button for convenience)
+                    setAdminEditMode(true);
+                    setAdminEditForm({
+                      name: eventPreview.name || "",
+                      description: eventPreview.description || "",
+                      location: eventPreview.location || "cite",
+                      venue: eventPreview.venue || "",
+                      address: eventPreview.address || "",
+                      coordinates: eventPreview.coordinates || null,
+                      date: eventPreview.date || "",
+                      time: eventPreview.time || "",
+                      endTime: eventPreview.endTime || "",
+                      category: eventPreview.category || "food",
+                      languages: Array.isArray(eventPreview.languages) ? eventPreview.languages.slice() : [],
+                      capacity: eventPreview.capacity || null,
+                      imageUrl: eventPreview.imageUrl || "",
+                    });
+                  }}
+                >
+                  ✏️ Edit
+                </button>
+              )}
+              <button
+                style={{
+                  padding: "16px 24px",
+                  background: theme.bg,
+                  color: theme.text,
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: 14,
+                  fontWeight: 900,
+                  fontSize: 16,
+                  cursor: "pointer",
+                }}
+                onClick={() => setEventPreview(null)}
+              >
+                Close
+              </button>
             </div>
-          )}
+          </div>
         </div>
       )}
 
