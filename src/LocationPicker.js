@@ -66,6 +66,50 @@ const CITE_HOUSES = [
   "Maison des étudiants de l'Asie du Sud-Est",
 ];
 
+// Format address to show only essential parts: venue name, street number, street name, postal code, city
+function formatAddress(displayName, addressComponents) {
+  try {
+    // Split the full address
+    const parts = displayName.split(',').map(p => p.trim());
+    
+    // Get essential components from addressComponents object
+    const venue = addressComponents?.amenity || addressComponents?.name || parts[0];
+    const houseNumber = addressComponents?.house_number || '';
+    const road = addressComponents?.road || '';
+    const postcode = addressComponents?.postcode || '';
+    const city = addressComponents?.city || addressComponents?.town || addressComponents?.municipality || '';
+    
+    // Build compact address: "Venue Name, House# Street, Postcode City"
+    let formatted = '';
+    
+    if (venue && venue !== road) {
+      formatted += venue;
+    }
+    
+    if (houseNumber && road) {
+      formatted += formatted ? ', ' : '';
+      formatted += `${houseNumber} ${road}`;
+    } else if (road) {
+      formatted += formatted ? ', ' : '';
+      formatted += road;
+    }
+    
+    if (postcode && city) {
+      formatted += formatted ? ', ' : '';
+      formatted += `${postcode} ${city}`;
+    } else if (city) {
+      formatted += formatted ? ', ' : '';
+      formatted += city;
+    }
+    
+    // Fallback to first 3 parts if formatting fails
+    return formatted || parts.slice(0, 3).join(', ');
+  } catch (e) {
+    // Fallback: return first 3 parts
+    return displayName.split(',').slice(0, 3).join(', ');
+  }
+}
+
 function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMode = "all" }) {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
@@ -216,8 +260,11 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMo
     const lng = parseFloat(suggestion.lon);
     const displayName = suggestion.display_name;
     const name = suggestion.name || suggestion.address?.amenity || suggestion.address?.name || displayName.split(',')[0];
+    
+    // Format the address to be concise
+    const formattedAddress = formatAddress(displayName, suggestion.address);
 
-    setAddress(displayName);
+    setAddress(formattedAddress);
     setCoordinates({ lat, lng });
     setShowSuggestions(false);
     setSuggestions([]);
@@ -228,7 +275,7 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMo
     // Callback with location data
     if (onLocationSelect) {
       onLocationSelect({
-        address: displayName,
+        address: formattedAddress,
         name: name,
         lat,
         lng,
