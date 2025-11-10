@@ -34,6 +34,7 @@ function App() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [templateEventToCreate, setTemplateEventToCreate] = useState(null);
   const [adminOpenEventId, setAdminOpenEventId] = useState(null);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationsData, setNotificationsData] = useState(null);
   
@@ -276,6 +277,10 @@ function App() {
         onBack={() => { setShowEditProfile(false); setJustRegistered(false); }}
         onSignOut={handleSignOut}
         startEditing={!!justRegistered}
+        onAccessAdminPanel={(user?.username || user?.name)?.toLowerCase() === 'admin' ? () => {
+          setShowEditProfile(false);
+          setShowAdminPanel(true);
+        } : undefined}
       />
     );
   // Show detailed event/chat view for any user (including admin) if requested
@@ -470,9 +475,8 @@ function App() {
         onNotificationRead={refreshNotifications}
       />
     );
-  } else if ((user?.username || user?.name)?.toLowerCase() === "admin") {
-    // If admin clicked an event, show the same screen users see, focused on that event
-    if (!adminOpenEventId) {
+  } else if (showAdminPanel) {
+    // Admin panel view - accessed via button in profile
     mainContent = (
       <>
         <AdminAssign
@@ -490,14 +494,13 @@ function App() {
           }}
         />
         <button
-          onClick={handleSignOut}
+          onClick={() => setShowAdminPanel(false)}
           style={{ position: "absolute", top: 20, right: 20, background: "#ef4444", color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 600, cursor: "pointer", zIndex: 10 }}
         >
-          Sign Out
+          ← Back to Home
         </button>
       </>
     );
-    }
   } else if (selectedProfile) {
     const currentUserKey = user?.username || user?.name;
     const selectedKey = selectedProfile?.username || selectedProfile?.name;

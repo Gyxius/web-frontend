@@ -15,7 +15,7 @@ const hashString = (s) => {
   return Math.abs(h);
 };
 
-function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
+function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAccessAdminPanel }) {
   const theme = {
     bg: "#F7F7F5",
     card: "#FFFFFF",
@@ -516,6 +516,37 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false }) {
           </button>
         )}
       </div>
+
+      {userName?.toLowerCase() === 'admin' && onAccessAdminPanel && (
+        <div style={{ marginBottom: 16 }}>
+          <button
+            onClick={onAccessAdminPanel}
+            style={{
+              width: '100%',
+              padding: '14px 20px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 12,
+              fontSize: 16,
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+            }}
+          >
+            🛠️ Access Admin Panel
+          </button>
+        </div>
+      )}
 
       {successMessage && (
         <div style={styles.successMessage}>{successMessage}</div>
