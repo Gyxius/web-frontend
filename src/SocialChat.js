@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import * as api from "./api";
 import { getCountryFlag } from "./countryFlags";
 import ImageCropper from "./ImageCropper";
+import LocationPicker from "./LocationPicker";
 
 // Helper to check if end time is valid (can be next day)
 // Returns false only if end time is same as or before start time on same day
@@ -1930,6 +1931,25 @@ function SocialChat({
                 <option value="cite">🏛️ Cité</option>
                 <option value="paris">🗼 Paris</option>
               </select>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                📍 Exact Venue & Address
+              </label>
+              <LocationPicker
+                theme={theme}
+                initialAddress={editedEvent.address || ""}
+                filterMode={editedEvent.location === "cite" ? "cite" : "all"}
+                onLocationSelect={(location) => {
+                  setEditedEvent({
+                    ...editedEvent,
+                    venue: location.name,
+                    address: location.address,
+                    coordinates: { lat: location.lat, lng: location.lng }
+                  });
+                }}
+              />
             </div>
 
             <div style={{ marginBottom: 16 }}>
