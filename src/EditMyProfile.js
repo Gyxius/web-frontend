@@ -654,7 +654,12 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAc
 
         <div style={styles.section}>
           <label style={styles.label}>Username</label>
-          <div style={styles.value}>{profile.name}</div>
+          <div style={styles.value}>{
+            // Ensure Admin shows as "Admin" regardless of legacy profile.name, else fallback to profile.name or raw userName
+            userName?.toLowerCase() === 'admin'
+              ? 'Admin'
+              : (profile.name || userName)
+          }</div>
         </div>
 
         <div style={styles.section}>
