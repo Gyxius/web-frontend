@@ -380,6 +380,8 @@ function App() {
         onEditEvent={async (updatedEvent) => {
           try {
             const username = user?.username || user?.name;
+            console.log("Received event to save:", updatedEvent);
+            console.log("endTime value:", updatedEvent.endTime);
             const eventData = {
               name: updatedEvent.name,
               description: updatedEvent.description || "",
@@ -401,6 +403,7 @@ function App() {
               target_cite_connection: updatedEvent.targetCiteConnection || null,
               target_reasons: updatedEvent.targetReasons || null,
             };
+            console.log("Sending to API:", eventData);
             await api.updateEvent(updatedEvent.id, eventData);
             const allEvents = await api.getAllEvents();
             setPublicEvents(allEvents);
@@ -681,6 +684,8 @@ function App() {
         onEditEvent={async (updatedEvent) => {
           try {
             const username = user?.username || user?.name;
+            console.log("Received event to save (2nd handler):", updatedEvent);
+            console.log("endTime value:", updatedEvent.endTime);
             
             // Prepare the event data for the API
             const eventData = {
@@ -704,6 +709,7 @@ function App() {
               target_cite_connection: updatedEvent.targetCiteConnection || null,
               target_reasons: updatedEvent.targetReasons || null,
             };
+            console.log("Sending to API (2nd handler):", eventData);
             
             // Update via API
             await api.updateEvent(updatedEvent.id, eventData);

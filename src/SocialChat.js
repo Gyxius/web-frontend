@@ -2503,6 +2503,7 @@ function SocialChat({
                         ...editedEvent,
                         imageUrl: finalImageUrl,
                       };
+                      console.log("Saving event with endTime:", updatedEvent.endTime);
                       onEditEvent(updatedEvent);
                       setImageFile(null); // Clear the file after successful upload
                     } catch (error) {
