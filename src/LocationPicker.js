@@ -110,16 +110,23 @@ function formatAddress(displayName, addressComponents) {
   }
 }
 
-function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMode = "all" }) {
+function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordinates = null, theme, filterMode = "all" }) {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
   const [address, setAddress] = useState(initialAddress);
-  const [coordinates, setCoordinates] = useState(null);
+  const [coordinates, setCoordinates] = useState(initialCoordinates);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef(null);
+
+  // Initialize map with existing coordinates
+  useEffect(() => {
+    if (initialCoordinates && initialCoordinates.lat && initialCoordinates.lng) {
+      initMap(initialCoordinates.lat, initialCoordinates.lng);
+    }
+  }, []);
 
   // Load all Cité houses when filterMode is "cite" and field is empty
   const loadAllCiteHouses = () => {

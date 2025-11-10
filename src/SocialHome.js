@@ -3840,7 +3840,8 @@ function SocialHome({
                     <label style={{ fontWeight: 800, fontSize: 13 }}>📍 Venue & Address</label>
                     <LocationPicker
                       theme={theme}
-                      initialAddress={adminEditForm.address || ""}
+                      initialAddress={adminEditForm.venue || adminEditForm.address || ""}
+                      initialCoordinates={adminEditForm.coordinates || null}
                       filterMode="all"
                       onLocationSelect={(location) => {
                         setAdminEditForm(prev => ({

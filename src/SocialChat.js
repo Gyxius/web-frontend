@@ -1939,7 +1939,8 @@ function SocialChat({
               </label>
               <LocationPicker
                 theme={theme}
-                initialAddress={editedEvent.address || ""}
+                initialAddress={editedEvent.venue || editedEvent.address || ""}
+                initialCoordinates={editedEvent.coordinates || null}
                 filterMode={editedEvent.location === "cite" ? "cite" : "all"}
                 onLocationSelect={(location) => {
                   setEditedEvent({
