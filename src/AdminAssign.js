@@ -1255,6 +1255,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                 }}
                 initialAddress={createEventForm.address}
                 theme={theme}
+                filterMode={createEventForm.location === "Cité" ? "cite" : "all"}
               />
             </div>
 

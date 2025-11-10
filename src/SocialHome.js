@@ -2212,6 +2212,7 @@ function SocialHome({
                     }}
                     initialAddress={newEvent.address}
                     theme={theme}
+                    filterMode={newEvent.location === "cite" ? "cite" : "all"}
                   />
                 </div>
 

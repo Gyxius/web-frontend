@@ -1,6 +1,72 @@
 import React, { useEffect, useRef, useState } from "react";
 
-function LocationPicker({ onLocationSelect, initialAddress = "", theme }) {
+// Cité house addresses (from user profiles)
+const CITE_HOUSES = [
+  "Fondation Deutsch de la Meurthe",
+  "Fondation des États-Unis",
+  "Fondation Avicenne",
+  "Fondation Biermans-Lapôtre",
+  "Fondation Suisse",
+  "Pavillon Le Corbusier",
+  "Fondation Rosa Abreu de Grancher",
+  "Fondation Abreu de Grancher",
+  "Résidence André Honnorat",
+  "Fondation argentine",
+  "Maison de l'Argentine",
+  "Maison des étudiants arméniens",
+  "Fondation Marie Nubar",
+  "Maison des Élèves Ingénieurs Arts et Métiers",
+  "Maison Internationale",
+  "Maison internationale AgroParisTech",
+  "L-OBLIQUE",
+  "Fondation Avicenne",
+  "Pavillon de l'Iran",
+  "Collège d'Espagne",
+  "Collège Franco-Britannique",
+  "Maison du Brésil",
+  "Maison du Cambodge",
+  "Maison du Canada",
+  "Maison des étudiants canadiens",
+  "Maison de la Chine",
+  "Maison de Chine",
+  "Maison de la Corée",
+  "Maison de l'Égypte",
+  "Maison d'Égypte",
+  "Maison de la Grèce",
+  "Fondation hellénique",
+  "Maison de l'Inde",
+  "Maison de l'Île-de-France",
+  "Maison de l'Italie",
+  "Maison du Japon",
+  "Maison du Liban",
+  "Maison du Maroc",
+  "Maison du Mexique",
+  "Maison de la Norvège",
+  "Maison du Portugal",
+  "André de Gouveia",
+  "Fondation de Monaco",
+  "Collège néerlandais",
+  "Maison de la Suède",
+  "Maison des étudiants suédois",
+  "Maison Heinrich Heine",
+  "Maison des Provinces de France",
+  "Maison des étudiants de la francophonie",
+  "Fondation Danoise",
+  "Maison des Industries agricoles et alimentaires",
+  "Maison de l'Institut national agronomique",
+  "Résidence Lucien Paye",
+  "Fondation Lucien Paye",
+  "Résidence Lila",
+  "Résidence Quai de la Loire",
+  "Résidence Julie-Victoire Daubié",
+  "Résidence Robert Garric",
+  "Fondation Victor Lyon",
+  "Pavillon Habib Bourguiba",
+  "Maison de Tunisie",
+  "Maison des étudiants de l'Asie du Sud-Est",
+];
+
+function LocationPicker({ onLocationSelect, initialAddress = "", theme, filterMode = "all" }) {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
@@ -25,11 +91,28 @@ function LocationPicker({ onLocationSelect, initialAddress = "", theme }) {
       const response = await fetch(
         `${API_URL}/api/geocode?` +
         `q=${encodeURIComponent(query)}&` +
-        `limit=5&` +
+        `limit=20&` + // Request more results for better filtering
         `countrycodes=fr` // Restrict to France
       );
       const data = await response.json();
-      setSuggestions(data);
+      
+      // Filter results based on filterMode
+      let filteredData = data;
+      if (filterMode === "cite") {
+        // Only show addresses that match Cité house names
+        filteredData = data.filter(suggestion => {
+          const displayName = suggestion.display_name || "";
+          const name = suggestion.name || "";
+          
+          // Check if any Cité house name appears in the result
+          return CITE_HOUSES.some(house => 
+            displayName.toLowerCase().includes(house.toLowerCase()) ||
+            name.toLowerCase().includes(house.toLowerCase())
+          );
+        });
+      }
+      
+      setSuggestions(filteredData.slice(0, 5)); // Limit to top 5 after filtering
       setShowSuggestions(true);
     } catch (error) {
       console.error("Error searching location:", error);
