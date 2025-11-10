@@ -149,6 +149,7 @@ function SocialChat({
     location: event?.location || "cite",
     date: event?.date || "",
     time: event?.time || "",
+    endTime: event?.endTime || "",
     description: event?.description || "",
     category: event?.category || "food",
     languages: event?.languages || [],
@@ -165,6 +166,7 @@ function SocialChat({
       location: event?.location || "cite",
       date: event?.date || "",
       time: event?.time || "",
+      endTime: event?.endTime || "",
       description: event?.description || "",
       category: event?.category || "food",
       languages: event?.languages || [],
@@ -1951,7 +1953,7 @@ function SocialChat({
 
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
-                Time
+                Start Time
               </label>
               <input
                 type="time"
@@ -1966,6 +1968,30 @@ function SocialChat({
                   boxSizing: "border-box",
                 }}
               />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontWeight: 700, marginBottom: 8, color: theme.text }}>
+                End Time (optional)
+              </label>
+              <input
+                type="time"
+                value={editedEvent.endTime || ""}
+                onChange={(e) => setEditedEvent({...editedEvent, endTime: e.target.value})}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 12,
+                  border: `2px solid ${theme.border}`,
+                  fontSize: 16,
+                  boxSizing: "border-box",
+                }}
+              />
+              {editedEvent.time && editedEvent.endTime && editedEvent.endTime <= editedEvent.time && (
+                <p style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>
+                  End time must be after start time
+                </p>
+              )}
             </div>
 
             <div style={{ marginBottom: 16 }}>
@@ -2431,6 +2457,12 @@ function SocialChat({
                   boxShadow: "0 8px 20px rgba(88,204,2,0.35)",
                 }}
                 onClick={async () => {
+                  // Validate end time
+                  if (editedEvent.time && editedEvent.endTime && editedEvent.endTime <= editedEvent.time) {
+                    alert("End time must be after start time");
+                    return;
+                  }
+                  
                   if (onEditEvent) {
                     try {
                       let finalImageUrl = editedEvent.imageUrl;
