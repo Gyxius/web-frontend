@@ -1137,12 +1137,15 @@ function SocialHome({
                       {/* Host Info */}
                       {(() => {
                         if (event.host) {
+                          const hostDisplayName = (event.host.username || event.host.name || '').toLowerCase() === 'admin'
+                            ? 'Admin'
+                            : (event.host.name || event.host.username || 'Unknown');
                           return (
                             <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
                               <span>👤</span>
                               <span>
                                 Hosted by <span style={{ fontWeight: 700, color: theme.accent }}>
-                                  {event.host.emoji} {event.host.name}
+                                  {event.host.emoji} {hostDisplayName}
                                 </span>
                               </span>
                             </div>
@@ -1150,12 +1153,15 @@ function SocialHome({
                         } else if (event.createdBy) {
                           const hostUser = users.find(u => u.name === event.createdBy || u.username === event.createdBy);
                           if (hostUser) {
+                            const hostDisplayName = (hostUser.username || hostUser.name || '').toLowerCase() === 'admin'
+                              ? 'Admin'
+                              : (hostUser.name || hostUser.username || 'Unknown');
                             return (
                               <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
                                 <span>👤</span>
                                 <span>
                                   Hosted by <span style={{ fontWeight: 700, color: theme.accent }}>
-                                    {hostUser.emoji} {hostUser.name}
+                                    {hostUser.emoji} {hostDisplayName}
                                   </span>
                                 </span>
                               </div>

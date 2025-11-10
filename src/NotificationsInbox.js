@@ -299,7 +299,9 @@ function NotificationsInbox({
                   <div style={{ ...styles.avatarSmall, width: 72, height: 72, borderRadius: 14 }}>{localProfile?.emoji || '🙂'}</div>
                 )}
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontWeight: 700, color: styles.header?.color || '#111', fontSize: 18 }}>{localProfile?.name || usernameKey}</div>
+                  <div style={{ fontWeight: 700, color: styles.header?.color || '#111', fontSize: 18 }}>
+                    {(usernameKey || '').toLowerCase() === 'admin' ? 'Admin' : (localProfile?.name || usernameKey)}
+                  </div>
                   <div style={{ color: theme.textMuted, fontSize: 13 }}>{localProfile?.homeCountries?.[0] || localProfile?.country || ''}</div>
                 </div>
               </div>

@@ -1551,7 +1551,7 @@ function SocialChat({
               </div>
               <div style={styles.hostInfo}>
                 <div style={styles.hostName}>
-                  {enrichedHost.name} {(enrichedHost.homeCountries || [enrichedHost.homeCountry || (enrichedHost.countriesFrom && enrichedHost.countriesFrom[0]) || enrichedHost.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
+                  {((enrichedHost.username || enrichedHost.name || '').toLowerCase() === 'admin') ? 'Admin' : enrichedHost.name} {(enrichedHost.homeCountries || [enrichedHost.homeCountry || (enrichedHost.countriesFrom && enrichedHost.countriesFrom[0]) || enrichedHost.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                 </div>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                   {(enrichedHost.university || enrichedHost.building || enrichedHost.house || enrichedHost.residence) && (
@@ -1604,7 +1604,7 @@ function SocialChat({
                   </div>
                   <div style={styles.hostInfo}>
                     <div style={styles.hostName}>
-                      {enrichedCoHost.name} {(enrichedCoHost.homeCountries || [enrichedCoHost.homeCountry || (enrichedCoHost.countriesFrom && enrichedCoHost.countriesFrom[0]) || enrichedCoHost.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
+                      {((enrichedCoHost.username || enrichedCoHost.name || '').toLowerCase() === 'admin') ? 'Admin' : enrichedCoHost.name} {(enrichedCoHost.homeCountries || [enrichedCoHost.homeCountry || (enrichedCoHost.countriesFrom && enrichedCoHost.countriesFrom[0]) || enrichedCoHost.country]).filter(Boolean).map(c => getCountryFlag(c)).join(' ')}
                     </div>
                     <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
                       {(enrichedCoHost.university || enrichedCoHost.building || enrichedCoHost.house || enrichedCoHost.residence) && (
