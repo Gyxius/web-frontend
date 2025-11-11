@@ -246,6 +246,31 @@ function SocialHome({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminMode, initialEventId]);
 
+  // Alternative venues for each tree - used when user clicks "Find Alternative"
+  const venueAlternatives = {
+    bars: [
+      { name: 'Le Select', emoji: '☕', description: 'Historic Left Bank café-bar' },
+      { name: 'Chez Georges', emoji: '🍷', description: 'Traditional French bistro' },
+      { name: 'Le Piano Vache', emoji: '🎹', description: 'Student rock bar with live music' },
+      { name: 'Polly Magoo', emoji: '🎭', description: 'Arty cocktail bar' },
+      { name: 'Le Requin Chagrin', emoji: '🦈', description: 'Popular student hangout' },
+    ],
+    clubs: [
+      { name: 'Wanderlust', emoji: '🌊', description: 'Seine-side club and bar' },
+      { name: 'Yoyo', emoji: '🪩', description: 'Palais de Tokyo nightclub' },
+      { name: 'Le Batofar', emoji: '⛴️', description: 'Legendary boat club' },
+      { name: 'Petit Bain', emoji: '🛥️', description: 'Floating club and restaurant' },
+      { name: 'La Bellevilloise', emoji: '🏭', description: 'Cultural venue with parties' },
+    ],
+    cite: [
+      { name: 'Maison du Japon', emoji: '🇯🇵', description: 'Japanese house with events' },
+      { name: 'Maison de l\'Argentine', emoji: '🇦🇷', description: 'Argentine cultural center' },
+      { name: 'Maison du Mexique', emoji: '🇲🇽', description: 'Mexican house gatherings' },
+      { name: 'Maison de la Tunisie', emoji: '🇹🇳', description: 'Tunisian residence' },
+      { name: 'Maison de l\'Inde', emoji: '🇮🇳', description: 'Indian house with cultural events' },
+    ]
+  };
+
   const fadeIn = { animation: "fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1)" };
   const pulse = { animation: "pulse 1.2s infinite" };
 
@@ -5504,22 +5529,21 @@ function SocialHome({
                       {/* Find Alternative - Suggests another venue */}
                       <button
                         onClick={() => {
-                          // Mark current as done and skip to next
-                          const newProgress = { ...treeProgress };
-                          if (!newProgress[selectedVenue.tree]) {
-                            newProgress[selectedVenue.tree] = [];
-                          }
-                          if (!newProgress[selectedVenue.tree].includes(selectedVenue.index)) {
-                            newProgress[selectedVenue.tree] = [...newProgress[selectedVenue.tree], selectedVenue.index];
-                            setTreeProgress(newProgress);
-                            localStorage.setItem('parisTreesProgress', JSON.stringify(newProgress));
-                          }
-                          setShowVenueModal(false);
+                          // Get a random alternative venue from the same tree
+                          const alternatives = venueAlternatives[selectedVenue.tree];
+                          const randomIndex = Math.floor(Math.random() * alternatives.length);
+                          const alternative = alternatives[randomIndex];
+                          
+                          // Replace current venue with alternative
+                          setSelectedVenue({
+                            ...alternative,
+                            index: selectedVenue.index,
+                            tree: selectedVenue.tree,
+                            isAlternative: true
+                          });
+                          
+                          // Don't close modal, just update the venue shown
                           setVenueModalView("options");
-                          // Show a message
-                          setTimeout(() => {
-                            alert('✨ Great! The next venue has been unlocked for you.');
-                          }, 300);
                         }}
                         style={{
                           width: '100%',
