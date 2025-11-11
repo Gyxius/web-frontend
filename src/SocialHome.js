@@ -5962,46 +5962,6 @@ function SocialHome({
                       </div>
                     </button>
                   </div>
-
-                  {/* Mark as Visited button */}
-                  <button
-                    onClick={() => {
-                      const newProgress = { ...treeProgress };
-                      if (!newProgress[selectedVenue.tree]) {
-                        newProgress[selectedVenue.tree] = [];
-                      }
-                      if (!newProgress[selectedVenue.tree].includes(selectedVenue.index)) {
-                        newProgress[selectedVenue.tree] = [...newProgress[selectedVenue.tree], selectedVenue.index];
-                        setTreeProgress(newProgress);
-                        localStorage.setItem('parisTreesProgress', JSON.stringify(newProgress));
-                      }
-                      setShowVenueModal(false);
-                      setVenueModalView("options");
-                    }}
-                    style={{
-                      width: '100%',
-                      background: 'linear-gradient(135deg, #58CC02, #37B300)',
-                      border: 'none',
-                      borderRadius: 16,
-                      padding: '16px 24px',
-                      color: 'white',
-                      fontSize: 18,
-                      fontWeight: 900,
-                      cursor: 'pointer',
-                      boxShadow: '0 6px 20px rgba(88, 204, 2, 0.3)',
-                      transition: 'all 0.3s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(88, 204, 2, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(88, 204, 2, 0.3)';
-                    }}
-                  >
-                    ✓ Mark as Visited
-                  </button>
                 </div>
               </>
             )}
