@@ -157,6 +157,11 @@ function SocialHome({
   const [showWhenModal, setShowWhenModal] = useState(false);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
 
+  // Paris Trees feature state
+  const [showParisTreesModal, setShowParisTreesModal] = useState(false);
+  const [selectedTree, setSelectedTree] = useState(null); // "bars", "clubs", "cite"
+  const [parisTreesView, setParisTreesView] = useState("selection"); // "selection" or "tree"
+
   // Image cropper state
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
@@ -761,6 +766,37 @@ function SocialHome({
                 setShowNotificationsInbox(false);
               }}
             />
+            {/* Play Button for Paris Trees Feature */}
+            <button
+              onClick={() => {
+                setShowParisTreesModal(true);
+                setParisTreesView("selection");
+                setSelectedTree(null);
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                border: 'none',
+                borderRadius: '50%',
+                width: 40,
+                height: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+              }}
+            >
+              <span style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>▶</span>
+            </button>
           </div>
           <div style={{ fontSize: 20, fontWeight: 900, color: theme.text }}>
             Lemi
@@ -4895,6 +4931,368 @@ function SocialHome({
           }}
           theme={theme}
         />
+      )}
+
+      {/* Paris Trees Modal */}
+      {showParisTreesModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: 20,
+          }}
+          onClick={() => {
+            setShowParisTreesModal(false);
+            setSelectedTree(null);
+            setParisTreesView("selection");
+          }}
+        >
+          <div 
+            style={{
+              background: theme.card,
+              borderRadius: 24,
+              maxWidth: 600,
+              width: '100%',
+              maxHeight: '85vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '24px 24px 16px',
+              borderBottom: `1px solid ${theme.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {parisTreesView === "tree" && (
+                  <button
+                    onClick={() => {
+                      setParisTreesView("selection");
+                      setSelectedTree(null);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: theme.text,
+                      fontSize: 24,
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    ←
+                  </button>
+                )}
+                <h2 style={{ 
+                  fontSize: 24, 
+                  fontWeight: 900, 
+                  color: theme.text,
+                  margin: 0,
+                }}>
+                  {parisTreesView === "selection" ? "🌳 Paris Trees" : `${selectedTree === 'bars' ? '🍺 Bars' : selectedTree === 'clubs' ? '💃 Clubs' : '🏛️ Cité'} Tree`}
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowParisTreesModal(false);
+                  setSelectedTree(null);
+                  setParisTreesView("selection");
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: theme.textMuted,
+                  fontSize: 28,
+                  cursor: 'pointer',
+                  padding: 0,
+                  lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: 24 }}>
+              {parisTreesView === "selection" ? (
+                // Tree Selection View
+                <div>
+                  <p style={{ 
+                    fontSize: 16, 
+                    color: theme.textMuted, 
+                    marginBottom: 24,
+                    lineHeight: 1.5,
+                  }}>
+                    Choose your path to explore Paris! Each tree contains venues you can discover and visit.
+                  </p>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* Bars Tree */}
+                    <div
+                      onClick={() => {
+                        setSelectedTree('bars');
+                        setParisTreesView('tree');
+                      }}
+                      style={{
+                        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        borderRadius: 18,
+                        padding: '24px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 16px rgba(240, 147, 251, 0.3)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(240, 147, 251, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(240, 147, 251, 0.3)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div style={{ fontSize: 48 }}>🍺</div>
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ fontSize: 22, fontWeight: 900, color: 'white', margin: '0 0 8px 0' }}>
+                            Bars Tree
+                          </h3>
+                          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.9)', margin: 0 }}>
+                            Discover the best bars in Paris
+                          </p>
+                        </div>
+                        <div style={{ fontSize: 24, color: 'white' }}>→</div>
+                      </div>
+                    </div>
+
+                    {/* Clubs Tree */}
+                    <div
+                      onClick={() => {
+                        setSelectedTree('clubs');
+                        setParisTreesView('tree');
+                      }}
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: 18,
+                        padding: '24px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(102, 126, 234, 0.3)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div style={{ fontSize: 48 }}>💃</div>
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ fontSize: 22, fontWeight: 900, color: 'white', margin: '0 0 8px 0' }}>
+                            Clubs Tree
+                          </h3>
+                          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.9)', margin: 0 }}>
+                            Experience Paris nightlife
+                          </p>
+                        </div>
+                        <div style={{ fontSize: 24, color: 'white' }}>→</div>
+                      </div>
+                    </div>
+
+                    {/* Cité Tree */}
+                    <div
+                      onClick={() => {
+                        setSelectedTree('cite');
+                        setParisTreesView('tree');
+                      }}
+                      style={{
+                        background: 'linear-gradient(135deg, #58CC02 0%, #37B300 100%)',
+                        borderRadius: 18,
+                        padding: '24px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 16px rgba(88, 204, 2, 0.3)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(88, 204, 2, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(88, 204, 2, 0.3)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div style={{ fontSize: 48 }}>🏛️</div>
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ fontSize: 22, fontWeight: 900, color: 'white', margin: '0 0 8px 0' }}>
+                            Cité Tree
+                          </h3>
+                          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.9)', margin: 0 }}>
+                            Explore Cité Universitaire venues
+                          </p>
+                        </div>
+                        <div style={{ fontSize: 24, color: 'white' }}>→</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // Individual Tree View - Duolingo Style
+                <div>
+                  <p style={{ 
+                    fontSize: 16, 
+                    color: theme.textMuted, 
+                    marginBottom: 24,
+                    lineHeight: 1.5,
+                  }}>
+                    Click on any venue to learn more and find events there!
+                  </p>
+                  
+                  {/* Duolingo-style tree path */}
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center',
+                    gap: 32,
+                    position: 'relative',
+                    paddingTop: 20,
+                  }}>
+                    {/* Connecting line */}
+                    <div style={{
+                      position: 'absolute',
+                      left: '50%',
+                      top: 0,
+                      bottom: 0,
+                      width: 4,
+                      background: `linear-gradient(180deg, ${theme.border} 0%, transparent 100%)`,
+                      transform: 'translateX(-50%)',
+                      zIndex: 0,
+                    }} />
+
+                    {/* Venue nodes */}
+                    {(selectedTree === 'bars' ? [
+                      { name: 'Le Fleurus', emoji: '🍺', completed: false },
+                      { name: 'Violon Dingue', emoji: '🎻', completed: false },
+                      { name: 'Le Crocodile', emoji: '🐊', completed: false },
+                      { name: 'Frog & Princess', emoji: '🐸', completed: false },
+                      { name: 'Le Pantalon', emoji: '👖', completed: false },
+                    ] : selectedTree === 'clubs' ? [
+                      { name: 'Rex Club', emoji: '🎧', completed: false },
+                      { name: 'Concrete', emoji: '🏗️', completed: false },
+                      { name: 'Badaboum', emoji: '💥', completed: false },
+                      { name: 'La Machine', emoji: '⚙️', completed: false },
+                      { name: 'Supersonic', emoji: '🚀', completed: false },
+                    ] : [
+                      { name: 'Maison du Brésil', emoji: '🇧🇷', completed: false },
+                      { name: 'Maison du Cambodge', emoji: '🇰🇭', completed: false },
+                      { name: 'Maison d\'Italie', emoji: '🇮🇹', completed: false },
+                      { name: 'Fondation Deutsch', emoji: '🏛️', completed: false },
+                      { name: 'Maison des USA', emoji: '🇺🇸', completed: false },
+                    ]).map((venue, index) => (
+                      <div
+                        key={index}
+                        onClick={() => {
+                          alert(`🎉 ${venue.name}\n\nComing soon: View events and details for this venue!`);
+                        }}
+                        style={{
+                          position: 'relative',
+                          zIndex: 1,
+                          cursor: 'pointer',
+                          transform: index % 2 === 0 ? 'translateX(-40px)' : 'translateX(40px)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 80,
+                            height: 80,
+                            borderRadius: '50%',
+                            background: venue.completed 
+                              ? 'linear-gradient(135deg, #58CC02, #37B300)'
+                              : 'linear-gradient(135deg, #667eea, #764ba2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 36,
+                            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+                            transition: 'all 0.3s ease',
+                            border: `4px solid ${theme.card}`,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+                          }}
+                        >
+                          {venue.emoji}
+                        </div>
+                        <div style={{
+                          marginTop: 8,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: theme.text,
+                          textAlign: 'center',
+                          maxWidth: 100,
+                        }}>
+                          {venue.name}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Trophy at the end */}
+                    <div style={{
+                      position: 'relative',
+                      zIndex: 1,
+                      marginTop: 20,
+                    }}>
+                      <div style={{
+                        width: 100,
+                        height: 100,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 48,
+                        boxShadow: '0 8px 24px rgba(255, 215, 0, 0.4)',
+                        border: `4px solid ${theme.card}`,
+                      }}>
+                        🏆
+                      </div>
+                      <div style={{
+                        marginTop: 12,
+                        fontSize: 15,
+                        fontWeight: 900,
+                        color: theme.text,
+                        textAlign: 'center',
+                      }}>
+                        Complete All!
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
