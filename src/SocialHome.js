@@ -5403,7 +5403,7 @@ function SocialHome({
             onClick={(e) => e.stopPropagation()}
           >
             {venueModalView === "options" ? (
-              // Initial view with three options
+              // Initial view with full details AND three action options
               <>
                 {/* Header with gradient */}
                 <div style={{
@@ -5424,19 +5424,115 @@ function SocialHome({
                   }}>
                     {selectedVenue.name}
                   </h2>
-                </div>
-
-                {/* Content */}
-                <div style={{ padding: 24 }}>
                   <p style={{
-                    fontSize: 16,
-                    color: theme.text,
-                    lineHeight: 1.6,
-                    marginBottom: 24,
-                    textAlign: 'center',
+                    fontSize: 15,
+                    color: 'rgba(255,255,255,0.9)',
+                    margin: '8px 0 0 0',
                   }}>
                     {selectedVenue.description}
                   </p>
+                </div>
+
+                {/* Content with full details */}
+                <div style={{ padding: 24 }}>
+                  {/* Location Details section */}
+                  <div style={{
+                    background: theme.bg,
+                    borderRadius: 16,
+                    padding: 20,
+                    marginBottom: 20,
+                  }}>
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: theme.textMuted,
+                      letterSpacing: '0.5px',
+                      marginBottom: 12,
+                      textTransform: 'uppercase',
+                    }}>
+                      📍 Location Details
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ fontSize: 20 }}>📍</div>
+                        <div>
+                          <div style={{ fontWeight: 700, color: theme.text, fontSize: 15 }}>
+                            {selectedTree === 'bars' ? 'Bar & Restaurant' : selectedTree === 'clubs' ? 'Nightclub' : 'Cultural Center'}
+                          </div>
+                          <div style={{ color: theme.textMuted, fontSize: 14 }}>
+                            Paris, France
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ fontSize: 20 }}>🕒</div>
+                        <div>
+                          <div style={{ fontWeight: 700, color: theme.text, fontSize: 15 }}>
+                            {selectedTree === 'bars' ? 'Open Daily' : selectedTree === 'clubs' ? 'Thu-Sat Nights' : 'Various Events'}
+                          </div>
+                          <div style={{ color: theme.textMuted, fontSize: 14 }}>
+                            Check for specific hours
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* About section */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: theme.textMuted,
+                      letterSpacing: '0.5px',
+                      marginBottom: 12,
+                      textTransform: 'uppercase',
+                    }}>
+                      📝 About
+                    </div>
+                    <p style={{
+                      fontSize: 15,
+                      color: theme.text,
+                      lineHeight: 1.6,
+                      margin: 0,
+                    }}>
+                      {selectedVenue.name} is a popular spot in Paris. {selectedVenue.description}
+                      {selectedTree === 'bars' && ' Perfect for meeting friends and enjoying drinks in a relaxed atmosphere.'}
+                      {selectedTree === 'clubs' && ' Experience the vibrant Paris nightlife scene with great music and atmosphere.'}
+                      {selectedTree === 'cite' && ' A great place to connect with the international student community.'}
+                    </p>
+                  </div>
+
+                  {/* Tips section */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))',
+                    borderRadius: 16,
+                    padding: 20,
+                    marginBottom: 24,
+                  }}>
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: theme.text,
+                      letterSpacing: '0.5px',
+                      marginBottom: 12,
+                      textTransform: 'uppercase',
+                    }}>
+                      💡 Tips
+                    </div>
+                    <ul style={{
+                      margin: 0,
+                      paddingLeft: 20,
+                      color: theme.text,
+                      fontSize: 15,
+                      lineHeight: 1.8,
+                    }}>
+                      <li>Bring your student ID for potential discounts</li>
+                      <li>Best to visit with friends from Cité</li>
+                      <li>Check their social media for special events</li>
+                      <li>Take a photo to mark your visit complete!</li>
+                    </ul>
+                  </div>
 
                   {treeProgress[selectedVenue.tree]?.includes(selectedVenue.index) ? (
                     // Already completed
@@ -5458,7 +5554,7 @@ function SocialHome({
                   ) : (
                     // Three action buttons
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {/* I'm Interested - Shows details */}
+                      {/* I'm Interested */}
                       <button
                         onClick={() => setVenueModalView("details")}
                         style={{
@@ -5486,7 +5582,7 @@ function SocialHome({
                         💡 I'm Interested
                       </button>
 
-                      {/* Already Done - Marks as complete and unlocks next */}
+                      {/* Already Done */}
                       <button
                         onClick={() => {
                           const newProgress = { ...treeProgress };
@@ -5523,10 +5619,10 @@ function SocialHome({
                           e.currentTarget.style.boxShadow = '0 6px 20px rgba(88, 204, 2, 0.3)';
                         }}
                       >
-                        ✓ Already Done
+                        ✓ Mark as Visited
                       </button>
 
-                      {/* Find Alternative - Suggests another venue */}
+                      {/* Find Alternative */}
                       <button
                         onClick={() => {
                           // Get a random alternative venue from the same tree
