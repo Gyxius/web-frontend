@@ -417,7 +417,10 @@ function SocialHome({
     container: {
       position: "relative",
       minHeight: "100vh",
-      background: theme.bg,
+      background: `linear-gradient(rgba(247, 247, 245, 0.95), rgba(247, 247, 245, 0.95)), url(${API_URL}/static/assets/background.jpg)`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundAttachment: "fixed",
       padding: isMobile ? 12 : 24,
       maxWidth: 520,
       margin: "0 auto",
