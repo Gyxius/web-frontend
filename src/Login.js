@@ -450,13 +450,21 @@ function Login({ onLogin, onRegistered }) {
   }
 
   return (
-    <div style={{ maxWidth: isRegistering? 760: 420, margin:'32px auto 120px', padding:24, background:theme.bg, border:`1px solid ${theme.border}`, borderRadius:theme.radius, boxShadow:theme.shadow, fontFamily:'Inter, Roboto, sans-serif' }}>
-      <div style={{ background:theme.card, padding:22, borderRadius:theme.radius, border:`1px solid ${theme.border}`, boxShadow:'0 1px 3px rgba(0,0,0,0.04)' }}>
-        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:8, color:theme.primary, fontWeight:900, fontSize:18 }}>
-          <img src={`${API_URL}/static/assets/logo.png`} alt="Lemi Logo" style={{ width:60, height:60, objectFit:'contain' }} />
-        </div>
-        <h2 style={{ textAlign:'center', fontSize:22, fontWeight:900, color:theme.text, marginBottom:6 }}>{isRegistering? 'Create Your Profile':'Welcome to Lemi'}</h2>
-        <p style={{ textAlign:'center', color:theme.textMuted, fontSize:14.5, marginBottom:16 }}>Lemi helps international & Erasmus students and Cité residents meet, organize hangouts, and explore the city together.</p>
+    <div style={{ 
+      minHeight: '100vh',
+      background: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${API_URL}/static/assets/background.jpg)`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      padding: '32px 20px 120px'
+    }}>
+      <div style={{ maxWidth: isRegistering? 760: 420, margin:'0 auto', padding:24, background:'rgba(247, 247, 245, 0.95)', border:`1px solid ${theme.border}`, borderRadius:theme.radius, boxShadow:'0 20px 40px rgba(0,0,0,0.12)', backdropFilter: 'blur(10px)', fontFamily:'Inter, Roboto, sans-serif' }}>
+        <div style={{ background:theme.card, padding:22, borderRadius:theme.radius, border:`1px solid ${theme.border}`, boxShadow:'0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:8, color:theme.primary, fontWeight:900, fontSize:18 }}>
+            <img src={`${API_URL}/static/assets/logo.png`} alt="Lemi Logo" style={{ width:60, height:60, objectFit:'contain' }} />
+          </div>
+          <h2 style={{ textAlign:'center', fontSize:22, fontWeight:900, color:theme.text, marginBottom:6 }}>{isRegistering? 'Create Your Profile':'Welcome to Lemi'}</h2>
+          <p style={{ textAlign:'center', color:theme.textMuted, fontSize:14.5, marginBottom:16 }}>Lemi helps international & Erasmus students and Cité residents meet, organize hangouts, and explore the city together.</p>
         {isRegistering && stepIndicator}
         {!isRegistering && (
           <form onSubmit={e=>{ e.preventDefault(); handleSubmit(); }} autoComplete="off">
@@ -491,6 +499,7 @@ function Login({ onLogin, onRegistered }) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
