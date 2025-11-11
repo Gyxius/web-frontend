@@ -171,6 +171,7 @@ function SocialHome({
   // Venue detail modal
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState(null);
+  const [venueModalView, setVenueModalView] = useState("options"); // "options" or "details"
 
   // Image cropper state
   const [showImageCropper, setShowImageCropper] = useState(false);
@@ -5359,135 +5360,431 @@ function SocialHome({
             zIndex: 2100,
             padding: 20,
           }}
-          onClick={() => setShowVenueModal(false)}
+          onClick={() => {
+            setShowVenueModal(false);
+            setVenueModalView("options");
+          }}
         >
           <div
             style={{
               background: theme.card,
               borderRadius: 24,
-              maxWidth: 500,
+              maxWidth: venueModalView === "details" ? 600 : 500,
               width: '100%',
+              maxHeight: '85vh',
+              overflow: 'auto',
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
-              overflow: 'hidden',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header with gradient */}
-            <div style={{
-              background: treeProgress[selectedVenue.tree]?.includes(selectedVenue.index)
-                ? 'linear-gradient(135deg, #58CC02, #37B300)'
-                : 'linear-gradient(135deg, #667eea, #764ba2)',
-              padding: '32px 24px',
-              textAlign: 'center',
-            }}>
-              <div style={{ fontSize: 72, marginBottom: 12 }}>
-                {selectedVenue.emoji}
-              </div>
-              <h2 style={{ 
-                fontSize: 28, 
-                fontWeight: 900, 
-                color: 'white',
-                margin: 0,
-              }}>
-                {selectedVenue.name}
-              </h2>
-            </div>
-
-            {/* Content */}
-            <div style={{ padding: 24 }}>
-              <p style={{
-                fontSize: 16,
-                color: theme.text,
-                lineHeight: 1.6,
-                marginBottom: 24,
-                textAlign: 'center',
-              }}>
-                {selectedVenue.description}
-              </p>
-
-              {treeProgress[selectedVenue.tree]?.includes(selectedVenue.index) ? (
-                // Already completed
+            {venueModalView === "options" ? (
+              // Initial view with three options
+              <>
+                {/* Header with gradient */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #58CC02, #37B300)',
-                  borderRadius: 16,
-                  padding: '16px 24px',
+                  background: treeProgress[selectedVenue.tree]?.includes(selectedVenue.index)
+                    ? 'linear-gradient(135deg, #58CC02, #37B300)'
+                    : 'linear-gradient(135deg, #667eea, #764ba2)',
+                  padding: '32px 24px',
                   textAlign: 'center',
-                  marginBottom: 16,
                 }}>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>✓</div>
-                  <div style={{ color: 'white', fontWeight: 900, fontSize: 18 }}>
-                    Completed!
+                  <div style={{ fontSize: 72, marginBottom: 12 }}>
+                    {selectedVenue.emoji}
                   </div>
-                  <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, marginTop: 4 }}>
-                    You've visited this venue
-                  </div>
-                </div>
-              ) : (
-                // Not completed yet - show Mark as Done button
-                <button
-                  onClick={() => {
-                    const newProgress = { ...treeProgress };
-                    if (!newProgress[selectedVenue.tree]) {
-                      newProgress[selectedVenue.tree] = [];
-                    }
-                    if (!newProgress[selectedVenue.tree].includes(selectedVenue.index)) {
-                      newProgress[selectedVenue.tree] = [...newProgress[selectedVenue.tree], selectedVenue.index];
-                      setTreeProgress(newProgress);
-                      localStorage.setItem('parisTreesProgress', JSON.stringify(newProgress));
-                    }
-                    setShowVenueModal(false);
-                  }}
-                  style={{
-                    width: '100%',
-                    background: 'linear-gradient(135deg, #58CC02, #37B300)',
-                    border: 'none',
-                    borderRadius: 16,
-                    padding: '16px 24px',
+                  <h2 style={{ 
+                    fontSize: 28, 
+                    fontWeight: 900, 
                     color: 'white',
-                    fontSize: 18,
-                    fontWeight: 900,
-                    cursor: 'pointer',
-                    boxShadow: '0 6px 20px rgba(88, 204, 2, 0.3)',
-                    transition: 'all 0.3s ease',
-                    marginBottom: 16,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(88, 204, 2, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(88, 204, 2, 0.3)';
-                  }}
-                >
-                  ✓ Mark as Done
-                </button>
-              )}
+                    margin: 0,
+                  }}>
+                    {selectedVenue.name}
+                  </h2>
+                </div>
 
-              <button
-                onClick={() => setShowVenueModal(false)}
-                style={{
-                  width: '100%',
-                  background: 'transparent',
-                  border: `2px solid ${theme.border}`,
-                  borderRadius: 16,
-                  padding: '12px 24px',
-                  color: theme.text,
-                  fontSize: 16,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = theme.bg;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
-              >
-                Close
-              </button>
-            </div>
+                {/* Content */}
+                <div style={{ padding: 24 }}>
+                  <p style={{
+                    fontSize: 16,
+                    color: theme.text,
+                    lineHeight: 1.6,
+                    marginBottom: 24,
+                    textAlign: 'center',
+                  }}>
+                    {selectedVenue.description}
+                  </p>
+
+                  {treeProgress[selectedVenue.tree]?.includes(selectedVenue.index) ? (
+                    // Already completed
+                    <div style={{
+                      background: 'linear-gradient(135deg, #58CC02, #37B300)',
+                      borderRadius: 16,
+                      padding: '16px 24px',
+                      textAlign: 'center',
+                      marginBottom: 16,
+                    }}>
+                      <div style={{ fontSize: 32, marginBottom: 8 }}>✓</div>
+                      <div style={{ color: 'white', fontWeight: 900, fontSize: 18 }}>
+                        Completed!
+                      </div>
+                      <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, marginTop: 4 }}>
+                        You've visited this venue
+                      </div>
+                    </div>
+                  ) : (
+                    // Three action buttons
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {/* I'm Interested - Shows details */}
+                      <button
+                        onClick={() => setVenueModalView("details")}
+                        style={{
+                          width: '100%',
+                          background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                          border: 'none',
+                          borderRadius: 16,
+                          padding: '16px 24px',
+                          color: 'white',
+                          fontSize: 18,
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                          boxShadow: '0 6px 20px rgba(102, 126, 234, 0.3)',
+                          transition: 'all 0.3s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.3)';
+                        }}
+                      >
+                        💡 I'm Interested
+                      </button>
+
+                      {/* Already Done - Marks as complete and unlocks next */}
+                      <button
+                        onClick={() => {
+                          const newProgress = { ...treeProgress };
+                          if (!newProgress[selectedVenue.tree]) {
+                            newProgress[selectedVenue.tree] = [];
+                          }
+                          if (!newProgress[selectedVenue.tree].includes(selectedVenue.index)) {
+                            newProgress[selectedVenue.tree] = [...newProgress[selectedVenue.tree], selectedVenue.index];
+                            setTreeProgress(newProgress);
+                            localStorage.setItem('parisTreesProgress', JSON.stringify(newProgress));
+                          }
+                          setShowVenueModal(false);
+                          setVenueModalView("options");
+                        }}
+                        style={{
+                          width: '100%',
+                          background: 'linear-gradient(135deg, #58CC02, #37B300)',
+                          border: 'none',
+                          borderRadius: 16,
+                          padding: '16px 24px',
+                          color: 'white',
+                          fontSize: 18,
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                          boxShadow: '0 6px 20px rgba(88, 204, 2, 0.3)',
+                          transition: 'all 0.3s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 8px 24px rgba(88, 204, 2, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 6px 20px rgba(88, 204, 2, 0.3)';
+                        }}
+                      >
+                        ✓ Already Done
+                      </button>
+
+                      {/* Find Alternative - Suggests another venue */}
+                      <button
+                        onClick={() => {
+                          // Mark current as done and skip to next
+                          const newProgress = { ...treeProgress };
+                          if (!newProgress[selectedVenue.tree]) {
+                            newProgress[selectedVenue.tree] = [];
+                          }
+                          if (!newProgress[selectedVenue.tree].includes(selectedVenue.index)) {
+                            newProgress[selectedVenue.tree] = [...newProgress[selectedVenue.tree], selectedVenue.index];
+                            setTreeProgress(newProgress);
+                            localStorage.setItem('parisTreesProgress', JSON.stringify(newProgress));
+                          }
+                          setShowVenueModal(false);
+                          setVenueModalView("options");
+                          // Show a message
+                          setTimeout(() => {
+                            alert('✨ Great! The next venue has been unlocked for you.');
+                          }, 300);
+                        }}
+                        style={{
+                          width: '100%',
+                          background: 'transparent',
+                          border: `2px solid ${theme.border}`,
+                          borderRadius: 16,
+                          padding: '14px 24px',
+                          color: theme.text,
+                          fontSize: 16,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = theme.bg;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        🔄 Find Alternative
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setShowVenueModal(false);
+                      setVenueModalView("options");
+                    }}
+                    style={{
+                      width: '100%',
+                      background: 'transparent',
+                      border: 'none',
+                      borderRadius: 16,
+                      padding: '12px 24px',
+                      color: theme.textMuted,
+                      fontSize: 16,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      marginTop: 12,
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = theme.text;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = theme.textMuted;
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            ) : (
+              // Detailed view - Event preview style
+              <>
+                {/* Header with back button */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '16px 20px',
+                  borderBottom: `1px solid ${theme.border}`,
+                }}>
+                  <button
+                    onClick={() => setVenueModalView("options")}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: theme.text,
+                      fontSize: 24,
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      fontWeight: 700,
+                    }}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowVenueModal(false);
+                      setVenueModalView("options");
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: theme.textMuted,
+                      fontSize: 28,
+                      cursor: 'pointer',
+                      padding: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {/* Content - Event preview style */}
+                <div style={{ padding: 24 }}>
+                  {/* Hero section */}
+                  <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <div style={{ fontSize: 72, marginBottom: 12 }}>
+                      {selectedVenue.emoji}
+                    </div>
+                    <h2 style={{ 
+                      fontSize: 28, 
+                      fontWeight: 900, 
+                      color: theme.text,
+                      margin: '0 0 8px 0',
+                    }}>
+                      {selectedVenue.name}
+                    </h2>
+                    <p style={{
+                      fontSize: 15,
+                      color: theme.textMuted,
+                      margin: 0,
+                    }}>
+                      {selectedVenue.description}
+                    </p>
+                  </div>
+
+                  {/* Logistics section - styled like event preview */}
+                  <div style={{
+                    background: theme.bg,
+                    borderRadius: 16,
+                    padding: 20,
+                    marginBottom: 20,
+                  }}>
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: theme.textMuted,
+                      letterSpacing: '0.5px',
+                      marginBottom: 12,
+                      textTransform: 'uppercase',
+                    }}>
+                      📍 Location Details
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ fontSize: 20 }}>📍</div>
+                        <div>
+                          <div style={{ fontWeight: 700, color: theme.text, fontSize: 15 }}>
+                            {selectedTree === 'bars' ? 'Bar & Restaurant' : selectedTree === 'clubs' ? 'Nightclub' : 'Cultural Center'}
+                          </div>
+                          <div style={{ color: theme.textMuted, fontSize: 14 }}>
+                            Paris, France
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ fontSize: 20 }}>🕒</div>
+                        <div>
+                          <div style={{ fontWeight: 700, color: theme.text, fontSize: 15 }}>
+                            {selectedTree === 'bars' ? 'Open Daily' : selectedTree === 'clubs' ? 'Thu-Sat Nights' : 'Various Events'}
+                          </div>
+                          <div style={{ color: theme.textMuted, fontSize: 14 }}>
+                            Check for specific hours
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* About section */}
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: theme.textMuted,
+                      letterSpacing: '0.5px',
+                      marginBottom: 12,
+                      textTransform: 'uppercase',
+                    }}>
+                      📝 About
+                    </div>
+                    <p style={{
+                      fontSize: 15,
+                      color: theme.text,
+                      lineHeight: 1.6,
+                      margin: 0,
+                    }}>
+                      {selectedVenue.name} is a popular spot in Paris. {selectedVenue.description}
+                      {selectedTree === 'bars' && ' Perfect for meeting friends and enjoying drinks in a relaxed atmosphere.'}
+                      {selectedTree === 'clubs' && ' Experience the vibrant Paris nightlife scene with great music and atmosphere.'}
+                      {selectedTree === 'cite' && ' A great place to connect with the international student community.'}
+                    </p>
+                  </div>
+
+                  {/* Tips section */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))',
+                    borderRadius: 16,
+                    padding: 20,
+                    marginBottom: 20,
+                  }}>
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: theme.text,
+                      letterSpacing: '0.5px',
+                      marginBottom: 12,
+                      textTransform: 'uppercase',
+                    }}>
+                      💡 Tips
+                    </div>
+                    <ul style={{
+                      margin: 0,
+                      paddingLeft: 20,
+                      color: theme.text,
+                      fontSize: 15,
+                      lineHeight: 1.8,
+                    }}>
+                      <li>Bring your student ID for potential discounts</li>
+                      <li>Best to visit with friends from Cité</li>
+                      <li>Check their social media for special events</li>
+                      <li>Take a photo to mark your visit complete!</li>
+                    </ul>
+                  </div>
+
+                  {/* Action button */}
+                  <button
+                    onClick={() => {
+                      const newProgress = { ...treeProgress };
+                      if (!newProgress[selectedVenue.tree]) {
+                        newProgress[selectedVenue.tree] = [];
+                      }
+                      if (!newProgress[selectedVenue.tree].includes(selectedVenue.index)) {
+                        newProgress[selectedVenue.tree] = [...newProgress[selectedVenue.tree], selectedVenue.index];
+                        setTreeProgress(newProgress);
+                        localStorage.setItem('parisTreesProgress', JSON.stringify(newProgress));
+                      }
+                      setShowVenueModal(false);
+                      setVenueModalView("options");
+                    }}
+                    style={{
+                      width: '100%',
+                      background: 'linear-gradient(135deg, #58CC02, #37B300)',
+                      border: 'none',
+                      borderRadius: 16,
+                      padding: '16px 24px',
+                      color: 'white',
+                      fontSize: 18,
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      boxShadow: '0 6px 20px rgba(88, 204, 2, 0.3)',
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(88, 204, 2, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(88, 204, 2, 0.3)';
+                    }}
+                  >
+                    ✓ Mark as Visited
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
