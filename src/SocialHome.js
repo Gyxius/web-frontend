@@ -5281,7 +5281,7 @@ function SocialHome({
                             textAlign: 'center',
                             maxWidth: 100,
                           }}>
-                            {venue.name}
+                            {isLocked ? '???' : venue.name}
                           </div>
                           {isCompleted && (
                             <div style={{
