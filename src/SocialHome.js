@@ -5863,7 +5863,107 @@ function SocialHome({
                     </ul>
                   </div>
 
-                  {/* Action button */}
+                  {/* Action section */}
+                  <div style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    color: theme.textMuted,
+                    letterSpacing: '0.5px',
+                    marginBottom: 12,
+                    textTransform: 'uppercase',
+                  }}>
+                    🎯 What would you like to do?
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+                    {/* Join Active Hangout */}
+                    <button
+                      onClick={() => {
+                        // TODO: Show active hangouts at this venue
+                        setShowVenueModal(false);
+                        setVenueModalView("options");
+                      }}
+                      style={{
+                        width: '100%',
+                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                        border: 'none',
+                        borderRadius: 16,
+                        padding: '20px 24px',
+                        color: 'white',
+                        fontSize: 18,
+                        fontWeight: 900,
+                        cursor: 'pointer',
+                        boxShadow: '0 6px 20px rgba(102, 126, 234, 0.3)',
+                        transition: 'all 0.3s ease',
+                        textAlign: 'left',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.3)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ fontSize: 32 }}>👥</div>
+                        <div>
+                          <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>
+                            Join Active Hangout
+                          </div>
+                          <div style={{ fontSize: 14, fontWeight: 400, opacity: 0.9 }}>
+                            Find people already planning to go
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Create New Hangout */}
+                    <button
+                      onClick={() => {
+                        // TODO: Open create hangout modal with venue pre-filled
+                        setShowVenueModal(false);
+                        setVenueModalView("options");
+                      }}
+                      style={{
+                        width: '100%',
+                        background: 'linear-gradient(135deg, #58CC02, #37B300)',
+                        border: 'none',
+                        borderRadius: 16,
+                        padding: '20px 24px',
+                        color: 'white',
+                        fontSize: 18,
+                        fontWeight: 900,
+                        cursor: 'pointer',
+                        boxShadow: '0 6px 20px rgba(88, 204, 2, 0.3)',
+                        transition: 'all 0.3s ease',
+                        textAlign: 'left',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(88, 204, 2, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(88, 204, 2, 0.3)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ fontSize: 32 }}>✨</div>
+                        <div>
+                          <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>
+                            Create New Hangout
+                          </div>
+                          <div style={{ fontSize: 14, fontWeight: 400, opacity: 0.9 }}>
+                            Start a new gathering at this venue
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Mark as Visited button */}
                   <button
                     onClick={() => {
                       const newProgress = { ...treeProgress };
