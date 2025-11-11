@@ -161,6 +161,16 @@ function SocialHome({
   const [showParisTreesModal, setShowParisTreesModal] = useState(false);
   const [selectedTree, setSelectedTree] = useState(null); // "bars", "clubs", "cite"
   const [parisTreesView, setParisTreesView] = useState("selection"); // "selection" or "tree"
+  
+  // Track progress for each tree - stores indexes of completed venues
+  const [treeProgress, setTreeProgress] = useState(() => {
+    const saved = localStorage.getItem('parisTreesProgress');
+    return saved ? JSON.parse(saved) : { bars: [], clubs: [], cite: [] };
+  });
+  
+  // Venue detail modal
+  const [showVenueModal, setShowVenueModal] = useState(false);
+  const [selectedVenue, setSelectedVenue] = useState(null);
 
   // Image cropper state
   const [showImageCropper, setShowImageCropper] = useState(false);
@@ -5187,75 +5197,113 @@ function SocialHome({
 
                     {/* Venue nodes */}
                     {(selectedTree === 'bars' ? [
-                      { name: 'Le Fleurus', emoji: '🍺', completed: false },
-                      { name: 'Violon Dingue', emoji: '🎻', completed: false },
-                      { name: 'Le Crocodile', emoji: '🐊', completed: false },
-                      { name: 'Frog & Princess', emoji: '🐸', completed: false },
-                      { name: 'Le Pantalon', emoji: '👖', completed: false },
+                      { name: 'Le Fleurus', emoji: '🍺', description: 'Cozy bar near Cité Universitaire' },
+                      { name: 'Violon Dingue', emoji: '🎻', description: 'Live music and great atmosphere' },
+                      { name: 'Le Crocodile', emoji: '🐊', description: 'Hidden gem with unique cocktails' },
+                      { name: 'Frog & Princess', emoji: '🐸', description: 'English pub with craft beers' },
+                      { name: 'Le Pantalon', emoji: '👖', description: 'Student-friendly bar' },
                     ] : selectedTree === 'clubs' ? [
-                      { name: 'Rex Club', emoji: '🎧', completed: false },
-                      { name: 'Concrete', emoji: '🏗️', completed: false },
-                      { name: 'Badaboum', emoji: '💥', completed: false },
-                      { name: 'La Machine', emoji: '⚙️', completed: false },
-                      { name: 'Supersonic', emoji: '🚀', completed: false },
+                      { name: 'Rex Club', emoji: '🎧', description: 'Legendary techno club' },
+                      { name: 'Concrete', emoji: '🏗️', description: 'Floating club on the Seine' },
+                      { name: 'Badaboum', emoji: '💥', description: 'Electronic music venue' },
+                      { name: 'La Machine', emoji: '⚙️', description: 'Industrial-style nightclub' },
+                      { name: 'Supersonic', emoji: '🚀', description: 'Alternative and rock club' },
                     ] : [
-                      { name: 'Maison du Brésil', emoji: '🇧🇷', completed: false },
-                      { name: 'Maison du Cambodge', emoji: '🇰🇭', completed: false },
-                      { name: 'Maison d\'Italie', emoji: '🇮🇹', completed: false },
-                      { name: 'Fondation Deutsch', emoji: '🏛️', completed: false },
-                      { name: 'Maison des USA', emoji: '🇺🇸', completed: false },
-                    ]).map((venue, index) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          alert(`🎉 ${venue.name}\n\nComing soon: View events and details for this venue!`);
-                        }}
-                        style={{
-                          position: 'relative',
-                          zIndex: 1,
-                          cursor: 'pointer',
-                          transform: index % 2 === 0 ? 'translateX(-40px)' : 'translateX(40px)',
-                        }}
-                      >
+                      { name: 'Maison du Brésil', emoji: '🇧🇷', description: 'Brazilian house with parties' },
+                      { name: 'Maison du Cambodge', emoji: '🇰🇭', description: 'Cambodian cultural center' },
+                      { name: 'Maison d\'Italie', emoji: '🇮🇹', description: 'Italian house events' },
+                      { name: 'Fondation Deutsch', emoji: '🏛️', description: 'Modern residence hall' },
+                      { name: 'Maison des USA', emoji: '🇺🇸', description: 'American house gatherings' },
+                    ]).map((venue, index) => {
+                      const completedVenues = treeProgress[selectedTree] || [];
+                      const isCompleted = completedVenues.includes(index);
+                      const isUnlocked = index === 0 || completedVenues.includes(index - 1);
+                      const isLocked = !isUnlocked && !isCompleted;
+                      
+                      return (
                         <div
+                          key={index}
+                          onClick={() => {
+                            if (isUnlocked || isCompleted) {
+                              setSelectedVenue({ ...venue, index, tree: selectedTree });
+                              setShowVenueModal(true);
+                            }
+                          }}
                           style={{
-                            width: 80,
-                            height: 80,
-                            borderRadius: '50%',
-                            background: venue.completed 
-                              ? 'linear-gradient(135deg, #58CC02, #37B300)'
-                              : 'linear-gradient(135deg, #667eea, #764ba2)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 36,
-                            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
-                            transition: 'all 0.3s ease',
-                            border: `4px solid ${theme.card}`,
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+                            position: 'relative',
+                            zIndex: 1,
+                            cursor: isLocked ? 'not-allowed' : 'pointer',
+                            transform: index % 2 === 0 ? 'translateX(-40px)' : 'translateX(40px)',
+                            opacity: isLocked ? 0.5 : 1,
                           }}
                         >
-                          {venue.emoji}
+                          <div
+                            style={{
+                              width: 80,
+                              height: 80,
+                              borderRadius: '50%',
+                              background: isCompleted
+                                ? 'linear-gradient(135deg, #58CC02, #37B300)'
+                                : isUnlocked
+                                ? 'linear-gradient(135deg, #667eea, #764ba2)'
+                                : 'linear-gradient(135deg, #9CA3AF, #6B7280)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 36,
+                              boxShadow: isLocked 
+                                ? '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                : '0 6px 20px rgba(0, 0, 0, 0.15)',
+                              transition: 'all 0.3s ease',
+                              border: `4px solid ${theme.card}`,
+                              filter: isLocked ? 'grayscale(100%)' : 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isLocked) {
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isLocked) {
+                                e.currentTarget.style.transform = 'scale(1)';
+                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+                              }
+                            }}
+                          >
+                            {isLocked ? '🔒' : venue.emoji}
+                          </div>
+                          <div style={{
+                            marginTop: 8,
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: isLocked ? theme.textMuted : theme.text,
+                            textAlign: 'center',
+                            maxWidth: 100,
+                          }}>
+                            {venue.name}
+                          </div>
+                          {isCompleted && (
+                            <div style={{
+                              position: 'absolute',
+                              top: -8,
+                              right: -8,
+                              background: '#58CC02',
+                              borderRadius: '50%',
+                              width: 28,
+                              height: 28,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 16,
+                              boxShadow: '0 2px 8px rgba(88, 204, 2, 0.4)',
+                            }}>
+                              ✓
+                            </div>
+                          )}
                         </div>
-                        <div style={{
-                          marginTop: 8,
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: theme.text,
-                          textAlign: 'center',
-                          maxWidth: 100,
-                        }}>
-                          {venue.name}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
 
                     {/* Trophy at the end */}
                     <div style={{
@@ -5290,6 +5338,155 @@ function SocialHome({
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Venue Detail Modal */}
+      {showVenueModal && selectedVenue && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2100,
+            padding: 20,
+          }}
+          onClick={() => setShowVenueModal(false)}
+        >
+          <div
+            style={{
+              background: theme.card,
+              borderRadius: 24,
+              maxWidth: 500,
+              width: '100%',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with gradient */}
+            <div style={{
+              background: treeProgress[selectedVenue.tree]?.includes(selectedVenue.index)
+                ? 'linear-gradient(135deg, #58CC02, #37B300)'
+                : 'linear-gradient(135deg, #667eea, #764ba2)',
+              padding: '32px 24px',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 72, marginBottom: 12 }}>
+                {selectedVenue.emoji}
+              </div>
+              <h2 style={{ 
+                fontSize: 28, 
+                fontWeight: 900, 
+                color: 'white',
+                margin: 0,
+              }}>
+                {selectedVenue.name}
+              </h2>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: 24 }}>
+              <p style={{
+                fontSize: 16,
+                color: theme.text,
+                lineHeight: 1.6,
+                marginBottom: 24,
+                textAlign: 'center',
+              }}>
+                {selectedVenue.description}
+              </p>
+
+              {treeProgress[selectedVenue.tree]?.includes(selectedVenue.index) ? (
+                // Already completed
+                <div style={{
+                  background: 'linear-gradient(135deg, #58CC02, #37B300)',
+                  borderRadius: 16,
+                  padding: '16px 24px',
+                  textAlign: 'center',
+                  marginBottom: 16,
+                }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>✓</div>
+                  <div style={{ color: 'white', fontWeight: 900, fontSize: 18 }}>
+                    Completed!
+                  </div>
+                  <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, marginTop: 4 }}>
+                    You've visited this venue
+                  </div>
+                </div>
+              ) : (
+                // Not completed yet - show Mark as Done button
+                <button
+                  onClick={() => {
+                    const newProgress = { ...treeProgress };
+                    if (!newProgress[selectedVenue.tree]) {
+                      newProgress[selectedVenue.tree] = [];
+                    }
+                    if (!newProgress[selectedVenue.tree].includes(selectedVenue.index)) {
+                      newProgress[selectedVenue.tree] = [...newProgress[selectedVenue.tree], selectedVenue.index];
+                      setTreeProgress(newProgress);
+                      localStorage.setItem('parisTreesProgress', JSON.stringify(newProgress));
+                    }
+                    setShowVenueModal(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #58CC02, #37B300)',
+                    border: 'none',
+                    borderRadius: 16,
+                    padding: '16px 24px',
+                    color: 'white',
+                    fontSize: 18,
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    boxShadow: '0 6px 20px rgba(88, 204, 2, 0.3)',
+                    transition: 'all 0.3s ease',
+                    marginBottom: 16,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(88, 204, 2, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(88, 204, 2, 0.3)';
+                  }}
+                >
+                  ✓ Mark as Done
+                </button>
+              )}
+
+              <button
+                onClick={() => setShowVenueModal(false)}
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: 16,
+                  padding: '12px 24px',
+                  color: theme.text,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = theme.bg;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
