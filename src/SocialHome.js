@@ -412,6 +412,7 @@ function SocialHome({
   };
 
   const isMobile = window.innerWidth <= 600;
+  const API_URL = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
   
   const styles = {
     container: {
@@ -700,7 +701,6 @@ function SocialHome({
     }
     return null;
   };
-  const API_URL = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
 
   return (
     <div style={styles.container}>
