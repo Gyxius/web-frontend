@@ -4,8 +4,11 @@ const API_URL = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.
 
 // ===== EVENT ENDPOINTS =====
 
-export const getAllEvents = async () => {
-  const response = await fetch(`${API_URL}/api/events`);
+export const getAllEvents = async (includeArchived = false) => {
+  const url = includeArchived 
+    ? `${API_URL}/api/events?include_archived=true`
+    : `${API_URL}/api/events`;
+  const response = await fetch(url);
   if (!response.ok) throw new Error("Failed to fetch events");
   return response.json();
 };
@@ -84,6 +87,30 @@ export const deleteEvent = async (eventId, username) => {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.detail || "Failed to delete event");
+  }
+  return response.json();
+};
+
+export const archiveEvent = async (eventId, username) => {
+  const response = await fetch(`${API_URL}/api/events/${eventId}/archive?username=${encodeURIComponent(username)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to archive event");
+  }
+  return response.json();
+};
+
+export const unarchiveEvent = async (eventId, username) => {
+  const response = await fetch(`${API_URL}/api/events/${eventId}/unarchive?username=${encodeURIComponent(username)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to unarchive event");
   }
   return response.json();
 };
