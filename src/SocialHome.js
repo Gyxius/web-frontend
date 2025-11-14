@@ -2624,7 +2624,14 @@ function SocialHome({
             )}
 
             {/* Step 4: Date */}
-            {createEventStep === 4 && (
+            {createEventStep === 4 && (() => {
+              // Get today's date in YYYY-MM-DD format
+              const todayStr = new Date().toISOString().split('T')[0];
+              
+              // Check if selected date is in the past
+              const isDateInPast = newEvent.date && newEvent.date < todayStr;
+              
+              return (
               <div style={{ textAlign: "center", ...fadeIn }}>
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   When's the event? 📅
@@ -2635,12 +2642,13 @@ function SocialHome({
                 <input
                   type="date"
                   value={newEvent.date}
+                  min={todayStr}
                   onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
                   style={{ 
                     width: "100%", 
                     padding: isMobile ? 14 : 16, 
                     borderRadius: 14, 
-                    border: `2px solid ${theme.border}`, 
+                    border: `2px solid ${isDateInPast ? theme.danger : theme.border}`, 
                     fontSize: isMobile ? 16 : 18, 
                     boxSizing: "border-box",
                     textAlign: "center",
@@ -2648,6 +2656,20 @@ function SocialHome({
                   }}
                   autoFocus
                 />
+                {isDateInPast && (
+                  <div style={{
+                    marginTop: 12,
+                    padding: "10px 12px",
+                    background: "rgba(234,43,43,0.1)",
+                    border: `2px solid ${theme.danger}`,
+                    borderRadius: 10,
+                    color: theme.danger,
+                    fontSize: 14,
+                    fontWeight: 600,
+                  }}>
+                    ⚠️ Cannot create events in the past. Please select today or a future date.
+                  </div>
+                )}
                 <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
                   <button
                     style={{
@@ -2668,24 +2690,25 @@ function SocialHome({
                   <button
                     style={{
                       flex: 1,
-                      background: newEvent.date ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
-                      color: newEvent.date ? "white" : theme.textMuted,
+                      background: (newEvent.date && !isDateInPast) ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
+                      color: (newEvent.date && !isDateInPast) ? "white" : theme.textMuted,
                       border: "none",
                       borderRadius: 14,
                       padding: isMobile ? "14px" : "16px",
                       fontWeight: 900,
                       fontSize: isMobile ? 16 : 18,
-                      cursor: newEvent.date ? "pointer" : "not-allowed",
-                      boxShadow: newEvent.date ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                      cursor: (newEvent.date && !isDateInPast) ? "pointer" : "not-allowed",
+                      boxShadow: (newEvent.date && !isDateInPast) ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
                     }}
-                    onClick={() => newEvent.date && setCreateEventStep(5)}
-                    disabled={!newEvent.date}
+                    onClick={() => newEvent.date && !isDateInPast && setCreateEventStep(5)}
+                    disabled={!newEvent.date || isDateInPast}
                   >
                     Next →
                   </button>
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* Step 5: Time Range */}
             {createEventStep === 5 && (
