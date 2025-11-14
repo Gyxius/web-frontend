@@ -1227,33 +1227,8 @@ function SocialChat({
               }
             </div>
 
-            <button
-              onClick={() => {
-                if (onCreateHangout) {
-                  onCreateHangout(event);
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                background: theme.primary,
-                color: 'white',
-                border: 'none',
-                borderRadius: 8,
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                marginBottom: 16,
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = theme.primaryDark}
-              onMouseLeave={(e) => e.currentTarget.style.background = theme.primary}
-            >
-              ✨ Create Hangout
-            </button>
-
             {relatedHangouts.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
                 {relatedHangouts.map((hangout) => {
                   const isJoined = hangout.eventParticipants?.some(p => 
                     (typeof p === 'string' ? p : p.name) === currentUser?.name || 
@@ -1552,6 +1527,30 @@ function SocialChat({
                 })}
               </div>
             )}
+
+            <button
+              onClick={() => {
+                if (onCreateHangout) {
+                  onCreateHangout(event);
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: theme.primary,
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = theme.primaryDark}
+              onMouseLeave={(e) => e.currentTarget.style.background = theme.primary}
+            >
+              ✨ Create Hangout
+            </button>
           </div>
         )}
 
