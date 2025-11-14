@@ -219,6 +219,9 @@ function SocialHome({
         capacity: 6, // User customizes capacity
         imageUrl: templateEventToCreate.imageUrl || "",
         templateEventId: templateEventToCreate.id,
+        targetInterests: [], // Initialize targeting arrays
+        targetCiteConnection: [],
+        targetReasons: [],
       });
       setShowCreateEventModal(true);
       setCreateEventStep(1);
