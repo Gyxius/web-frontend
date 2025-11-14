@@ -445,6 +445,7 @@ function SocialHome({
     card: "#FFFFFF",
     text: "#1F2937",        // slate-800
     textMuted: "#6B7280",   // slate-500
+    border: "#E5E7EB",      // light gray for borders
     primary: "#58CC02",     // Duolingo green
     primaryDark: "#37B300", // darker green for gradient/hover
     accent: "#1CB0F6",      // sky blue links/sections
