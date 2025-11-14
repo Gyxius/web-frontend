@@ -3,7 +3,7 @@ import { FaUserCircle } from "react-icons/fa";
 import users from "./users";
 import LocationPicker from "./LocationPicker";
 import "./SocialHome.animations.css";
-import { createEvent, getEventById, updateEvent, unarchiveEvent } from "./api";
+import { createEvent, getEventById, updateEvent, unarchiveEvent, archiveEvent } from "./api";
 import NotificationsInbox from "./NotificationsInbox";
 import ImageCropper from "./ImageCropper";
 import { FULL_LANGUAGES } from "./constants/languages";
@@ -4148,8 +4148,12 @@ function SocialHome({
                   🔗
                 </button>
                 
-                {/* Admin Controls */}
-                {(currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin" || userName === "admin") && (
+                {/* Admin/Host Controls */}
+                {(() => {
+                  const isAdmin = currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin" || userName === "admin";
+                  const isHost = eventPreview?.host?.name === userName || eventPreview?.createdBy === userName;
+                  
+                  return (isAdmin || isHost) ? (
                   <button
                     onClick={() => {
                       setShowAdminMenu(!showAdminMenu);
@@ -4165,7 +4169,8 @@ function SocialHome({
                   >
                     ⚙️
                   </button>
-                )}
+                  ) : null;
+                })()}
               </div>
             </div>
 
@@ -4238,11 +4243,82 @@ function SocialHome({
                     display: "flex",
                     alignItems: "center",
                     gap: 8,
+                    borderBottom: "1px solid #eee",
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
                   onMouseLeave={(e) => e.currentTarget.style.background = "white"}
                 >
                   👥 Manage Co-Hosts
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowAdminMenu(false);
+                    if (window.confirm("Archive this event? It will be moved to the Archive tab and hidden from the main feed.")) {
+                      try {
+                        await archiveEvent(eventPreview.id, userName);
+                        alert("Event archived successfully!");
+                        setEventPreview(null);
+                        window.location.reload();
+                      } catch (error) {
+                        console.error("Failed to archive:", error);
+                        alert("Failed to archive event: " + error.message);
+                      }
+                    }
+                  }}
+                  style={{
+                    width: "100%",
+                    background: "white",
+                    color: theme.text,
+                    border: "none",
+                    padding: "12px 20px",
+                    textAlign: "left",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    borderBottom: "1px solid #eee",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                >
+                  📦 Archive Event
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowAdminMenu(false);
+                    if (window.confirm("⚠️ Delete this event permanently? This cannot be undone!")) {
+                      try {
+                        const { default: api } = await import("./api");
+                        await api.deleteEvent(eventPreview.id, userName);
+                        alert("Event deleted successfully!");
+                        setEventPreview(null);
+                        window.location.reload();
+                      } catch (error) {
+                        console.error("Failed to delete:", error);
+                        alert("Failed to delete event: " + error.message);
+                      }
+                    }
+                  }}
+                  style={{
+                    width: "100%",
+                    background: "white",
+                    color: "#EA2B2B",
+                    border: "none",
+                    padding: "12px 20px",
+                    textAlign: "left",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "#FEE"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                >
+                  🗑️ Delete Event
                 </button>
               </div>
             )}
