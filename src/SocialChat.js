@@ -1840,15 +1840,13 @@ function SocialChat({
         flexWrap: "wrap",
         justifyContent: "center"
       }}>
-        {/* Leave Event button - only for non-featured events */}
-        {!(event?.isFeatured || (event?.createdBy && event.createdBy.toLowerCase() === 'admin')) && (
-          <button
-            style={styles.leaveBtn}
-            onClick={() => onLeaveEvent && onLeaveEvent(event)}
-          >
-            Leave Event
-          </button>
-        )}
+        {/* Leave Event button - now visible for all events */}
+        <button
+          style={styles.leaveBtn}
+          onClick={() => onLeaveEvent && onLeaveEvent(event)}
+        >
+          Leave Event
+        </button>
         {/* Go to Homepage - always visible */}
         <button style={styles.homeBtn} onClick={onHome}>Go to Homepage</button>
       </div>      {/* Edit Event Screen */}
