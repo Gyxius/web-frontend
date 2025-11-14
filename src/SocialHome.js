@@ -2881,17 +2881,59 @@ function SocialHome({
                   {newEvent.languages.length > 0 && (
                     <div style={{ 
                       marginBottom: 16, 
-                      padding: 12, 
+                      padding: 14, 
                       background: theme.card, 
                       borderRadius: 12, 
                       border: `2px solid ${theme.primary}`,
                     }}>
-                      <p style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8, fontWeight: 600 }}>
+                      <p style={{ fontSize: 13, color: theme.textMuted, marginBottom: 10, fontWeight: 600 }}>
                         Selected languages:
                       </p>
-                      <p style={{ fontSize: isMobile ? 15 : 16, color: theme.text, fontWeight: 700 }}>
-                        {newEvent.languages.join(" ↔ ")}
-                      </p>
+                      <div style={{ 
+                        display: "flex", 
+                        flexWrap: "wrap", 
+                        gap: 8,
+                      }}>
+                        {newEvent.languages.map(lang => (
+                          <button
+                            key={lang}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              padding: "8px 12px",
+                              borderRadius: 20,
+                              background: theme.primary,
+                              color: "white",
+                              border: "none",
+                              fontSize: isMobile ? 13 : 14,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "all 0.2s",
+                              boxShadow: "0 2px 6px rgba(88,204,2,0.25)",
+                            }}
+                            onClick={() => {
+                              const langs = newEvent.languages.filter(l => l !== lang);
+                              setNewEvent({...newEvent, languages: langs});
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = theme.primaryDark;
+                              e.currentTarget.style.transform = "scale(0.98)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = theme.primary;
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
+                          >
+                            <span>{lang}</span>
+                            <span style={{ 
+                              fontSize: 16, 
+                              fontWeight: 700,
+                              opacity: 0.9,
+                            }}>✕</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
