@@ -2764,6 +2764,33 @@ function SocialHome({
                     </>
                   ) : (
                     <>
+                      {/* Back to common options button */}
+                      <button
+                        style={{
+                          width: "100%",
+                          padding: isMobile ? "10px" : "12px",
+                          borderRadius: 10,
+                          border: `2px solid ${theme.border}`,
+                          background: theme.card,
+                          color: theme.text,
+                          fontSize: isMobile ? 13 : 14,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          marginBottom: 16,
+                          transition: "all 0.2s",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 8,
+                        }}
+                        onClick={() => {
+                          setShowAllLanguages(false);
+                          setLanguageSearchQuery("");
+                        }}
+                      >
+                        ← Back to common options
+                      </button>
+
                       {/* Search bar */}
                       <div style={{ marginBottom: 16 }}>
                         <input
