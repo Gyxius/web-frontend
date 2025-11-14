@@ -20,6 +20,7 @@ function App() {
   });
   const [showRoulette, setShowRoulette] = useState(false);
   const [rouletteResult, setRouletteResult] = useState(null);
+  const [previousEvent, setPreviousEvent] = useState(null); // Track previous event for back navigation
   const [showResult, setShowResult] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [justRegistered, setJustRegistered] = useState(false);
@@ -329,12 +330,18 @@ function App() {
           });
         }}
         onBack={() => {
-          setShowChat(false);
-          setRouletteResult(null);
-          setSelectedProfile(null);
-          // If admin opened it, go back to admin dashboard
-          if ((user?.username || user?.name)?.toLowerCase() === 'admin') {
-            setAdminOpenEventId(null);
+          // If there's a previous event, go back to it. Otherwise close chat.
+          if (previousEvent) {
+            setRouletteResult(previousEvent);
+            setPreviousEvent(null);
+          } else {
+            setShowChat(false);
+            setRouletteResult(null);
+            setSelectedProfile(null);
+            // If admin opened it, go back to admin dashboard
+            if ((user?.username || user?.name)?.toLowerCase() === 'admin') {
+              setAdminOpenEventId(null);
+            }
           }
         }}
         onHome={() => {
@@ -471,7 +478,8 @@ function App() {
           setTemplateEventToCreate(featuredEvent);
         }}
         onEventClick={(newEvent) => {
-          // Switch to viewing a different event
+          // Switch to viewing a different event - save current as previous for back navigation
+          setPreviousEvent(rouletteResult);
           setRouletteResult(newEvent);
           // Keep chat open to show the new event
         }}
@@ -635,9 +643,15 @@ function App() {
           });
         }}
         onBack={() => {
-          setShowChat(false);
-          setShowResult(true);
-          setSelectedProfile(null);
+          // If there's a previous event, go back to it. Otherwise go to result screen.
+          if (previousEvent) {
+            setRouletteResult(previousEvent);
+            setPreviousEvent(null);
+          } else {
+            setShowChat(false);
+            setShowResult(true);
+            setSelectedProfile(null);
+          }
         }}
         onHome={() => {
           setShowChat(false);
@@ -781,7 +795,8 @@ function App() {
           setTemplateEventToCreate(featuredEvent);
         }}
         onEventClick={(newEvent) => {
-          // Switch to viewing a different event
+          // Switch to viewing a different event - save current as previous for back navigation
+          setPreviousEvent(rouletteResult);
           setRouletteResult(newEvent);
           // Keep chat open to show the new event
         }}
