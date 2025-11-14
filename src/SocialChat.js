@@ -1040,45 +1040,45 @@ function SocialChat({
                     {event.address}
                   </div>
                 )}
-                
-                {/* Small Map Preview */}
-                {event?.coordinates && event.coordinates.lat && event.coordinates.lng && (
-                  <div 
-                    ref={(el) => {
-                      if (el && !el.dataset.mapInitialized && window.L) {
-                        el.dataset.mapInitialized = 'true';
-                        const map = window.L.map(el, {
-                          center: [event.coordinates.lat, event.coordinates.lng],
-                          zoom: 15,
-                          zoomControl: true,
-                          scrollWheelZoom: false,
-                          dragging: true,
-                        });
-                        
-                        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                          attribution: '© OpenStreetMap',
-                          maxZoom: 19
-                        }).addTo(map);
-                        
-                        window.L.marker([event.coordinates.lat, event.coordinates.lng])
-                          .addTo(map)
-                          .bindPopup(event.venue || event.address || 'Event Location');
-                      }
-                    }}
-                    style={{
-                      width: '100%',
-                      height: '200px',
-                      borderRadius: '12px',
-                      marginTop: '12px',
-                      border: '2px solid #E5E5E5',
-                      overflow: 'hidden',
-                      position: 'relative',
-                      zIndex: 1
-                    }}
-                  />
-                )}
               </div>
             </div>
+            
+            {/* Small Map Preview - Outside flex container for proper alignment */}
+            {event?.coordinates && event.coordinates.lat && event.coordinates.lng && (
+              <div 
+                ref={(el) => {
+                  if (el && !el.dataset.mapInitialized && window.L) {
+                    el.dataset.mapInitialized = 'true';
+                    const map = window.L.map(el, {
+                      center: [event.coordinates.lat, event.coordinates.lng],
+                      zoom: 15,
+                      zoomControl: true,
+                      scrollWheelZoom: false,
+                      dragging: true,
+                    });
+                    
+                    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                      attribution: '© OpenStreetMap',
+                      maxZoom: 19
+                    }).addTo(map);
+                    
+                    window.L.marker([event.coordinates.lat, event.coordinates.lng])
+                      .addTo(map)
+                      .bindPopup(event.venue || event.address || 'Event Location');
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  height: '200px',
+                  borderRadius: '12px',
+                  marginTop: '12px',
+                  border: '2px solid #E5E5E5',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  zIndex: 1
+                }}
+              />
+            )}
           </div>
         </div>
 
