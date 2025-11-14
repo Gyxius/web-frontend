@@ -1227,32 +1227,30 @@ function SocialChat({
               }
             </div>
 
-            {relatedHangouts.length === 0 && (
-              <button
-                onClick={() => {
-                  if (onCreateHangout) {
-                    onCreateHangout(event);
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  background: theme.primary,
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 8,
-                  fontSize: 15,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  marginBottom: 16,
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = theme.primaryDark}
-                onMouseLeave={(e) => e.currentTarget.style.background = theme.primary}
-              >
-                ✨ Create Hangout
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (onCreateHangout) {
+                  onCreateHangout(event);
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: theme.primary,
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                marginBottom: 16,
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = theme.primaryDark}
+              onMouseLeave={(e) => e.currentTarget.style.background = theme.primary}
+            >
+              ✨ Create Hangout
+            </button>
 
             {relatedHangouts.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
