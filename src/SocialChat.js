@@ -801,7 +801,7 @@ function SocialChat({
           fontWeight: 800,
           color: theme.text,
         }}>
-          Event
+          Back
         </div>
       </div>
 
@@ -1843,19 +1843,13 @@ function SocialChat({
         {/* For featured/admin events, don't show these buttons - they're just templates */}
         {!(event?.isFeatured || (event?.createdBy && event.createdBy.toLowerCase() === 'admin')) && (
           <>
-            <button 
-              style={{...styles.homeBtn, background: theme.bg, color: theme.text}}
-              onClick={onBack}
-            >
-              ← Back
-            </button>
-            <button style={styles.homeBtn} onClick={onHome}>Go to Homepage</button>
             <button
               style={styles.leaveBtn}
               onClick={() => onLeaveEvent && onLeaveEvent(event)}
             >
               Leave Event
             </button>
+            <button style={styles.homeBtn} onClick={onHome}>Go to Homepage</button>
           </>
         )}
       </div>      {/* Edit Event Screen */}
