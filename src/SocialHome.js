@@ -3,7 +3,7 @@ import { FaUserCircle } from "react-icons/fa";
 import users from "./users";
 import LocationPicker from "./LocationPicker";
 import "./SocialHome.animations.css";
-import { createEvent, getEventById, updateEvent, archiveEvent, unarchiveEvent } from "./api";
+import { createEvent, getEventById, updateEvent, unarchiveEvent } from "./api";
 import NotificationsInbox from "./NotificationsInbox";
 import ImageCropper from "./ImageCropper";
 import { FULL_LANGUAGES } from "./constants/languages";
