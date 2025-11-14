@@ -461,6 +461,49 @@ function SocialHome({
   const isMobile = window.innerWidth <= 600;
   const API_URL = process.env.REACT_APP_API_URL || "https://fast-api-backend-qlyb.onrender.com";
   
+  // Comprehensive language to emoji mapping
+  const getLanguageEmoji = (language) => {
+    const languageEmojis = {
+      // European Languages
+      "Albanian": "🇦🇱", "Basque": "🇪🇸", "Belarusian": "🇧🇾", "Bosnian": "🇧🇦",
+      "Bulgarian": "🇧🇬", "Catalan": "🇪🇸", "Croatian": "🇭🇷", "Czech": "🇨🇿",
+      "Danish": "🇩🇰", "Dutch": "🇳🇱", "English": "🇬🇧", "Estonian": "🇪🇪",
+      "Finnish": "🇫🇮", "French": "🇫🇷", "Galician": "🇪🇸", "German": "🇩🇪",
+      "Greek": "🇬🇷", "Hungarian": "🇭🇺", "Icelandic": "🇮🇸", "Irish": "🇮🇪",
+      "Italian": "🇮🇹", "Latvian": "🇱🇻", "Lithuanian": "🇱🇹", "Luxembourgish": "🇱🇺",
+      "Macedonian": "🇲🇰", "Maltese": "🇲🇹", "Moldovan": "🇲🇩", "Montenegrin": "🇲🇪",
+      "Norwegian": "🇳🇴", "Polish": "🇵🇱", "Portuguese": "🇵🇹", "Romanian": "🇷🇴",
+      "Russian": "🇷🇺", "Scottish Gaelic": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Serbian": "🇷🇸", "Slovak": "🇸🇰",
+      "Slovenian": "🇸🇮", "Spanish": "🇪🇸", "Swedish": "🇸🇪", "Ukrainian": "🇺🇦",
+      "Welsh": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+      
+      // Asian Languages
+      "Arabic": "🇸🇦", "Armenian": "🇦🇲", "Azerbaijani": "🇦🇿", "Bengali": "🇧🇩",
+      "Burmese": "🇲🇲", "Chinese": "🇨🇳", "Mandarin Chinese": "🇨🇳", "Cantonese": "🇭🇰",
+      "Georgian": "🇬🇪", "Hebrew": "🇮🇱", "Hindi": "🇮🇳", "Indonesian": "🇮🇩",
+      "Japanese": "🇯🇵", "Kazakh": "🇰🇿", "Khmer": "🇰🇭", "Korean": "🇰🇷",
+      "Kurdish": "🇮🇶", "Kyrgyz": "🇰🇬", "Lao": "🇱🇦", "Malay": "🇲🇾",
+      "Mongolian": "🇲🇳", "Nepali": "🇳🇵", "Pashto": "🇦🇫", "Persian (Farsi)": "🇮🇷",
+      "Punjabi": "🇮🇳", "Sinhala": "🇱🇰", "Tagalog": "🇵🇭", "Tajik": "🇹🇯",
+      "Tamil": "🇮🇳", "Telugu": "🇮🇳", "Thai": "🇹🇭", "Tibetan": "🇨🇳",
+      "Turkish": "🇹🇷", "Turkmen": "🇹🇲", "Urdu": "🇵🇰", "Uzbek": "🇺🇿",
+      "Vietnamese": "🇻🇳",
+      
+      // African Languages
+      "Afrikaans": "🇿🇦", "Amharic": "🇪🇹", "Hausa": "🇳🇬", "Igbo": "🇳🇬",
+      "Kinyarwanda": "🇷🇼", "Malagasy": "🇲🇬", "Somali": "🇸🇴", "Swahili": "🇹🇿",
+      "Wolof": "🇸🇳", "Yoruba": "🇳🇬", "Zulu": "🇿🇦",
+      
+      // Americas Languages
+      "Aymara": "🇧🇴", "Guarani": "🇵🇾", "Haitian Creole": "🇭🇹", "Quechua": "🇵🇪",
+      
+      // Oceania
+      "Fijian": "🇫🇯", "Maori": "🇳🇿", "Samoan": "🇼🇸", "Tongan": "🇹🇴",
+    };
+    
+    return languageEmojis[language] || "🌍";
+  };
+  
   const styles = {
     container: {
       position: "relative",
@@ -1375,36 +1418,26 @@ function SocialHome({
                         }}>
                           <span>🗣️</span>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                            {event.languages.map(lang => {
-                              const languageEmojis = {
-                                "French": "🇫🇷", "English": "🇬🇧", "Spanish": "🇪🇸", "German": "🇩🇪",
-                                "Italian": "🇮🇹", "Portuguese": "🇵🇹", "Chinese": "🇨🇳", "Mandarin Chinese": "🇨🇳",
-                                "Japanese": "🇯🇵", "Korean": "🇰🇷", "Arabic": "🇸🇦", "Russian": "🇷🇺",
-                                "Hindi": "🇮🇳", "Turkish": "🇹🇷", "Dutch": "🇳🇱", "Polish": "🇵🇱",
-                                "Vietnamese": "🇻🇳", "Thai": "🇹🇭", "Hebrew": "🇮🇱", "Greek": "🇬🇷",
-                                "Swedish": "🇸🇪", "Norwegian": "🇳🇴", "Danish": "🇩🇰", "Finnish": "🇫🇮"
-                              };
-                              return (
-                                <span 
-                                  key={lang}
-                                  style={{
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: 4,
-                                    padding: "4px 10px",
-                                    borderRadius: 999,
-                                    background: theme.card,
-                                    border: `1.5px solid ${theme.border}`,
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                    color: theme.text,
-                                  }}
-                                >
-                                  <span style={{ fontSize: 14 }}>{languageEmojis[lang] || "🌍"}</span>
-                                  <span>{lang}</span>
-                                </span>
-                              );
-                            })}
+                            {event.languages.map(lang => (
+                              <span 
+                                key={lang}
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: theme.card,
+                                  border: `1.5px solid ${theme.border}`,
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  color: theme.text,
+                                }}
+                              >
+                                <span style={{ fontSize: 14 }}>{getLanguageEmoji(lang)}</span>
+                                <span>{lang}</span>
+                              </span>
+                            ))}
                           </div>
                         </div>
                       )}
@@ -1574,36 +1607,26 @@ function SocialHome({
                   }}>
                     <span>🗣️</span>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {event.languages.map(lang => {
-                        const languageEmojis = {
-                          "French": "🇫🇷", "English": "🇬🇧", "Spanish": "🇪🇸", "German": "🇩🇪",
-                          "Italian": "🇮🇹", "Portuguese": "🇵🇹", "Chinese": "🇨🇳", "Mandarin Chinese": "🇨🇳",
-                          "Japanese": "🇯🇵", "Korean": "🇰🇷", "Arabic": "🇸🇦", "Russian": "🇷🇺",
-                          "Hindi": "🇮🇳", "Turkish": "🇹🇷", "Dutch": "🇳🇱", "Polish": "🇵🇱",
-                          "Vietnamese": "🇻🇳", "Thai": "🇹🇭", "Hebrew": "🇮🇱", "Greek": "🇬🇷",
-                          "Swedish": "🇸🇪", "Norwegian": "🇳🇴", "Danish": "🇩🇰", "Finnish": "🇫🇮"
-                        };
-                        return (
-                          <span 
-                            key={lang}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                              padding: "4px 10px",
-                              borderRadius: 999,
-                              background: theme.card,
-                              border: `1.5px solid ${theme.border}`,
-                              fontSize: 12,
-                              fontWeight: 600,
-                              color: theme.text,
-                            }}
-                          >
-                            <span style={{ fontSize: 14 }}>{languageEmojis[lang] || "🌍"}</span>
-                            <span>{lang}</span>
-                          </span>
-                        );
-                      })}
+                      {event.languages.map(lang => (
+                        <span 
+                          key={lang}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            padding: "4px 10px",
+                            borderRadius: 999,
+                            background: theme.card,
+                            border: `1.5px solid ${theme.border}`,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: theme.text,
+                          }}
+                        >
+                          <span style={{ fontSize: 14 }}>{getLanguageEmoji(lang)}</span>
+                          <span>{lang}</span>
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -1868,36 +1891,26 @@ function SocialHome({
                         }}>
                           <span>🗣️</span>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                            {item.languages.map(lang => {
-                              const languageEmojis = {
-                                "French": "🇫🇷", "English": "🇬🇧", "Spanish": "🇪🇸", "German": "🇩🇪",
-                                "Italian": "🇮🇹", "Portuguese": "🇵🇹", "Chinese": "🇨🇳", "Mandarin Chinese": "🇨🇳",
-                                "Japanese": "🇯🇵", "Korean": "🇰🇷", "Arabic": "🇸🇦", "Russian": "🇷🇺",
-                                "Hindi": "🇮🇳", "Turkish": "🇹🇷", "Dutch": "🇳🇱", "Polish": "🇵🇱",
-                                "Vietnamese": "🇻🇳", "Thai": "🇹🇭", "Hebrew": "🇮🇱", "Greek": "🇬🇷",
-                                "Swedish": "🇸🇪", "Norwegian": "🇳🇴", "Danish": "🇩🇰", "Finnish": "🇫🇮"
-                              };
-                              return (
-                                <span 
-                                  key={lang}
-                                  style={{
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: 4,
-                                    padding: "4px 10px",
-                                    borderRadius: 999,
-                                    background: theme.card,
-                                    border: `1.5px solid ${theme.border}`,
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                    color: theme.text,
-                                  }}
-                                >
-                                  <span style={{ fontSize: 14 }}>{languageEmojis[lang] || "🌍"}</span>
-                                  <span>{lang}</span>
-                                </span>
-                              );
-                            })}
+                            {item.languages.map(lang => (
+                              <span 
+                                key={lang}
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: theme.card,
+                                  border: `1.5px solid ${theme.border}`,
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  color: theme.text,
+                                }}
+                              >
+                                <span style={{ fontSize: 14 }}>{getLanguageEmoji(lang)}</span>
+                                <span>{lang}</span>
+                              </span>
+                            ))}
                           </div>
                         </div>
                       )}
@@ -2794,21 +2807,11 @@ function SocialHome({
 
               const personalizedLanguage = getUserProfileLanguage();
               
-              // Map of languages to emojis (expanded)
-              const languageEmojis = {
-                "French": "🇫🇷", "English": "🇬🇧", "Spanish": "🇪🇸", "German": "🇩🇪",
-                "Italian": "🇮🇹", "Portuguese": "🇵🇹", "Chinese": "🇨🇳", "Mandarin Chinese": "🇨🇳",
-                "Japanese": "🇯🇵", "Korean": "🇰🇷", "Arabic": "🇸🇦", "Russian": "🇷🇺",
-                "Hindi": "🇮🇳", "Turkish": "🇹🇷", "Dutch": "🇳🇱", "Polish": "🇵🇱",
-                "Vietnamese": "🇻🇳", "Thai": "🇹🇭", "Hebrew": "🇮🇱", "Greek": "🇬🇷",
-                "Swedish": "🇸🇪", "Norwegian": "🇳🇴", "Danish": "🇩🇰", "Finnish": "🇫🇮"
-              };
-
               // Common options with personalization
               const commonOptions = [
                 { value: "French", emoji: "🇫🇷" },
                 { value: "English", emoji: "🇬🇧" },
-                { value: personalizedLanguage, emoji: languageEmojis[personalizedLanguage] || "🌍" },
+                { value: personalizedLanguage, emoji: getLanguageEmoji(personalizedLanguage) },
               ];
 
               // Filter languages for search
@@ -2993,7 +2996,7 @@ function SocialHome({
                                 setNewEvent({...newEvent, languages: langs});
                               }}
                             >
-                              <div style={{ fontSize: 24 }}>{languageEmojis[lang] || "🌍"}</div>
+                              <div style={{ fontSize: 24 }}>{getLanguageEmoji(lang)}</div>
                               <span style={{ flex: 1, textAlign: "left" }}>{lang}</span>
                               {newEvent.languages.includes(lang) && (
                                 <span style={{ fontSize: 18, fontWeight: 900 }}>✓</span>
