@@ -1857,6 +1857,51 @@ function SocialHome({
                         </span>
                       </div>
                       
+                      {item.languages && item.languages.length > 0 && (
+                        <div style={{ 
+                          fontSize: 14, 
+                          color: theme.text, 
+                          display: "flex", 
+                          alignItems: "center", 
+                          gap: 6,
+                          flexWrap: "wrap",
+                        }}>
+                          <span>🗣️</span>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                            {item.languages.map(lang => {
+                              const languageEmojis = {
+                                "French": "🇫🇷", "English": "🇬🇧", "Spanish": "🇪🇸", "German": "🇩🇪",
+                                "Italian": "🇮🇹", "Portuguese": "🇵🇹", "Chinese": "🇨🇳", "Mandarin Chinese": "🇨🇳",
+                                "Japanese": "🇯🇵", "Korean": "🇰🇷", "Arabic": "🇸🇦", "Russian": "🇷🇺",
+                                "Hindi": "🇮🇳", "Turkish": "🇹🇷", "Dutch": "🇳🇱", "Polish": "🇵🇱",
+                                "Vietnamese": "🇻🇳", "Thai": "🇹🇭", "Hebrew": "🇮🇱", "Greek": "🇬🇷",
+                                "Swedish": "🇸🇪", "Norwegian": "🇳🇴", "Danish": "🇩🇰", "Finnish": "🇫🇮"
+                              };
+                              return (
+                                <span 
+                                  key={lang}
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 4,
+                                    padding: "4px 10px",
+                                    borderRadius: 999,
+                                    background: theme.card,
+                                    border: `1.5px solid ${theme.border}`,
+                                    fontSize: 12,
+                                    fontWeight: 600,
+                                    color: theme.text,
+                                  }}
+                                >
+                                  <span style={{ fontSize: 14 }}>{languageEmojis[lang] || "🌍"}</span>
+                                  <span>{lang}</span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      
                       {item.category && (
                         <div style={{ marginTop: 4 }}>
                           <span style={{
