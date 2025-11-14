@@ -1066,12 +1066,10 @@ function SocialChat({
                       }
                     }}
                     style={{
-                      width: 'calc(100vw - 48px)',
-                      maxWidth: '100%',
+                      width: '100%',
                       height: '200px',
                       borderRadius: '12px',
                       marginTop: '12px',
-                      marginLeft: 'calc(-24px + 24px)',
                       border: '2px solid #E5E5E5',
                       overflow: 'hidden',
                       position: 'relative',
