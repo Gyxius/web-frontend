@@ -981,6 +981,42 @@ function SocialChat({
                             cursor: "pointer",
                             fontSize: 15,
                             fontWeight: 600,
+                            color: theme.text,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            borderBottom: `1px solid ${theme.border}`,
+                          }}
+                          onClick={async () => {
+                            setShowOptionsMenu(false);
+                            if (window.confirm("Archive this hangout? It will be moved to the Archive tab and hidden from the main feed.")) {
+                              try {
+                                await api.archiveEvent(event.id, currentUser?.username || currentUser?.name);
+                                alert("Hangout archived successfully!");
+                                if (onBack) onBack();
+                                else window.location.reload();
+                              } catch (error) {
+                                console.error("Failed to archive:", error);
+                                alert("Failed to archive hangout: " + error.message);
+                              }
+                            }
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                        >
+                          <span>📦</span> Archive Event
+                        </button>
+                        
+                        <button
+                          style={{
+                            width: "100%",
+                            padding: "14px 20px",
+                            border: "none",
+                            background: "white",
+                            textAlign: "left",
+                            cursor: "pointer",
+                            fontSize: 15,
+                            fontWeight: 600,
                             color: "#FF4B4B",
                             display: "flex",
                             alignItems: "center",
