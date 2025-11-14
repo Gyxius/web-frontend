@@ -1836,7 +1836,7 @@ function SocialChat({
       </div> {/* Close contentWrapper */}
 
       {/* Action Buttons */}
-      <div style={{ 
+      <div style={{
         display: "flex", 
         gap: 12, 
         padding: "0 20px 32px 20px",
@@ -1855,14 +1855,7 @@ function SocialChat({
             </button>
           </>
         )}
-        
-        {/* For featured events, show back button */}
-        {(event?.isFeatured || (event?.createdBy && event.createdBy.toLowerCase() === 'admin')) && (
-          <button style={styles.homeBtn} onClick={onHome}>← Back to Events</button>
-        )}
-      </div>
-
-      {/* Edit Event Screen */}
+      </div>      {/* Edit Event Screen */}
       {showEditModal && (
         <div style={styles.editScreen}>
           <div style={styles.editContainer}>
