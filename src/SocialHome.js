@@ -6,6 +6,7 @@ import "./SocialHome.animations.css";
 import { createEvent, getEventById, updateEvent } from "./api";
 import NotificationsInbox from "./NotificationsInbox";
 import ImageCropper from "./ImageCropper";
+import { FULL_LANGUAGES } from "./constants/languages";
 
 // Helper to format long addresses to concise format
 function formatAddressForDisplay(fullAddress) {
@@ -198,6 +199,7 @@ function SocialHome({
     targetReasons: [], // Array of "What Brings You Here" reasons to target
   });
   const [showAllLanguages, setShowAllLanguages] = useState(false);
+  const [languageSearchQuery, setLanguageSearchQuery] = useState("");
 
   // Handle template event for "Create Hangout" feature
   useEffect(() => {
@@ -2633,195 +2635,291 @@ function SocialHome({
             )}
 
             {/* Step 6: Languages */}
-            {createEventStep === 6 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
-                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
-                  What languages? 🗣️
-                </h3>
-                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 24 }}>
-                  Select all languages that will be spoken
-                </p>
-                
-                {!showAllLanguages ? (
-                  <>
-                    <p style={{ fontSize: isMobile ? 13 : 14, color: theme.textMuted, marginBottom: 16, fontWeight: 600 }}>
-                      Common options
-                    </p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 16 }}>
-                      {[
-                        { value: "French", emoji: "🇫🇷" },
-                        { value: "English", emoji: "🇬🇧" },
-                        { value: "Spanish", emoji: "🇪🇸" },
-                      ].map(lang => (
-                        <button
-                          key={lang.value}
+            {createEventStep === 6 && (() => {
+              // Get user's profile language for personalization
+              const getUserProfileLanguage = () => {
+                try {
+                  const profileData = localStorage.getItem(`userProfile_${userName}`);
+                  if (profileData) {
+                    const profile = JSON.parse(profileData);
+                    if (profile.languages && profile.languages.length > 0) {
+                      // Return first language that's not French or English
+                      const userLang = profile.languages.find(lang => 
+                        lang !== "French" && lang !== "English"
+                      );
+                      return userLang || "Spanish"; // Fallback to Spanish
+                    }
+                  }
+                } catch (e) {
+                  console.log("Could not load user language:", e);
+                }
+                return "Spanish"; // Default fallback
+              };
+
+              const personalizedLanguage = getUserProfileLanguage();
+              
+              // Map of languages to emojis (expanded)
+              const languageEmojis = {
+                "French": "🇫🇷", "English": "🇬🇧", "Spanish": "🇪🇸", "German": "🇩🇪",
+                "Italian": "🇮🇹", "Portuguese": "🇵🇹", "Chinese": "🇨🇳", "Mandarin Chinese": "🇨🇳",
+                "Japanese": "🇯🇵", "Korean": "🇰🇷", "Arabic": "🇸🇦", "Russian": "🇷🇺",
+                "Hindi": "🇮🇳", "Turkish": "🇹🇷", "Dutch": "🇳🇱", "Polish": "🇵🇱",
+                "Vietnamese": "🇻🇳", "Thai": "🇹🇭", "Hebrew": "🇮🇱", "Greek": "🇬🇷",
+                "Swedish": "🇸🇪", "Norwegian": "🇳🇴", "Danish": "🇩🇰", "Finnish": "🇫🇮"
+              };
+
+              // Common options with personalization
+              const commonOptions = [
+                { value: "French", emoji: "🇫🇷" },
+                { value: "English", emoji: "🇬🇧" },
+                { value: personalizedLanguage, emoji: languageEmojis[personalizedLanguage] || "🌍" },
+              ];
+
+              // Filter languages for search
+              const filteredLanguages = languageSearchQuery.trim() === "" 
+                ? FULL_LANGUAGES 
+                : FULL_LANGUAGES.filter(lang => 
+                    lang.toLowerCase().includes(languageSearchQuery.toLowerCase())
+                  );
+
+              return (
+                <div style={{ textAlign: "center", ...fadeIn }}>
+                  <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                    What languages will you speak? 🗣️
+                  </h3>
+                  <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 24 }}>
+                    Select all languages that will be featured. This helps international students and speakers know if they can join the conversation.
+                  </p>
+                  
+                  {!showAllLanguages ? (
+                    <>
+                      <p style={{ fontSize: isMobile ? 13 : 14, color: theme.textMuted, marginBottom: 16, fontWeight: 600 }}>
+                        Common options
+                      </p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 16 }}>
+                        {commonOptions.map(lang => (
+                          <button
+                            key={lang.value}
+                            style={{
+                              padding: isMobile ? 16 : 18,
+                              borderRadius: 14,
+                              border: `3px solid ${newEvent.languages.includes(lang.value) ? theme.primary : theme.border}`,
+                              background: newEvent.languages.includes(lang.value) ? theme.primary : theme.card,
+                              color: newEvent.languages.includes(lang.value) ? "white" : theme.text,
+                              fontSize: isMobile ? 15 : 16,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              transition: "all 0.2s",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 12,
+                              boxShadow: newEvent.languages.includes(lang.value) 
+                                ? "0 4px 12px rgba(88,204,2,0.3)" 
+                                : "none",
+                            }}
+                            onClick={() => {
+                              const langs = [...newEvent.languages];
+                              const idx = langs.indexOf(lang.value);
+                              if (idx > -1) {
+                                langs.splice(idx, 1);
+                              } else {
+                                langs.push(lang.value);
+                              }
+                              setNewEvent({...newEvent, languages: langs});
+                            }}
+                          >
+                            <div style={{ fontSize: 28 }}>{lang.emoji}</div>
+                            <span>{lang.value}</span>
+                            {newEvent.languages.includes(lang.value) && (
+                              <span style={{ 
+                                marginLeft: "auto", 
+                                fontSize: 20,
+                                fontWeight: 900,
+                              }}>✓</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        style={{
+                          width: "100%",
+                          padding: isMobile ? "14px" : "16px",
+                          borderRadius: 12,
+                          border: `2px solid ${theme.border}`,
+                          background: "transparent",
+                          color: theme.accent,
+                          fontSize: isMobile ? 14 : 15,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          marginBottom: 16,
+                          transition: "all 0.2s",
+                        }}
+                        onClick={() => {
+                          setShowAllLanguages(true);
+                          setLanguageSearchQuery("");
+                        }}
+                      >
+                        Browse all languages
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Search bar */}
+                      <div style={{ marginBottom: 16 }}>
+                        <input
+                          type="text"
+                          placeholder="Search for a language..."
+                          value={languageSearchQuery}
+                          onChange={(e) => setLanguageSearchQuery(e.target.value)}
+                          autoFocus
                           style={{
-                            padding: isMobile ? 16 : 18,
-                            borderRadius: 14,
-                            border: `2px solid ${newEvent.languages.includes(lang.value) ? theme.primary : theme.border}`,
-                            background: newEvent.languages.includes(lang.value) ? theme.primary : theme.card,
-                            color: newEvent.languages.includes(lang.value) ? "white" : theme.text,
-                            fontSize: isMobile ? 15 : 16,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            transition: "all 0.2s",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
+                            width: "100%",
+                            padding: isMobile ? "12px 16px" : "14px 18px",
+                            borderRadius: 12,
+                            border: `2px solid ${theme.border}`,
+                            background: theme.card,
+                            color: theme.text,
+                            fontSize: isMobile ? 14 : 15,
+                            outline: "none",
+                            transition: "border 0.2s",
                           }}
-                          onClick={() => {
-                            const langs = [...newEvent.languages];
-                            const idx = langs.indexOf(lang.value);
-                            if (idx > -1) {
-                              langs.splice(idx, 1);
-                            } else {
-                              langs.push(lang.value);
-                            }
-                            setNewEvent({...newEvent, languages: langs});
-                          }}
-                        >
-                          <div style={{ fontSize: 28 }}>{lang.emoji}</div>
-                          <span>{lang.value}</span>
-                          {newEvent.languages.includes(lang.value) && (
-                            <span style={{ marginLeft: "auto", fontSize: 20 }}>✓</span>
-                          )}
-                        </button>
-                      ))}
+                          onFocus={(e) => e.target.style.borderColor = theme.accent}
+                          onBlur={(e) => e.target.style.borderColor = theme.border}
+                        />
+                      </div>
+
+                      {/* Language list */}
+                      <div style={{ 
+                        display: "grid", 
+                        gridTemplateColumns: "1fr", 
+                        gap: 12, 
+                        marginBottom: 16, 
+                        maxHeight: 300, 
+                        overflowY: "auto",
+                        padding: "4px",
+                      }}>
+                        {filteredLanguages.length > 0 ? (
+                          filteredLanguages.map(lang => (
+                            <button
+                              key={lang}
+                              style={{
+                                padding: isMobile ? 14 : 16,
+                                borderRadius: 12,
+                                border: `3px solid ${newEvent.languages.includes(lang) ? theme.primary : theme.border}`,
+                                background: newEvent.languages.includes(lang) ? theme.primary : theme.card,
+                                color: newEvent.languages.includes(lang) ? "white" : theme.text,
+                                fontSize: isMobile ? 14 : 15,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                boxShadow: newEvent.languages.includes(lang) 
+                                  ? "0 4px 12px rgba(88,204,2,0.3)" 
+                                  : "none",
+                              }}
+                              onClick={() => {
+                                const langs = [...newEvent.languages];
+                                const idx = langs.indexOf(lang);
+                                if (idx > -1) {
+                                  langs.splice(idx, 1);
+                                } else {
+                                  langs.push(lang);
+                                }
+                                setNewEvent({...newEvent, languages: langs});
+                              }}
+                            >
+                              <div style={{ fontSize: 24 }}>{languageEmojis[lang] || "🌍"}</div>
+                              <span style={{ flex: 1, textAlign: "left" }}>{lang}</span>
+                              {newEvent.languages.includes(lang) && (
+                                <span style={{ fontSize: 18, fontWeight: 900 }}>✓</span>
+                              )}
+                            </button>
+                          ))
+                        ) : (
+                          <p style={{ 
+                            fontSize: 14, 
+                            color: theme.textMuted, 
+                            padding: 20,
+                            textAlign: "center" 
+                          }}>
+                            No languages found matching "{languageSearchQuery}"
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {newEvent.languages.length > 0 && (
+                    <div style={{ 
+                      marginBottom: 16, 
+                      padding: 12, 
+                      background: theme.card, 
+                      borderRadius: 12, 
+                      border: `2px solid ${theme.primary}`,
+                    }}>
+                      <p style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8, fontWeight: 600 }}>
+                        Selected languages:
+                      </p>
+                      <p style={{ fontSize: isMobile ? 15 : 16, color: theme.text, fontWeight: 700 }}>
+                        {newEvent.languages.join(" ↔ ")}
+                      </p>
                     </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: 12 }}>
                     <button
                       style={{
-                        width: "100%",
-                        padding: isMobile ? "12px" : "14px",
-                        borderRadius: 12,
+                        flex: 1,
+                        padding: isMobile ? "14px" : "16px",
+                        borderRadius: 14,
                         border: `2px solid ${theme.border}`,
-                        background: "transparent",
-                        color: theme.accent,
-                        fontSize: isMobile ? 14 : 15,
-                        fontWeight: 700,
+                        background: theme.card,
+                        color: theme.text,
+                        fontWeight: 900,
+                        fontSize: isMobile ? 16 : 18,
                         cursor: "pointer",
-                        marginBottom: 16,
                       }}
-                      onClick={() => setShowAllLanguages(true)}
-                    >
-                      or browse all
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 16, maxHeight: 240, overflowY: "auto" }}>
-                      {[
-                        { value: "French", emoji: "🇫🇷" },
-                        { value: "English", emoji: "🇬🇧" },
-                        { value: "Spanish", emoji: "🇪🇸" },
-                        { value: "German", emoji: "🇩🇪" },
-                        { value: "Italian", emoji: "🇮🇹" },
-                        { value: "Portuguese", emoji: "🇵🇹" },
-                        { value: "Chinese", emoji: "🇨🇳" },
-                        { value: "Japanese", emoji: "🇯🇵" },
-                        { value: "Korean", emoji: "🇰🇷" },
-                        { value: "Arabic", emoji: "🇸🇦" },
-                      ].map(lang => (
-                        <button
-                          key={lang.value}
-                          style={{
-                            padding: isMobile ? 14 : 16,
-                            borderRadius: 12,
-                            border: `2px solid ${newEvent.languages.includes(lang.value) ? theme.primary : theme.border}`,
-                            background: newEvent.languages.includes(lang.value) ? theme.primary : theme.card,
-                            color: newEvent.languages.includes(lang.value) ? "white" : theme.text,
-                            fontSize: isMobile ? 14 : 15,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            transition: "all 0.2s",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                          }}
-                          onClick={() => {
-                            const langs = [...newEvent.languages];
-                            const idx = langs.indexOf(lang.value);
-                            if (idx > -1) {
-                              langs.splice(idx, 1);
-                            } else {
-                              langs.push(lang.value);
-                            }
-                            setNewEvent({...newEvent, languages: langs});
-                          }}
-                        >
-                          <div style={{ fontSize: 24 }}>{lang.emoji}</div>
-                          <span>{lang.value}</span>
-                          {newEvent.languages.includes(lang.value) && (
-                            <span style={{ marginLeft: "auto", fontSize: 18 }}>✓</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {newEvent.languages.length > 0 && (
-                  <div style={{ 
-                    marginBottom: 16, 
-                    padding: 12, 
-                    background: theme.card, 
-                    borderRadius: 12, 
-                    border: `2px solid ${theme.primary}`,
-                  }}>
-                    <p style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8, fontWeight: 600 }}>
-                      Selected languages:
-                    </p>
-                    <p style={{ fontSize: isMobile ? 15 : 16, color: theme.text, fontWeight: 700 }}>
-                      {newEvent.languages.join(" ↔ ")}
-                    </p>
-                  </div>
-                )}
-
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button
-                    style={{
-                      flex: 1,
-                      padding: isMobile ? "14px" : "16px",
-                      borderRadius: 14,
-                      border: `2px solid ${theme.border}`,
-                      background: theme.card,
-                      color: theme.text,
-                      fontWeight: 900,
-                      fontSize: isMobile ? 16 : 18,
-                      cursor: "pointer",
-                    }}
-                    onClick={() => {
-                      setCreateEventStep(5);
-                      setShowAllLanguages(false);
-                    }}
-                  >
-                    ← Back
-                  </button>
-                  <button
-                    style={{
-                      flex: 1,
-                      background: newEvent.languages.length > 0 ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.track,
-                      color: newEvent.languages.length > 0 ? "white" : theme.textMuted,
-                      border: "none",
-                      borderRadius: 14,
-                      padding: isMobile ? "14px" : "16px",
-                      fontWeight: 900,
-                      fontSize: isMobile ? 16 : 18,
-                      cursor: newEvent.languages.length > 0 ? "pointer" : "not-allowed",
-                      boxShadow: newEvent.languages.length > 0 ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
-                    }}
-                    onClick={() => {
-                      if (newEvent.languages.length > 0) {
-                        setCreateEventStep(7);
+                      onClick={() => {
+                        setCreateEventStep(5);
                         setShowAllLanguages(false);
-                      }
-                    }}
-                    disabled={newEvent.languages.length === 0}
-                  >
-                    {showAllLanguages ? "Confirm ✓" : "Next →"}
-                  </button>
+                        setLanguageSearchQuery("");
+                      }}
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      style={{
+                        flex: 1,
+                        background: newEvent.languages.length > 0 
+                          ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` 
+                          : theme.track,
+                        color: newEvent.languages.length > 0 ? "white" : theme.textMuted,
+                        border: "none",
+                        borderRadius: 14,
+                        padding: isMobile ? "14px" : "16px",
+                        fontWeight: 900,
+                        fontSize: isMobile ? 16 : 18,
+                        cursor: newEvent.languages.length > 0 ? "pointer" : "not-allowed",
+                        boxShadow: newEvent.languages.length > 0 ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
+                        transition: "all 0.2s",
+                      }}
+                      onClick={() => {
+                        if (newEvent.languages.length > 0) {
+                          setCreateEventStep(7);
+                          setShowAllLanguages(false);
+                          setLanguageSearchQuery("");
+                        }
+                      }}
+                      disabled={newEvent.languages.length === 0}
+                    >
+                      Next →
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Step 7: Capacity */}
             {createEventStep === 7 && (
