@@ -991,7 +991,13 @@ function SocialChat({
                             setShowOptionsMenu(false);
                             if (window.confirm("Archive this hangout? It will be moved to the Archive tab and hidden from the main feed.")) {
                               try {
-                                await api.archiveEvent(event.id, currentUser?.username || currentUser?.name);
+                                const username = currentUser?.name || currentUser?.username || 
+                                               (typeof currentUser === 'string' ? currentUser : null);
+                                if (!username) {
+                                  alert("Could not determine current user. Please try logging in again.");
+                                  return;
+                                }
+                                await api.archiveEvent(event.id, username);
                                 alert("Hangout archived successfully!");
                                 if (onBack) onBack();
                                 else window.location.reload();
