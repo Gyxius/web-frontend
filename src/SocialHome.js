@@ -1973,22 +1973,16 @@ function SocialHome({
       {activeTab === "archived" && !showExplore && (
         <>
           {(() => {
-            // Filter archived events from all sources
+            // Only show archived events where user is host or participant
             const archivedJoined = joinedEvents.filter(e => e.isArchived);
-            const archivedPublic = publicEvents.filter(e => e.isArchived);
-            const allArchived = [...archivedJoined, ...archivedPublic]
-              .filter((event, index, self) => 
-                // Remove duplicates by id
-                index === self.findIndex((e) => e.id === event.id)
-              );
             
-            return allArchived.length > 0 ? (
+            return archivedJoined.length > 0 ? (
               <div style={styles.highlightCard}>
                 <div style={styles.highlightTitle}>📦 Archived Events</div>
                 <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
                   Past events that have ended
                 </div>
-                {allArchived.map((item, idx) => {
+                {archivedJoined.map((item, idx) => {
                   const categoryBadge = getCategoryBadge(item.category);
                   const isHost = item.host && item.host.name === userName;
                   const isAdmin = userName.toLowerCase() === "admin";
