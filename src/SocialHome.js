@@ -1686,14 +1686,14 @@ function SocialHome({
       {activeTab === "joined" && !showExplore && (
         <>
           {/* My Joined Events Content */}
-          {joinedEvents.filter(item => !(item.host && item.host.name === userName)).length > 0 ? (
+          {joinedEvents.filter(item => !(item.host && item.host.name === userName) && !item.isArchived).length > 0 ? (
             <div style={styles.highlightCard}>
               <div style={styles.highlightTitle}>📅 My Joined Events</div>
               <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
                 Events you have joined
               </div>
               {joinedEvents
-                .filter(item => !(item.host && item.host.name === userName))
+                .filter(item => !(item.host && item.host.name === userName) && !item.isArchived)
                 .map((item, idx) => {
                   const categoryBadge = getCategoryBadge(item.category);
                   return (
@@ -1827,14 +1827,14 @@ function SocialHome({
       {/* TAB: My Hosted Events */}
       {activeTab === "hosted" && !showExplore && (
         <>
-          {joinedEvents.filter(item => item.host && item.host.name === userName).length > 0 ? (
+          {joinedEvents.filter(item => item.host && item.host.name === userName && !item.isArchived).length > 0 ? (
             <div style={styles.highlightCard}>
               <div style={styles.highlightTitle}>🎤 My Hosted Events</div>
               <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
                 Events you are hosting
               </div>
               {joinedEvents
-                .filter(item => item.host && item.host.name === userName)
+                .filter(item => item.host && item.host.name === userName && !item.isArchived)
                 .map((item, idx) => {
                   const categoryBadge = getCategoryBadge(item.category);
                   return (
