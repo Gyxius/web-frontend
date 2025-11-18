@@ -1085,7 +1085,7 @@ function SocialHome({
                   transition: "all 0.2s",
                 }}
               >
-                📦 Archive
+                Archive
               </button>
             </>
           )}
@@ -1978,7 +1978,7 @@ function SocialHome({
             
             return archivedJoined.length > 0 ? (
               <div style={styles.highlightCard}>
-                <div style={styles.highlightTitle}>📦 Archived Events</div>
+                <div style={styles.highlightTitle}>Archived Events</div>
                 <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
                   Past events that have ended
                 </div>
