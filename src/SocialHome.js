@@ -884,7 +884,7 @@ function SocialHome({
             </button>
           </div>
           <div style={{ fontSize: 20, fontWeight: 900, color: theme.text }}>
-            Lemi
+            Lemi Paris
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {/* Avatar with notification badge on the right (click avatar to open notifications) */}
