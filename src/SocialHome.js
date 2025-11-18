@@ -864,7 +864,7 @@ function SocialHome({
                 borderRadius: '50%',
                 width: 40,
                 height: 40,
-                display: 'flex',
+                display: 'none',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
