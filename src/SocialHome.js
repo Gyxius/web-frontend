@@ -132,6 +132,21 @@ function SocialHome({
   // View mode: 'my' shows only user's joined events, 'following' shows only following users' joined events
   const [viewMode, setViewMode] = useState("my");
   
+  // Log step changes and auto-focus container for keyboard navigation
+  useEffect(() => {
+    if (showCreateEventModal) {
+      console.log(`[CURRENT STEP] Now on Step ${createEventStep}`);
+      
+      // Auto-focus the step container for keyboard navigation
+      setTimeout(() => {
+        const stepContainer = document.querySelector(`[data-step="${createEventStep}"]`);
+        if (stepContainer) {
+          stepContainer.focus();
+        }
+      }, 100);
+    }
+  }, [createEventStep, showCreateEventModal]);
+  
   // Onboarding tooltip state
   const [showOnboardingTooltip, setShowOnboardingTooltip] = useState(() => {
     // Check if user has seen the tooltip before
@@ -338,8 +353,15 @@ function SocialHome({
   // Helper function for Enter key navigation
   const handleEnterKeyPress = (e, condition, nextStep, currentStep) => {
     if (e.key === 'Enter' && condition) {
+      console.log(`[ENTER KEY] Step ${currentStep} → Step ${nextStep}`);
       setCreateEventStep(nextStep);
     }
+  };
+
+  // Helper function for button clicks with logging
+  const handleNextStep = (fromStep, toStep) => {
+    console.log(`[BUTTON CLICK] Step ${fromStep} → Step ${toStep}`);
+    setCreateEventStep(toStep);
   };
 
   // Helper functions for display
@@ -2638,7 +2660,7 @@ function SocialHome({
                     cursor: newEvent.name.trim() ? "pointer" : "not-allowed",
                     boxShadow: newEvent.name.trim() ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
                   }}
-                  onClick={() => newEvent.name.trim() && setCreateEventStep(2)}
+                  onClick={() => newEvent.name.trim() && handleNextStep(1, 2)}
                   disabled={!newEvent.name.trim()}
                 >
                   Next →
@@ -2771,7 +2793,7 @@ function SocialHome({
                       boxShadow: (newEvent.venue && newEvent.address) ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
                       opacity: (newEvent.venue && newEvent.address) ? 1 : 0.5,
                     }}
-                    onClick={() => (newEvent.venue && newEvent.address) && setCreateEventStep(3)}
+                    onClick={() => (newEvent.venue && newEvent.address) && handleNextStep(2, 3)}
                   >
                     Next →
                   </button>
@@ -2782,9 +2804,11 @@ function SocialHome({
             {/* Step 3: Category */}
             {createEventStep === 3 && (
               <div 
+                data-step="3"
                 style={{ textAlign: "center", ...fadeIn }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && newEvent.category) {
+                    console.log('[ENTER KEY] Step 3 → Step 4');
                     setCreateEventStep(4);
                   }
                 }}
@@ -2857,7 +2881,10 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => setCreateEventStep(4)}
+                    onClick={() => {
+                      console.log('[BUTTON CLICK] Step 3 → Step 4');
+                      setCreateEventStep(4);
+                    }}
                   >
                     Next →
                   </button>
@@ -2887,6 +2914,7 @@ function SocialHome({
                   min={todayStr}
                   onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
                   onKeyDown={(e) => handleEnterKeyPress(e, newEvent.date && !isDateInPast, 5, 4)}
+                  autoFocus
                   style={{ 
                     width: "100%", 
                     padding: isMobile ? 14 : 16, 
@@ -2897,7 +2925,6 @@ function SocialHome({
                     textAlign: "center",
                     fontWeight: 600,
                   }}
-                  autoFocus
                 />
                 {isDateInPast && (
                   <div style={{
@@ -2943,7 +2970,7 @@ function SocialHome({
                       cursor: (newEvent.date && !isDateInPast) ? "pointer" : "not-allowed",
                       boxShadow: (newEvent.date && !isDateInPast) ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
                     }}
-                    onClick={() => newEvent.date && !isDateInPast && setCreateEventStep(5)}
+                    onClick={() => newEvent.date && !isDateInPast && handleNextStep(4, 5)}
                     disabled={!newEvent.date || isDateInPast}
                   >
                     Next →
@@ -2956,10 +2983,12 @@ function SocialHome({
             {/* Step 5: Time Range */}
             {createEventStep === 5 && (
               <div 
+                data-step="5"
                 style={{ textAlign: "center", ...fadeIn }}
+                tabIndex={0}
                 onKeyDown={(e) => {
                   const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
-                  const invalidRange = newEvent.time && newEvent.endTime && toMin(newEvent.endTime) <= toMin(newEvent.time);
+                  const invalidRange = newEvent.time && newEvent.endTime && toMin(newEvent.endTime) === toMin(newEvent.time);
                   handleEnterKeyPress(e, newEvent.time && !invalidRange, 6, 5);
                 }}
               >
@@ -2976,6 +3005,11 @@ function SocialHome({
                       type="time"
                       value={newEvent.time}
                       onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+                      onKeyDown={(e) => {
+                        const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
+                        const invalidRange = newEvent.time && newEvent.endTime && toMin(newEvent.endTime) === toMin(newEvent.time);
+                        handleEnterKeyPress(e, newEvent.time && !invalidRange, 6, 5);
+                      }}
                       style={{ 
                         width: "100%", 
                         padding: isMobile ? 14 : 16, 
@@ -2995,6 +3029,11 @@ function SocialHome({
                       type="time"
                       value={newEvent.endTime}
                       onChange={(e) => setNewEvent({...newEvent, endTime: e.target.value})}
+                      onKeyDown={(e) => {
+                        const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
+                        const invalidRange = newEvent.time && newEvent.endTime && toMin(newEvent.endTime) === toMin(newEvent.time);
+                        handleEnterKeyPress(e, newEvent.time && !invalidRange, 6, 5);
+                      }}
                       style={{ 
                         width: "100%", 
                         padding: isMobile ? 14 : 16, 
@@ -3030,7 +3069,7 @@ function SocialHome({
                   </button>
                   {(() => {
                     const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
-                    const invalidRange = newEvent.time && newEvent.endTime && toMin(newEvent.endTime) <= toMin(newEvent.time);
+                    const invalidRange = newEvent.time && newEvent.endTime && toMin(newEvent.endTime) === toMin(newEvent.time);
                     return (
                       <button
                         style={{
@@ -3045,7 +3084,7 @@ function SocialHome({
                           cursor: newEvent.time && !invalidRange ? "pointer" : "not-allowed",
                           boxShadow: newEvent.time && !invalidRange ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
                         }}
-                        onClick={() => newEvent.time && !invalidRange && setCreateEventStep(6)}
+                        onClick={() => newEvent.time && !invalidRange && handleNextStep(5, 6)}
                         disabled={!newEvent.time || invalidRange}
                       >
                         Next →
@@ -3096,9 +3135,11 @@ function SocialHome({
 
               return (
                 <div 
+                  data-step="6"
                   style={{ textAlign: "center", ...fadeIn }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newEvent.languages.length > 0) {
+                      console.log('[ENTER KEY] Step 6 → Step 7');
                       setCreateEventStep(7);
                     }
                   }}
@@ -3412,7 +3453,18 @@ function SocialHome({
 
             {/* Step 7: Capacity */}
             {createEventStep === 7 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                data-step="7"
+                style={{ textAlign: "center", ...fadeIn }}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newEvent.capacity) {
+                    console.log('[ENTER KEY] Step 7 → Step 8');
+                    e.preventDefault();
+                    handleNextStep(7, 8);
+                  }
+                }}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   How many people? 👥
                 </h3>
@@ -3477,6 +3529,7 @@ function SocialHome({
                     }}
                     onKeyDown={(e) => handleEnterKeyPress(e, newEvent.capacity, 8, 7)}
                     placeholder="Enter number (2-100)"
+                    autoFocus
                     style={{
                       width: "100%",
                       maxWidth: 200,
@@ -3520,7 +3573,7 @@ function SocialHome({
                       cursor: newEvent.capacity ? "pointer" : "not-allowed",
                       boxShadow: newEvent.capacity ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
                     }}
-                    onClick={() => newEvent.capacity && setCreateEventStep(8)}
+                    onClick={() => newEvent.capacity && handleNextStep(7, 8)}
                     disabled={!newEvent.capacity}
                   >
                     Next →
@@ -3531,7 +3584,20 @@ function SocialHome({
 
             {/* Step 8: Description (Optional) */}
             {createEventStep === 8 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                data-step="8"
+                style={{ textAlign: "center", ...fadeIn }}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  // Allow Enter on container (when textarea not focused) to proceed
+                  // But allow normal Enter in textarea for new lines
+                  if (e.key === 'Enter' && !e.shiftKey && e.target.tagName !== 'TEXTAREA') {
+                    console.log('[ENTER KEY] Step 8 → Step 9');
+                    e.preventDefault();
+                    handleNextStep(8, 9);
+                  }
+                }}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Tell us more! 💬
                 </h3>
@@ -3591,7 +3657,7 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => setCreateEventStep(9)}
+                    onClick={() => handleNextStep(8, 9)}
                   >
                     Next →
                   </button>
@@ -3602,9 +3668,16 @@ function SocialHome({
             {/* Step 9: Image Upload (Optional) */}
             {createEventStep === 9 && (
               <div 
+                data-step="9"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
-                onKeyDown={handleEnterKeyPress(() => setCreateEventStep(10))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    console.log('[ENTER KEY] Step 9 → Step 10');
+                    e.preventDefault();
+                    setCreateEventStep(10);
+                  }
+                }}
               >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Add a cover image 🖼️
@@ -3750,7 +3823,7 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => setCreateEventStep(10)}
+                    onClick={() => handleNextStep(9, 10)}
                   >
                     Next →
                   </button>
@@ -3761,9 +3834,16 @@ function SocialHome({
             {/* Step 10: Target Interests (Optional) */}
             {createEventStep === 10 && (
               <div 
+                data-step="10"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
-                onKeyDown={handleEnterKeyPress(() => setCreateEventStep(11))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    console.log('[ENTER KEY] Step 10 → Step 11');
+                    e.preventDefault();
+                    setCreateEventStep(11);
+                  }
+                }}
               >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Target specific interests? 🎯
@@ -3833,7 +3913,7 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => setCreateEventStep(11)}
+                    onClick={() => handleNextStep(10, 11)}
                   >
                     Next →
                   </button>
@@ -3844,9 +3924,16 @@ function SocialHome({
             {/* Step 11: Target Cité Connection (Optional) */}
             {createEventStep === 11 && (
               <div 
+                data-step="11"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
-                onKeyDown={handleEnterKeyPress(() => setCreateEventStep(12))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    console.log('[ENTER KEY] Step 11 → Step 12');
+                    e.preventDefault();
+                    setCreateEventStep(12);
+                  }
+                }}
               >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Target by Cité connection? 🏛️
@@ -3923,7 +4010,7 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => setCreateEventStep(12)}
+                    onClick={() => handleNextStep(11, 12)}
                   >
                     Next →
                   </button>
@@ -3934,10 +4021,12 @@ function SocialHome({
             {/* Step 12: Target by What Brings You Here (Optional) */}
             {createEventStep === 12 && (
               <div 
+                data-step="12"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
+                    console.log('[ENTER KEY] Step 12 → Creating Event');
                     e.preventDefault();
                     // Trigger the create button click
                     document.querySelector('[data-create-event-btn]')?.click();
@@ -4022,6 +4111,7 @@ function SocialHome({
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
                     onClick={async () => {
+                      console.log('[BUTTON CLICK] Create Event button clicked (Step 12)');
                       // Validate end time before creating
                       if (newEvent.time && newEvent.endTime && !isValidEndTime(newEvent.time, newEvent.endTime)) {
                         alert("End time must be after start time");
