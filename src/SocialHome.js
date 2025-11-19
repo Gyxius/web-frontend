@@ -343,14 +343,8 @@ function SocialHome({
 
   // Helper function for Enter key navigation
   const handleEnterKeyPress = (e, condition, nextStep, currentStep) => {
-    if (e.key === 'Enter') {
-      console.log(`🔑 Enter pressed at Step ${currentStep}`, { condition, willProceed: condition });
-      if (condition) {
-        console.log(`✅ Proceeding from Step ${currentStep} to Step ${nextStep}`);
-        setCreateEventStep(nextStep);
-      } else {
-        console.log(`❌ Cannot proceed from Step ${currentStep} - condition not met`);
-      }
+    if (e.key === 'Enter' && condition) {
+      setCreateEventStep(nextStep);
     }
   };
 
@@ -2619,14 +2613,8 @@ function SocialHome({
                   value={newEvent.name}
                   onChange={(e) => setNewEvent({...newEvent, name: e.target.value})}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      console.log('🔑 Enter pressed at Step 1', { eventName: newEvent.name, canProceed: !!newEvent.name.trim() });
-                      if (newEvent.name.trim()) {
-                        console.log('✅ Proceeding from Step 1 to Step 2');
-                        setCreateEventStep(2);
-                      } else {
-                        console.log('❌ Cannot proceed from Step 1 - event name is empty');
-                      }
+                    if (e.key === 'Enter' && newEvent.name.trim()) {
+                      setCreateEventStep(2);
                     }
                   }}
                   placeholder="e.g., Coffee & Croissants at Cité"
@@ -2669,13 +2657,8 @@ function SocialHome({
               <div 
                 style={{ textAlign: "center", ...fadeIn }}
                 onKeyDown={(e) => {
-                  console.log('🎹 Key pressed in Step 2 container:', e.key);
                   if (e.key === 'Enter' && newEvent.venue && newEvent.address) {
-                    console.log('🔑 Enter pressed at Step 2', { venue: newEvent.venue, address: newEvent.address, canProceed: true });
-                    console.log('✅ Proceeding from Step 2 to Step 3');
                     setCreateEventStep(3);
-                  } else if (e.key === 'Enter') {
-                    console.log('❌ Cannot proceed from Step 2 - venue or address missing', { venue: newEvent.venue, address: newEvent.address });
                   }
                 }}
                 tabIndex={0}
@@ -2751,12 +2734,8 @@ function SocialHome({
                       });
                     }}
                     onEnterPress={() => {
-                      console.log('🔑 Enter pressed at Step 2', { venue: newEvent.venue, address: newEvent.address, canProceed: !!(newEvent.venue && newEvent.address) });
                       if (newEvent.venue && newEvent.address) {
-                        console.log('✅ Proceeding from Step 2 to Step 3');
                         setCreateEventStep(3);
-                      } else {
-                        console.log('❌ Cannot proceed from Step 2 - venue or address missing');
                       }
                     }}
                     initialAddress={newEvent.address}
@@ -3554,8 +3533,6 @@ function SocialHome({
                   onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
                   onKeyDown={(e) => {
                     if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
-                      console.log('🔑 Ctrl/Cmd+Enter pressed at Step 8');
-                      console.log('✅ Proceeding from Step 8 to Step 9');
                       e.preventDefault();
                       setCreateEventStep(9);
                     }

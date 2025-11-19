@@ -312,32 +312,13 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
         onChange={handleInputChange}
         onFocus={handleFocus}
         onKeyDown={(e) => {
-          console.log('🎹 Key pressed in LocationPicker input:', e.key);
           if (e.key === 'Enter') {
-            console.log('🔑 Enter pressed in LocationPicker', { 
-              showSuggestions, 
-              suggestionsCount: suggestions.length,
-              hasCoordinates: !!coordinates,
-              coordinates,
-              address,
-              hasCallback: !!onEnterPress
-            });
             if (showSuggestions && suggestions.length > 0) {
-              // If suggestions are showing, select the first one
-              console.log('📍 Selecting first suggestion:', suggestions[0]);
               e.preventDefault();
               selectSuggestion(suggestions[0]);
             } else if (coordinates && onEnterPress) {
-              // If no suggestions and location is selected, proceed to next step
-              console.log('✅ Location selected, calling onEnterPress callback');
               e.preventDefault();
               onEnterPress();
-            } else {
-              console.log('❌ Cannot proceed from LocationPicker:', {
-                hasCoordinates: !!coordinates,
-                hasCallback: !!onEnterPress,
-                reason: !coordinates ? 'No coordinates set' : 'No callback provided'
-              });
             }
           }
         }}
