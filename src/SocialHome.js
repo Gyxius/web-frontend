@@ -2605,6 +2605,11 @@ function SocialHome({
                   type="text"
                   value={newEvent.name}
                   onChange={(e) => setNewEvent({...newEvent, name: e.target.value})}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newEvent.name.trim()) {
+                      setCreateEventStep(2);
+                    }
+                  }}
                   placeholder="e.g., Coffee & Croissants at Cité"
                   style={{ 
                     width: "100%", 
