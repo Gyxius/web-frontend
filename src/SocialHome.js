@@ -2781,7 +2781,15 @@ function SocialHome({
 
             {/* Step 3: Category */}
             {createEventStep === 3 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                style={{ textAlign: "center", ...fadeIn }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newEvent.category) {
+                    setCreateEventStep(4);
+                  }
+                }}
+                tabIndex={0}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Coffee here ☕
                 </h3>
@@ -3087,7 +3095,15 @@ function SocialHome({
                   );
 
               return (
-                <div style={{ textAlign: "center", ...fadeIn }}>
+                <div 
+                  style={{ textAlign: "center", ...fadeIn }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newEvent.languages.length > 0) {
+                      setCreateEventStep(7);
+                    }
+                  }}
+                  tabIndex={0}
+                >
                   <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                     What languages will you speak? 🗣️
                   </h3>
@@ -3585,7 +3601,11 @@ function SocialHome({
 
             {/* Step 9: Image Upload (Optional) */}
             {createEventStep === 9 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                style={{ textAlign: "center", ...fadeIn }}
+                tabIndex={0}
+                onKeyDown={handleEnterKeyPress(() => setCreateEventStep(10))}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Add a cover image 🖼️
                 </h3>
@@ -3740,7 +3760,11 @@ function SocialHome({
 
             {/* Step 10: Target Interests (Optional) */}
             {createEventStep === 10 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                style={{ textAlign: "center", ...fadeIn }}
+                tabIndex={0}
+                onKeyDown={handleEnterKeyPress(() => setCreateEventStep(11))}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Target specific interests? 🎯
                 </h3>
@@ -3819,7 +3843,11 @@ function SocialHome({
 
             {/* Step 11: Target Cité Connection (Optional) */}
             {createEventStep === 11 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                style={{ textAlign: "center", ...fadeIn }}
+                tabIndex={0}
+                onKeyDown={handleEnterKeyPress(() => setCreateEventStep(12))}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Target by Cité connection? 🏛️
                 </h3>
@@ -3905,7 +3933,17 @@ function SocialHome({
 
             {/* Step 12: Target by What Brings You Here (Optional) */}
             {createEventStep === 12 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                style={{ textAlign: "center", ...fadeIn }}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    // Trigger the create button click
+                    document.querySelector('[data-create-event-btn]')?.click();
+                  }
+                }}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Target by purpose of stay? ✈️
                 </h3>
@@ -3970,6 +4008,7 @@ function SocialHome({
                     ← Back
                   </button>
                   <button
+                    data-create-event-btn
                     style={{
                       flex: 1,
                       background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
