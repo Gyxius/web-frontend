@@ -312,6 +312,7 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
         onChange={handleInputChange}
         onFocus={handleFocus}
         onKeyDown={(e) => {
+          console.log('🎹 Key pressed in LocationPicker input:', e.key);
           if (e.key === 'Enter') {
             console.log('🔑 Enter pressed in LocationPicker', { 
               showSuggestions, 
