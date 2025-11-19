@@ -2654,10 +2654,7 @@ function SocialHome({
 
             {/* Step 2: Location (Cité or Paris) */}
             {createEventStep === 2 && (
-              <div 
-                style={{ textAlign: "center", ...fadeIn }}
-                onKeyDown={(e) => handleEnterKeyPress(e, newEvent.venue && newEvent.address, 3)}
-              >
+              <div style={{ textAlign: "center", ...fadeIn }}>
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Where is it? 📍
                 </h3>
@@ -2727,6 +2724,11 @@ function SocialHome({
                         address: location.address,
                         coordinates: { lat: location.lat, lng: location.lng }
                       });
+                    }}
+                    onEnterPress={() => {
+                      if (newEvent.venue && newEvent.address) {
+                        setCreateEventStep(3);
+                      }
                     }}
                     initialAddress={newEvent.address}
                     theme={theme}

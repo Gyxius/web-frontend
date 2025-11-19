@@ -110,7 +110,7 @@ function formatAddress(displayName, addressComponents) {
   }
 }
 
-function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordinates = null, theme, filterMode = "all" }) {
+function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordinates = null, theme, filterMode = "all", onEnterPress }) {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
@@ -311,6 +311,11 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
         value={address}
         onChange={handleInputChange}
         onFocus={handleFocus}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && onEnterPress) {
+            onEnterPress();
+          }
+        }}
         style={{
           width: "100%",
           padding: 12,
