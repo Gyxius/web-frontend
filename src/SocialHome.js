@@ -342,9 +342,15 @@ function SocialHome({
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   // Helper function for Enter key navigation
-  const handleEnterKeyPress = (e, condition, nextStep) => {
-    if (e.key === 'Enter' && condition) {
-      setCreateEventStep(nextStep);
+  const handleEnterKeyPress = (e, condition, nextStep, currentStep) => {
+    if (e.key === 'Enter') {
+      console.log(`🔑 Enter pressed at Step ${currentStep}`, { condition, willProceed: condition });
+      if (condition) {
+        console.log(`✅ Proceeding from Step ${currentStep} to Step ${nextStep}`);
+        setCreateEventStep(nextStep);
+      } else {
+        console.log(`❌ Cannot proceed from Step ${currentStep} - condition not met`);
+      }
     }
   };
 
@@ -2613,8 +2619,14 @@ function SocialHome({
                   value={newEvent.name}
                   onChange={(e) => setNewEvent({...newEvent, name: e.target.value})}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && newEvent.name.trim()) {
-                      setCreateEventStep(2);
+                    if (e.key === 'Enter') {
+                      console.log('🔑 Enter pressed at Step 1', { eventName: newEvent.name, canProceed: !!newEvent.name.trim() });
+                      if (newEvent.name.trim()) {
+                        console.log('✅ Proceeding from Step 1 to Step 2');
+                        setCreateEventStep(2);
+                      } else {
+                        console.log('❌ Cannot proceed from Step 1 - event name is empty');
+                      }
                     }
                   }}
                   placeholder="e.g., Coffee & Croissants at Cité"
@@ -2726,8 +2738,12 @@ function SocialHome({
                       });
                     }}
                     onEnterPress={() => {
+                      console.log('🔑 Enter pressed at Step 2', { venue: newEvent.venue, address: newEvent.address, canProceed: !!(newEvent.venue && newEvent.address) });
                       if (newEvent.venue && newEvent.address) {
+                        console.log('✅ Proceeding from Step 2 to Step 3');
                         setCreateEventStep(3);
+                      } else {
+                        console.log('❌ Cannot proceed from Step 2 - venue or address missing');
                       }
                     }}
                     initialAddress={newEvent.address}
@@ -2876,7 +2892,7 @@ function SocialHome({
                   value={newEvent.date}
                   min={todayStr}
                   onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
-                  onKeyDown={(e) => handleEnterKeyPress(e, newEvent.date && !isDateInPast, 5)}
+                  onKeyDown={(e) => handleEnterKeyPress(e, newEvent.date && !isDateInPast, 5, 4)}
                   style={{ 
                     width: "100%", 
                     padding: isMobile ? 14 : 16, 
@@ -2950,7 +2966,7 @@ function SocialHome({
                 onKeyDown={(e) => {
                   const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
                   const invalidRange = newEvent.time && newEvent.endTime && toMin(newEvent.endTime) <= toMin(newEvent.time);
-                  handleEnterKeyPress(e, newEvent.time && !invalidRange, 6);
+                  handleEnterKeyPress(e, newEvent.time && !invalidRange, 6, 5);
                 }}
               >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
@@ -3457,7 +3473,7 @@ function SocialHome({
                         setNewEvent({...newEvent, capacity: value});
                       }
                     }}
-                    onKeyDown={(e) => handleEnterKeyPress(e, newEvent.capacity, 8)}
+                    onKeyDown={(e) => handleEnterKeyPress(e, newEvent.capacity, 8, 7)}
                     placeholder="Enter number (2-100)"
                     style={{
                       width: "100%",
@@ -3525,6 +3541,8 @@ function SocialHome({
                   onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
                   onKeyDown={(e) => {
                     if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+                      console.log('🔑 Ctrl/Cmd+Enter pressed at Step 8');
+                      console.log('✅ Proceeding from Step 8 to Step 9');
                       e.preventDefault();
                       setCreateEventStep(9);
                     }
