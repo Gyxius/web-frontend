@@ -2666,7 +2666,20 @@ function SocialHome({
 
             {/* Step 2: Location (Cité or Paris) */}
             {createEventStep === 2 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                style={{ textAlign: "center", ...fadeIn }}
+                onKeyDown={(e) => {
+                  console.log('🎹 Key pressed in Step 2 container:', e.key);
+                  if (e.key === 'Enter' && newEvent.venue && newEvent.address) {
+                    console.log('🔑 Enter pressed at Step 2', { venue: newEvent.venue, address: newEvent.address, canProceed: true });
+                    console.log('✅ Proceeding from Step 2 to Step 3');
+                    setCreateEventStep(3);
+                  } else if (e.key === 'Enter') {
+                    console.log('❌ Cannot proceed from Step 2 - venue or address missing', { venue: newEvent.venue, address: newEvent.address });
+                  }
+                }}
+                tabIndex={0}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Where is it? 📍
                 </h3>
