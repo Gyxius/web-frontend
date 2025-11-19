@@ -312,8 +312,16 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
         onChange={handleInputChange}
         onFocus={handleFocus}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && onEnterPress) {
-            onEnterPress();
+          if (e.key === 'Enter') {
+            if (showSuggestions && suggestions.length > 0) {
+              // If suggestions are showing, select the first one
+              e.preventDefault();
+              selectSuggestion(suggestions[0]);
+            } else if (onEnterPress && coordinates) {
+              // If no suggestions and location is selected, proceed to next step
+              e.preventDefault();
+              onEnterPress();
+            }
           }
         }}
         style={{
