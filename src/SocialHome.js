@@ -121,10 +121,6 @@ function SocialHome({
   initialEventId = null,
   onBackFromAdmin = null,
 }) {
-  if (showDebug) {
-    console.log("[DEBUG] joinedEvents for", userName, joinedEvents);
-  }
-
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [showNotificationsInbox, setShowNotificationsInbox] = useState(false);
@@ -203,9 +199,7 @@ function SocialHome({
 
   // Handle template event for "Create Hangout" feature
   useEffect(() => {
-    console.log("Template event effect triggered:", templateEventToCreate);
     if (templateEventToCreate) {
-      console.log("Setting up hangout creation with template:", templateEventToCreate);
       setNewEvent({
         name: "", // User customizes the hangout name
         location: templateEventToCreate.location || "cite",
