@@ -341,6 +341,13 @@ function SocialHome({
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
+  // Helper function for Enter key navigation
+  const handleEnterKeyPress = (e, condition, nextStep) => {
+    if (e.key === 'Enter' && condition) {
+      setCreateEventStep(nextStep);
+    }
+  };
+
   // Helper functions for display
   const getCategoryEmoji = (category) => {
     const emojiMap = {
@@ -2647,7 +2654,10 @@ function SocialHome({
 
             {/* Step 2: Location (Cité or Paris) */}
             {createEventStep === 2 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                style={{ textAlign: "center", ...fadeIn }}
+                onKeyDown={(e) => handleEnterKeyPress(e, newEvent.venue && newEvent.address, 3)}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   Where is it? 📍
                 </h3>
@@ -2864,6 +2874,7 @@ function SocialHome({
                   value={newEvent.date}
                   min={todayStr}
                   onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+                  onKeyDown={(e) => handleEnterKeyPress(e, newEvent.date && !isDateInPast, 5)}
                   style={{ 
                     width: "100%", 
                     padding: isMobile ? 14 : 16, 
@@ -2932,7 +2943,14 @@ function SocialHome({
 
             {/* Step 5: Time Range */}
             {createEventStep === 5 && (
-              <div style={{ textAlign: "center", ...fadeIn }}>
+              <div 
+                style={{ textAlign: "center", ...fadeIn }}
+                onKeyDown={(e) => {
+                  const toMin = (t) => { try { const [h,m] = t.split(":"); return parseInt(h,10)*60+parseInt(m,10);} catch {return null;} };
+                  const invalidRange = newEvent.time && newEvent.endTime && toMin(newEvent.endTime) <= toMin(newEvent.time);
+                  handleEnterKeyPress(e, newEvent.time && !invalidRange, 6);
+                }}
+              >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
                   What time does it run? ⏰
                 </h3>
@@ -3437,6 +3455,7 @@ function SocialHome({
                         setNewEvent({...newEvent, capacity: value});
                       }
                     }}
+                    onKeyDown={(e) => handleEnterKeyPress(e, newEvent.capacity, 8)}
                     placeholder="Enter number (2-100)"
                     style={{
                       width: "100%",
@@ -3502,6 +3521,12 @@ function SocialHome({
                 <textarea
                   value={newEvent.description}
                   onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+                      e.preventDefault();
+                      setCreateEventStep(9);
+                    }
+                  }}
                   placeholder="What should people know about this event? (optional)"
                   style={{ 
                     width: "100%", 
