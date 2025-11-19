@@ -317,20 +317,26 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
               showSuggestions, 
               suggestionsCount: suggestions.length,
               hasCoordinates: !!coordinates,
-              address 
+              coordinates,
+              address,
+              hasCallback: !!onEnterPress
             });
             if (showSuggestions && suggestions.length > 0) {
               // If suggestions are showing, select the first one
               console.log('📍 Selecting first suggestion:', suggestions[0]);
               e.preventDefault();
               selectSuggestion(suggestions[0]);
-            } else if (onEnterPress && coordinates) {
+            } else if (coordinates && onEnterPress) {
               // If no suggestions and location is selected, proceed to next step
               console.log('✅ Location selected, calling onEnterPress callback');
               e.preventDefault();
               onEnterPress();
             } else {
-              console.log('❌ Cannot proceed - either no location selected or no callback provided');
+              console.log('❌ Cannot proceed from LocationPicker:', {
+                hasCoordinates: !!coordinates,
+                hasCallback: !!onEnterPress,
+                reason: !coordinates ? 'No coordinates set' : 'No callback provided'
+              });
             }
           }
         }}
