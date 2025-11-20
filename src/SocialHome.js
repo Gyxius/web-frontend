@@ -163,7 +163,7 @@ function SocialHome({
   const [exploreSearchQuery, setExploreSearchQuery] = useState("");
   const [exploreTimeFilter, setExploreTimeFilter] = useState("upcoming"); // "upcoming", "today", "tomorrow", "weekend"
   const [exploreLocationFilter, setExploreLocationFilter] = useState("all"); // "all", "Cité", "Paris"
-  const [exploreCategoryFilter, setExploreCategoryFilter] = useState("all"); // "all", "food", "drinks", etc.
+  const [exploreCategoryFilter, setExploreCategoryFilter] = useState("all"); // "all", "language", "cultural", "social", "food", "sports", "professional"
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showWhereModal, setShowWhereModal] = useState(false);
   const [showWhenModal, setShowWhenModal] = useState(false);
@@ -200,7 +200,7 @@ function SocialHome({
     time: "",
   endTime: "",
     description: "",
-    category: "food",
+    category: "language",
     languages: [], // Array of languages that will be spoken
     capacity: 6, // Maximum number of participants
     imageUrl: "", // Background image for the event
@@ -367,11 +367,12 @@ function SocialHome({
   // Helper functions for display
   const getCategoryEmoji = (category) => {
     const emojiMap = {
-      food: "🍽️",
-      drinks: "🍹",
-      random: "🎲",
-      walk: "🚶",
-      coffee: "☕",
+      language: "💬",
+      cultural: "🎭",
+      social: "�",
+      food: "�️",
+      sports: "⚽",
+      professional: "💼",
     };
     return emojiMap[category] || "🎯";
   };
@@ -404,15 +405,12 @@ function SocialHome({
 
   const getCategoryBadge = (category) => {
     const categoryMap = {
-      "food": { emoji: "🍽️", label: "Food", color: "#FF6B6B" },
-      "drinks": { emoji: "🍹", label: "Drinks", color: "#4ECDC4" },
-      "party": { emoji: "🎉", label: "Party", color: "#A463F2" },
-      "sports": { emoji: "⚽", label: "Sports", color: "#45B7D1" },
-      "culture": { emoji: "🎭", label: "Culture", color: "#F7B731" },
-      "study": { emoji: "📚", label: "Study", color: "#5F27CD" },
-      "music": { emoji: "🎵", label: "Music", color: "#FD79A8" },
-      "games": { emoji: "🎮", label: "Games", color: "#6C5CE7" },
-      "outdoor": { emoji: "🌳", label: "Outdoor", color: "#00B894" },
+      "language": { emoji: "💬", label: "Language & Exchange", color: "#FF6B6B" },
+      "cultural": { emoji: "�", label: "Cultural Exploration", color: "#F7B731" },
+      "social": { emoji: "🎉", label: "Social & Nightlife", color: "#A463F2" },
+      "food": { emoji: "🍽️", label: "Food & Gastronomy", color: "#4ECDC4" },
+      "sports": { emoji: "⚽", label: "Sports & Outdoors", color: "#45B7D1" },
+      "professional": { emoji: "💼", label: "Workshops & Professional", color: "#5F27CD" },
       "other": { emoji: "✨", label: "Other", color: "#74B9FF" },
     };
     return categoryMap[category?.toLowerCase()] || categoryMap["other"];
@@ -2594,7 +2592,7 @@ function SocialHome({
         <div style={styles.modalOverlay} onClick={() => {
           setShowCreateEventModal(false);
           setCreateEventStep(1);
-          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
+          setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "language", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
           setShowAllLanguages(false);
         }}>
           <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "visible", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
@@ -2815,18 +2813,19 @@ function SocialHome({
                 tabIndex={0}
               >
                 <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
-                  Coffee here ☕
+                  Pick a category 🎯
                 </h3>
                 <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
-                  Pick a category
+                  What type of event are you organizing?
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 24 }}>
                   {[
-                    { value: "food", label: "Food", emoji: "🍽️" },
-                    { value: "drinks", label: "Drinks", emoji: "🍹" },
-                    { value: "random", label: "Random", emoji: "🎲" },
-                    { value: "walk", label: "A Walk", emoji: "🚶" },
-                    { value: "coffee", label: "Coffee", emoji: "☕" },
+                    { value: "language", label: "Language & Exchange", emoji: "💬", desc: "Conversation workshops, language games" },
+                    { value: "cultural", label: "Cultural Exploration", emoji: "�", desc: "Museum visits, walking tours" },
+                    { value: "social", label: "Social & Nightlife", emoji: "�", desc: "Parties, karaoke, social gatherings" },
+                    { value: "food", label: "Food & Gastronomy", emoji: "�️", desc: "Cooking classes, tastings" },
+                    { value: "sports", label: "Sports & Outdoors", emoji: "⚽", desc: "Hiking, sports, outdoor activities" },
+                    { value: "professional", label: "Workshops & Professional", emoji: "💼", desc: "CV workshops, career events" },
                   ].map(cat => (
                     <button
                       key={cat.value}
@@ -2841,13 +2840,18 @@ function SocialHome({
                         cursor: "pointer",
                         transition: "all 0.2s",
                         display: "flex",
-                        alignItems: "center",
-                        gap: 12,
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        gap: 8,
+                        textAlign: "left",
                       }}
                       onClick={() => setNewEvent({...newEvent, category: cat.value})}
                     >
-                      <div style={{ fontSize: 28 }}>{cat.emoji}</div>
-                      <span>{cat.label}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
+                        <div style={{ fontSize: 28 }}>{cat.emoji}</div>
+                        <span style={{ fontWeight: 900 }}>{cat.label}</span>
+                      </div>
+                      <div style={{ fontSize: 13, opacity: 0.8, paddingLeft: 40 }}>{cat.desc}</div>
                     </button>
                   ))}
                 </div>
@@ -4169,7 +4173,7 @@ function SocialHome({
                         
                         console.log("STEP 9: Resetting form and closing modal...");
                         // Reset form and close
-                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
+                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "language", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
@@ -4210,7 +4214,7 @@ function SocialHome({
               onClick={() => {
                 setShowCreateEventModal(false);
                 setCreateEventStep(1);
-                setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "food", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
+                setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "language", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
                 setShowAllLanguages(false);
               }}
             >
@@ -4732,7 +4736,7 @@ function SocialHome({
                             coordinates: adminEditForm.coordinates || null,
                             date: adminEditForm.date || "",
                             time: adminEditForm.time || "",
-                            category: adminEditForm.category || (eventPreview.category || "food"),
+                            category: adminEditForm.category || (eventPreview.category || "language"),
                             languages: Array.isArray(adminEditForm.languages) ? adminEditForm.languages : [],
                             is_public: eventPreview.isPublic !== undefined ? eventPreview.isPublic : true,
                             event_type: eventPreview.type || "custom",
@@ -5607,6 +5611,60 @@ function SocialHome({
               </button>
               <button
                 onClick={() => {
+                  setExploreCategoryFilter("language");
+                  setShowFiltersModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreCategoryFilter === "language" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "language" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "language" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                💬 Language & Exchange
+              </button>
+              <button
+                onClick={() => {
+                  setExploreCategoryFilter("cultural");
+                  setShowFiltersModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreCategoryFilter === "cultural" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "cultural" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "cultural" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                � Cultural Exploration
+              </button>
+              <button
+                onClick={() => {
+                  setExploreCategoryFilter("social");
+                  setShowFiltersModal(false);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: `2px solid ${exploreCategoryFilter === "social" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "social" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "social" ? "white" : theme.text,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                🎉 Social & Nightlife
+              </button>
+              <button
+                onClick={() => {
                   setExploreCategoryFilter("food");
                   setShowFiltersModal(false);
                 }}
@@ -5621,25 +5679,7 @@ function SocialHome({
                   cursor: "pointer",
                 }}
               >
-                🍽️ Food
-              </button>
-              <button
-                onClick={() => {
-                  setExploreCategoryFilter("drinks");
-                  setShowFiltersModal(false);
-                }}
-                style={{
-                  padding: "12px",
-                  borderRadius: 12,
-                  border: `2px solid ${exploreCategoryFilter === "drinks" ? theme.primary : theme.border}`,
-                  background: exploreCategoryFilter === "drinks" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
-                  color: exploreCategoryFilter === "drinks" ? "white" : theme.text,
-                  fontSize: 15,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                🍹 Drinks
+                🍽️ Food & Gastronomy
               </button>
               <button
                 onClick={() => {
@@ -5657,43 +5697,25 @@ function SocialHome({
                   cursor: "pointer",
                 }}
               >
-                ⚽ Sports
+                ⚽ Sports & Outdoors
               </button>
               <button
                 onClick={() => {
-                  setExploreCategoryFilter("culture");
+                  setExploreCategoryFilter("professional");
                   setShowFiltersModal(false);
                 }}
                 style={{
                   padding: "12px",
                   borderRadius: 12,
-                  border: `2px solid ${exploreCategoryFilter === "culture" ? theme.primary : theme.border}`,
-                  background: exploreCategoryFilter === "culture" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
-                  color: exploreCategoryFilter === "culture" ? "white" : theme.text,
+                  border: `2px solid ${exploreCategoryFilter === "professional" ? theme.primary : theme.border}`,
+                  background: exploreCategoryFilter === "professional" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
+                  color: exploreCategoryFilter === "professional" ? "white" : theme.text,
                   fontSize: 15,
                   fontWeight: 800,
                   cursor: "pointer",
                 }}
               >
-                🎭 Culture
-              </button>
-              <button
-                onClick={() => {
-                  setExploreCategoryFilter("party");
-                  setShowFiltersModal(false);
-                }}
-                style={{
-                  padding: "12px",
-                  borderRadius: 12,
-                  border: `2px solid ${exploreCategoryFilter === "party" ? theme.primary : theme.border}`,
-                  background: exploreCategoryFilter === "party" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : theme.card,
-                  color: exploreCategoryFilter === "party" ? "white" : theme.text,
-                  fontSize: 15,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                🎉 Party
+                💼 Workshops & Professional
               </button>
             </div>
           </div>
