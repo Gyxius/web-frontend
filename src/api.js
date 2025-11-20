@@ -147,6 +147,12 @@ export const getFollows = async (username) => {
   return response.json();
 };
 
+export const getFollowers = async (username) => {
+  const response = await fetch(`${API_URL}/api/followers/${username}`);
+  if (!response.ok) throw new Error("Failed to fetch followers");
+  return response.json();
+};
+
 export const addFollow = async (user1, user2) => {
   const response = await fetch(`${API_URL}/api/follows`, {
     method: "POST",

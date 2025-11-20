@@ -1114,6 +1114,7 @@ function App() {
               await api.addFollow(fromKey, currentUserKey);
               
               // Reload follows data from API to get updated counts
+              let currentUserFollowObjs = [];
               try {
                 const currentUserFollows = await api.getFollows(currentUserKey);
                 const requesterFollows = await api.getFollows(fromKey);
@@ -1122,7 +1123,7 @@ function App() {
                 console.log('Requester follows:', requesterFollows);
                 
                 // Convert username strings to user objects
-                const currentUserFollowObjs = currentUserFollows.map(username => {
+                currentUserFollowObjs = currentUserFollows.map(username => {
                   const found = users.find(u => (u.name === username || u.username === username));
                   if (found) return found;
                   return { name: username, username: username, id: username };
@@ -1150,9 +1151,14 @@ function App() {
                 console.error('Failed to reload follows data:', error);
               }
               
-              // Check if current user is already following back
+              // Check if current user is already following back using the NEWLY loaded data
               // We need to check if currentUser follows fromKey (not the other way around)
-              const isAlreadyFollowingBack = follows[currentUserKey]?.some(f => (f.id || f.name || f.username) === fromKey || (f.id || f.name || f.username) === (requester.id || requester.username));
+              const isAlreadyFollowingBack = currentUserFollowObjs.some(f => 
+                (f.id || f.name || f.username) === fromKey || 
+                (f.id || f.name || f.username) === (requester.id || requester.username)
+              );
+              
+              console.log('Is already following back:', isAlreadyFollowingBack);
               
               // Offer to follow back if not already following - add to suggestions instead of popup
               if (!isAlreadyFollowingBack) {
