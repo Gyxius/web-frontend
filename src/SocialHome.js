@@ -1361,6 +1361,7 @@ function SocialHome({
                     boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                   }}
                   onClick={() => {
+                    console.log('[NAVIGATION] User clicked event from: Explore');
                     setPreviousView({ type: 'explore' });
                     setEventPreview(event);
                   }}
@@ -1734,6 +1735,7 @@ function SocialHome({
                       boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                     }}
                     onClick={() => {
+                      console.log('[NAVIGATION] User clicked event from:', `Events tab (${activeTab})`);
                       setPreviousView({ type: 'events', tab: activeTab });
                       onJoinedEventClick(item);
                     }}
@@ -1878,6 +1880,7 @@ function SocialHome({
                       boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                     }}
                     onClick={() => {
+                      console.log('[NAVIGATION] User clicked event from:', `Events tab (${activeTab})`);
                       setPreviousView({ type: 'events', tab: activeTab });
                       onJoinedEventClick(item);
                     }}
@@ -4291,19 +4294,25 @@ function SocialHome({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
               <button
                 onClick={() => {
+                  console.log('[NAVIGATION] Back button clicked. Previous view:', previousView);
                   setEventPreview(null);
                   if (previousView) {
                     if (previousView.type === 'calendar') {
+                      console.log('[NAVIGATION] Returning to: Calendar');
                       setShowCalendar(true);
                       if (previousView.selectedDate) {
                         setSelectedDate(previousView.selectedDate);
                       }
                     } else if (previousView.type === 'explore') {
+                      console.log('[NAVIGATION] Returning to: Explore');
                       setShowExplore(true);
                     } else if (previousView.type === 'events' && previousView.tab) {
+                      console.log('[NAVIGATION] Returning to: Events tab', previousView.tab);
                       setActiveTab(previousView.tab);
                     }
                     setPreviousView(null);
+                  } else {
+                    console.log('[NAVIGATION] No previous view stored, staying on default');
                   }
                 }}
                 style={{
@@ -5198,6 +5207,7 @@ function SocialHome({
                     <div
                       key={idx}
                       onClick={() => {
+                        console.log('[NAVIGATION] User clicked event from: Calendar', { date: selectedDate.toDateString() });
                         setPreviousView({ type: 'calendar', selectedDate });
                         setShowCalendar(false);
                         onJoinedEventClick && onJoinedEventClick(event);
