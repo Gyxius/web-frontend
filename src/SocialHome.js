@@ -4274,13 +4274,20 @@ function SocialHome({
             setShowAdminMenu(false);
             if (previousView) {
               if (previousView.type === 'calendar') {
+                setActiveBottomTab("calendar");
                 setShowCalendar(true);
+                setShowExplore(false);
                 if (previousView.selectedDate) {
                   setSelectedDate(previousView.selectedDate);
                 }
               } else if (previousView.type === 'explore') {
+                setActiveBottomTab("explore");
                 setShowExplore(true);
+                setShowCalendar(false);
               } else if (previousView.type === 'events' && previousView.tab) {
+                setActiveBottomTab("events");
+                setShowCalendar(false);
+                setShowExplore(false);
                 setActiveTab(previousView.tab);
               }
               setPreviousView(null);
@@ -4312,15 +4319,22 @@ function SocialHome({
                   if (previousView) {
                     if (previousView.type === 'calendar') {
                       console.log('[NAVIGATION] Returning to: Calendar');
+                      setActiveBottomTab("calendar");
                       setShowCalendar(true);
+                      setShowExplore(false);
                       if (previousView.selectedDate) {
                         setSelectedDate(previousView.selectedDate);
                       }
                     } else if (previousView.type === 'explore') {
                       console.log('[NAVIGATION] Returning to: Explore');
+                      setActiveBottomTab("explore");
                       setShowExplore(true);
+                      setShowCalendar(false);
                     } else if (previousView.type === 'events' && previousView.tab) {
                       console.log('[NAVIGATION] Returning to: Events tab', previousView.tab);
+                      setActiveBottomTab("events");
+                      setShowCalendar(false);
+                      setShowExplore(false);
                       setActiveTab(previousView.tab);
                     }
                     setPreviousView(null);
