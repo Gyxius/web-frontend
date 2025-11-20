@@ -261,6 +261,7 @@ function App() {
   };
 
   let mainContent;
+  let socialHomeContent = null;
   if (!user) {
     mainContent = (
       <Login
@@ -828,7 +829,7 @@ function App() {
       }} />
     );
   } else {
-    mainContent = (
+    socialHomeContent = (
       <>
         <button
           onClick={handleSignOut}
@@ -999,6 +1000,9 @@ function App() {
   return (
     <div className="App">
       {mainContent}
+      <div style={{ display: mainContent ? 'none' : 'block', height: '100%' }}>
+        {socialHomeContent}
+      </div>
     </div>
   );
 }
