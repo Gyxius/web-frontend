@@ -168,7 +168,7 @@ function SocialHome({
   const [showWhereModal, setShowWhereModal] = useState(false);
   const [showWhenModal, setShowWhenModal] = useState(false);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
-  const [returnToCalendar, setReturnToCalendar] = useState(false); // Track if user came from calendar
+  const [previousView, setPreviousView] = useState(null); // Track previous view for back navigation
 
   // Paris Trees feature state
   const [showParisTreesModal, setShowParisTreesModal] = useState(false);
@@ -1360,7 +1360,10 @@ function SocialHome({
                     cursor: "pointer",
                     boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                   }}
-                  onClick={() => setEventPreview(event)}
+                  onClick={() => {
+                    setPreviousView({ type: 'explore' });
+                    setEventPreview(event);
+                  }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                       <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
@@ -1730,7 +1733,10 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                     }}
-                    onClick={() => onJoinedEventClick(item)}
+                    onClick={() => {
+                      setPreviousView({ type: 'events', tab: activeTab });
+                      onJoinedEventClick(item);
+                    }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                       <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
@@ -1871,7 +1877,10 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                     }}
-                    onClick={() => onJoinedEventClick(item)}
+                    onClick={() => {
+                      setPreviousView({ type: 'events', tab: activeTab });
+                      onJoinedEventClick(item);
+                    }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                       <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
@@ -4245,14 +4254,21 @@ function SocialHome({
             paddingBottom: 100,
           }}
           onClick={() => {
-            if (returnToCalendar) {
-              setEventPreview(null);
-              setReturnToCalendar(false);
-              setShowCalendar(true);
-            } else {
-              setEventPreview(null);
-            }
+            setEventPreview(null);
             setShowAdminMenu(false);
+            if (previousView) {
+              if (previousView.type === 'calendar') {
+                setShowCalendar(true);
+                if (previousView.selectedDate) {
+                  setSelectedDate(previousView.selectedDate);
+                }
+              } else if (previousView.type === 'explore') {
+                setShowExplore(true);
+              } else if (previousView.type === 'events' && previousView.tab) {
+                setActiveTab(previousView.tab);
+              }
+              setPreviousView(null);
+            }
           }}
         >
           <div 
@@ -4275,12 +4291,19 @@ function SocialHome({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
               <button
                 onClick={() => {
-                  if (returnToCalendar) {
-                    setEventPreview(null);
-                    setReturnToCalendar(false);
-                    setShowCalendar(true);
-                  } else {
-                    setEventPreview(null);
+                  setEventPreview(null);
+                  if (previousView) {
+                    if (previousView.type === 'calendar') {
+                      setShowCalendar(true);
+                      if (previousView.selectedDate) {
+                        setSelectedDate(previousView.selectedDate);
+                      }
+                    } else if (previousView.type === 'explore') {
+                      setShowExplore(true);
+                    } else if (previousView.type === 'events' && previousView.tab) {
+                      setActiveTab(previousView.tab);
+                    }
+                    setPreviousView(null);
                   }
                 }}
                 style={{
@@ -4293,7 +4316,7 @@ function SocialHome({
                   padding: 0,
                 }}
               >
-                ← {returnToCalendar ? "Back to Calendar" : "Back to Events"}
+                ← {previousView?.type === 'calendar' ? "Back to Calendar" : previousView?.type === 'explore' ? "Back to Explore" : "Back to Events"}
               </button>
               
               <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -5175,8 +5198,8 @@ function SocialHome({
                     <div
                       key={idx}
                       onClick={() => {
+                        setPreviousView({ type: 'calendar', selectedDate });
                         setShowCalendar(false);
-                        setReturnToCalendar(true); // Mark that we came from calendar
                         onJoinedEventClick && onJoinedEventClick(event);
                       }}
                       style={{
