@@ -382,6 +382,12 @@ function NotificationsInbox({
                           if (onFollowBackUser) {
                             onFollowBackUser(fromKey);
                           }
+                          // Remove from accepted set
+                          setAcceptedFollowRequests(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(fromKey);
+                            return newSet;
+                          });
                         } else {
                           // Accept follow request
                           if (onAcceptFollowRequest) {
@@ -399,6 +405,12 @@ function NotificationsInbox({
                     <button 
                       style={styles.markReadButton}
                       onClick={() => {
+                        // Clean up accepted state if declining
+                        setAcceptedFollowRequests(prev => {
+                          const newSet = new Set(prev);
+                          newSet.delete(fromKey);
+                          return newSet;
+                        });
                         if (onDeclineFollowRequest) {
                           onDeclineFollowRequest(fromKey);
                         }

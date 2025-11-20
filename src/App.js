@@ -1048,11 +1048,14 @@ function App() {
               
               // Send follow request back
               setPendingFollowRequests(prev => {
-                const alreadyRequested = prev.some(req => req.from === currentUserKey && req.to === fromKey);
+                // Remove the original incoming request
+                const filtered = prev.filter(req => !(req.from === fromKey && req.to === currentUserKey));
+                // Check if we haven't already sent a request to them
+                const alreadyRequested = filtered.some(req => req.from === currentUserKey && req.to === fromKey);
                 if (!alreadyRequested) {
-                  return [...prev, { from: currentUserKey, to: fromKey, timestamp: Date.now() }];
+                  return [...filtered, { from: currentUserKey, to: fromKey, timestamp: Date.now() }];
                 }
-                return prev;
+                return filtered;
               });
               
               // Remove from suggestions
@@ -1064,7 +1067,11 @@ function App() {
             }
           }}
           onDismissFollowBackSuggestion={(fromKey) => {
+            const currentUserKey = user?.username || user?.name;
+            // Remove from suggestions
             setFollowBackSuggestions(prev => prev.filter(s => s.userKey !== fromKey));
+            // Also remove the pending request
+            setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === currentUserKey)));
           }}
           onAcceptFollowRequestFrom={async (fromKey) => {
             const currentUserKey = user?.username || user?.name;
@@ -1095,8 +1102,9 @@ function App() {
                 return updated;
               });
               
-              // Remove from pending requests
-              setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
+              // Remove from pending requests AFTER showing follow-back option
+              // Don't remove immediately - let the followBackSuggestions handle it
+              // setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
               
               // Check if current user is already following back
               const isAlreadyFollowingBack = follows[fromKey]?.some(f => (f.id || f.name) === (user?.id || user?.username || user?.name));
