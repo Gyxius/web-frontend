@@ -369,8 +369,8 @@ function SocialHome({
     const emojiMap = {
       language: "💬",
       cultural: "🎭",
-      social: "�",
-      food: "�️",
+      social: "🎉",
+      food: "🍽️",
       sports: "⚽",
       professional: "💼",
     };
@@ -406,7 +406,7 @@ function SocialHome({
   const getCategoryBadge = (category) => {
     const categoryMap = {
       "language": { emoji: "💬", label: "Language & Exchange", color: "#FF6B6B" },
-      "cultural": { emoji: "�", label: "Cultural Exploration", color: "#F7B731" },
+      "cultural": { emoji: "🎭", label: "Cultural Exploration", color: "#F7B731" },
       "social": { emoji: "🎉", label: "Social & Nightlife", color: "#A463F2" },
       "food": { emoji: "🍽️", label: "Food & Gastronomy", color: "#4ECDC4" },
       "sports": { emoji: "⚽", label: "Sports & Outdoors", color: "#45B7D1" },
@@ -2821,9 +2821,9 @@ function SocialHome({
                 <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 24 }}>
                   {[
                     { value: "language", label: "Language & Exchange", emoji: "💬", desc: "Conversation workshops, language games" },
-                    { value: "cultural", label: "Cultural Exploration", emoji: "�", desc: "Museum visits, walking tours" },
+                    { value: "cultural", label: "Cultural Exploration", emoji: "🎭", desc: "Museum visits, walking tours" },
                     { value: "social", label: "Social & Nightlife", emoji: "�", desc: "Parties, karaoke, social gatherings" },
-                    { value: "food", label: "Food & Gastronomy", emoji: "�️", desc: "Cooking classes, tastings" },
+                    { value: "food", label: "Food & Gastronomy", emoji: "🍽️", desc: "Cooking classes, tastings" },
                     { value: "sports", label: "Sports & Outdoors", emoji: "⚽", desc: "Hiking, sports, outdoor activities" },
                     { value: "professional", label: "Workshops & Professional", emoji: "💼", desc: "CV workshops, career events" },
                   ].map(cat => (
