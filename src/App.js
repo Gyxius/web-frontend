@@ -39,6 +39,7 @@ function App() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationsData, setNotificationsData] = useState(null);
   const [socialHomeNavigationState, setSocialHomeNavigationState] = useState(null);
+  const [followBackSuggestions, setFollowBackSuggestions] = useState([]);
   
   // Load data from API when user logs in
   useEffect(() => {
@@ -991,6 +992,24 @@ function App() {
             events: userEvents[fr?.username || fr?.name] || []
           })).filter(fe => Array.isArray(fe.events) && fe.events.length > 0)}
           followRequestsIncoming={pendingFollowRequests.filter(r => r.to === (user?.username || user?.name))}
+          followBackSuggestions={followBackSuggestions}
+          onFollowBackUser={(fromKey) => {
+            const currentUserKey = user?.username || user?.name;
+            // Send follow request back
+            setPendingFollowRequests(prev => {
+              const alreadyRequested = prev.some(req => req.from === currentUserKey && req.to === fromKey);
+              if (!alreadyRequested) {
+                return [...prev, { from: currentUserKey, to: fromKey, timestamp: Date.now() }];
+              }
+              return prev;
+            });
+            // Remove from suggestions
+            setFollowBackSuggestions(prev => prev.filter(s => s.userKey !== fromKey));
+            console.log(`📤 Follow request sent back to ${fromKey}`);
+          }}
+          onDismissFollowBackSuggestion={(fromKey) => {
+            setFollowBackSuggestions(prev => prev.filter(s => s.userKey !== fromKey));
+          }}
           onAcceptFollowRequestFrom={(fromKey) => {
             const currentUserKey = user?.username || user?.name;
             const requester = users.find(u => u.name === fromKey || u.username === fromKey) || { name: fromKey, id: fromKey };
@@ -1022,22 +1041,15 @@ function App() {
             // Check if current user is already following back
             const isAlreadyFollowingBack = follows[fromKey]?.some(f => (f.id || f.name) === (user?.id || user?.username || user?.name));
             
-            // Offer to follow back if not already following
+            // Offer to follow back if not already following - add to suggestions instead of popup
             if (!isAlreadyFollowingBack) {
-              const requesterName = requester.name || fromKey;
-              const followBack = window.confirm(`${requester.emoji || '👤'} ${requesterName} is now following you! Would you like to follow them back?`);
-              
-              if (followBack) {
-                // Add current user to requester's pending requests (or directly to follows if auto-accept)
-                setPendingFollowRequests(prev => {
-                  const alreadyRequested = prev.some(req => req.from === currentUserKey && req.to === fromKey);
-                  if (!alreadyRequested) {
-                    return [...prev, { from: currentUserKey, to: fromKey, timestamp: Date.now() }];
-                  }
-                  return prev;
-                });
-                console.log(`📤 Follow request sent to ${requesterName}`);
-              }
+              setFollowBackSuggestions(prev => {
+                const alreadySuggested = prev.some(s => s.userKey === fromKey);
+                if (!alreadySuggested) {
+                  return [...prev, { userKey: fromKey, user: requester, timestamp: Date.now() }];
+                }
+                return prev;
+              });
             }
           }}
           onDeclineFollowRequestFrom={(fromKey) => {

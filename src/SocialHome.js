@@ -112,6 +112,9 @@ function SocialHome({
   notificationsData = null,
   onRefreshNotifications,
   onDeclineFollowRequestFrom,
+  followBackSuggestions = [],
+  onFollowBackUser,
+  onDismissFollowBackSuggestion,
   addPoints,
   getUserPoints,
   templateEventToCreate = null,
@@ -2400,6 +2403,50 @@ function SocialHome({
                         onClick={() => onDeclineFollowRequestFrom && onDeclineFollowRequestFrom(fromKey)}
                       >
                         Decline
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {/* Follow Back Suggestions */}
+        {followBackSuggestions && followBackSuggestions.length > 0 && (
+          <div style={{ ...styles.highlightCard, marginTop: 12, background: '#E8F5E9' }}>
+            <div style={{ ...styles.highlightTitle, color: theme.primary }}>👤 Follow Back</div>
+            <ul style={{ margin: 0, paddingLeft: 16 }}>
+              {followBackSuggestions.map((suggestion, idx) => {
+                const suggestedUser = suggestion.user;
+                const label = suggestedUser ? `${suggestedUser.emoji || "👤"} ${suggestedUser.name} ${suggestedUser.country || ""}` : suggestion.userKey;
+                return (
+                  <li key={idx} style={{ marginBottom: 10, listStyle: "disc", color: theme.text }}>
+                    <span style={{ fontWeight: 700 }}>{label}</span>
+                    <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
+                      is now following you! Would you like to follow them back?
+                    </div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                      <button
+                        style={{
+                          ...styles.joinButton,
+                          padding: "10px 12px",
+                          flex: "unset",
+                          background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                        }}
+                        onClick={() => onFollowBackUser && onFollowBackUser(suggestion.userKey)}
+                      >
+                        Follow Back
+                      </button>
+                      <button
+                        style={{
+                          ...styles.cancelButton,
+                          padding: "10px 12px",
+                          marginTop: 0,
+                        }}
+                        onClick={() => onDismissFollowBackSuggestion && onDismissFollowBackSuggestion(suggestion.userKey)}
+                      >
+                        Dismiss
                       </button>
                     </div>
                   </li>
