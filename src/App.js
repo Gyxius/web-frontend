@@ -38,6 +38,7 @@ function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationsData, setNotificationsData] = useState(null);
+  const [socialHomeNavigationState, setSocialHomeNavigationState] = useState(null);
   
   // Load data from API when user logs in
   useEffect(() => {
@@ -658,6 +659,7 @@ function App() {
           setShowChat(false);
           setRouletteResult(null);
           setSelectedProfile(null);
+          setSocialHomeNavigationState(null);
         }}
         onUserClick={(clickedUser) => {
           const currentUserKey = user?.username || user?.name;
@@ -864,6 +866,8 @@ function App() {
           notificationCount={notificationCount}
           notificationsData={notificationsData}
           onRefreshNotifications={refreshNotifications}
+          restoreNavigationState={socialHomeNavigationState}
+          onNavigationStateRestored={() => setSocialHomeNavigationState(null)}
           onJoinPublicEvent={async (event) => {
             const currentUserKey = user?.username || user?.name;
             // Check if already joined
@@ -923,7 +927,8 @@ function App() {
               return updated;
             });
           }}
-          onJoinedEventClick={event => {
+          onJoinedEventClick={(event, navState) => {
+            setSocialHomeNavigationState(navState);
             setRouletteResult(event);
             setShowChat(true);
           }}

@@ -116,6 +116,8 @@ function SocialHome({
   getUserPoints,
   templateEventToCreate = null,
   onTemplateEventHandled = null,
+  restoreNavigationState = null,
+  onNavigationStateRestored = null,
   // Admin handoff: allow opening SocialHome to preview/edit a specific event
   adminMode = false,
   initialEventId = null,
@@ -274,6 +276,33 @@ function SocialHome({
     const currentScreen = showCalendar ? 'Calendar' : showExplore ? 'Explore' : `Events (${activeTab})`;
     console.log('[NAVIGATION] Current screen:', currentScreen);
   }, [showCalendar, showExplore, activeTab]);
+
+  // Restore navigation state when returning from chat
+  useEffect(() => {
+    if (restoreNavigationState) {
+      console.log('[NAVIGATION] Restoring navigation state:', restoreNavigationState);
+      if (restoreNavigationState.type === 'calendar') {
+        setActiveBottomTab("calendar");
+        setShowCalendar(true);
+        setShowExplore(false);
+        if (restoreNavigationState.selectedDate) {
+          setSelectedDate(restoreNavigationState.selectedDate);
+        }
+      } else if (restoreNavigationState.type === 'explore') {
+        setActiveBottomTab("explore");
+        setShowExplore(true);
+        setShowCalendar(false);
+      } else if (restoreNavigationState.type === 'events' && restoreNavigationState.tab) {
+        setActiveBottomTab("events");
+        setShowCalendar(false);
+        setShowExplore(false);
+        setActiveTab(restoreNavigationState.tab);
+      }
+      if (onNavigationStateRestored) {
+        onNavigationStateRestored();
+      }
+    }
+  }, [restoreNavigationState, onNavigationStateRestored]);
 
   // Alternative venues for each tree - used when user clicks "Find Alternative"
   const venueAlternatives = {
@@ -1750,8 +1779,9 @@ function SocialHome({
                     }}
                     onClick={() => {
                       console.log('[NAVIGATION] User clicked event from:', `Events tab (${activeTab})`);
-                      setPreviousView({ type: 'events', tab: activeTab });
-                      onJoinedEventClick(item);
+                      const navState = { type: 'events', tab: activeTab };
+                      setPreviousView(navState);
+                      onJoinedEventClick(item, navState);
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -1895,8 +1925,9 @@ function SocialHome({
                     }}
                     onClick={() => {
                       console.log('[NAVIGATION] User clicked event from:', `Events tab (${activeTab})`);
-                      setPreviousView({ type: 'events', tab: activeTab });
-                      onJoinedEventClick(item);
+                      const navState = { type: 'events', tab: activeTab };
+                      setPreviousView(navState);
+                      onJoinedEventClick(item, navState);
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -2513,7 +2544,8 @@ function SocialHome({
                         `[ACTIVITY] user "${userName}": clicked on joined event "${item.name || item.type || item.category || "Event"}"`,
                         item
                       );
-                      onJoinedEventClick(item);
+                      const navState = { type: 'events', tab: activeTab };
+                      onJoinedEventClick(item, navState);
                     }}
                 >
                   <div style={styles.eventName}>
@@ -5254,9 +5286,10 @@ function SocialHome({
                       key={idx}
                       onClick={() => {
                         console.log('[NAVIGATION] User clicked event from: Calendar', { date: selectedDate.toDateString() });
-                        setPreviousView({ type: 'calendar', selectedDate });
+                        const navState = { type: 'calendar', selectedDate };
+                        setPreviousView(navState);
                         setShowCalendar(false);
-                        onJoinedEventClick && onJoinedEventClick(event);
+                        onJoinedEventClick && onJoinedEventClick(event, navState);
                       }}
                       style={{
                         background: "white",
