@@ -873,6 +873,7 @@ function App() {
             // Check if already joined
             const list = userEvents[currentUserKey] || [];
             if (list.find(x => String(x.id) === String(event.id))) {
+              console.log(`User already joined event: ${event.name}`);
               alert(`You've already joined "${event.name}"! Check your joined events below.`);
               return;
             }
@@ -887,8 +888,11 @@ function App() {
               setPublicEvents(allEvents);
               // Award 1 point for joining an event
               const newPoints = addPoints(currentUserKey, 1);
-              // Show success message
-              alert(`🎉 Success! You joined "${event.name}"!\n\n📍 ${event.location}${event.place ? ` - ${event.place}` : ''}\n⏰ ${event.date} at ${event.time}${event.endTime ? ` – ${event.endTime}` : ''}\n\n⭐ +1 point earned! You now have ${newPoints} points!\n\nCheck your "My Joined Events" section below to see it!`);
+              // Log success
+              console.log(`✅ Successfully joined event: ${event.name} | Points: ${newPoints} | Location: ${event.location} | Date: ${event.date} at ${event.time}${event.endTime ? ` – ${event.endTime}` : ''}`);
+              // Open the event in chat view
+              setRouletteResult(event);
+              setShowChat(true);
             } catch (error) {
               console.error("Failed to join event:", error);
               alert("Failed to join event. Please try again.");
