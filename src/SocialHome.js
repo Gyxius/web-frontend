@@ -261,6 +261,20 @@ function SocialHome({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminMode, initialEventId]);
 
+  // Debug: Track when event preview opens
+  useEffect(() => {
+    if (eventPreview) {
+      console.log('[NAVIGATION] Event preview opened:', eventPreview.name);
+      console.log('[NAVIGATION] Current previousView state:', previousView);
+    }
+  }, [eventPreview, previousView]);
+
+  // Debug: Track current screen
+  useEffect(() => {
+    const currentScreen = showCalendar ? 'Calendar' : showExplore ? 'Explore' : `Events (${activeTab})`;
+    console.log('[NAVIGATION] Current screen:', currentScreen);
+  }, [showCalendar, showExplore, activeTab]);
+
   // Alternative venues for each tree - used when user clicks "Find Alternative"
   const venueAlternatives = {
     bars: [
