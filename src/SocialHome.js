@@ -2370,47 +2370,7 @@ function SocialHome({
       )}
 
       <div style={styles.section}>
-        {/* Follow Requests Notification */}
-        {followRequestsIncoming && followRequestsIncoming.length > 0 && (
-          <div style={{ ...styles.highlightCard, marginTop: -4 }}>
-            <div style={{ ...styles.highlightTitle, color: theme.accent }}>🔔 Follow Requests</div>
-            <ul style={{ margin: 0, paddingLeft: 16 }}>
-              {followRequestsIncoming.map((req, idx) => {
-                const fromKey = req.from;
-                const fromUser = users.find(u => u.name === fromKey || u.username === fromKey);
-                const label = fromUser ? `${fromUser.emoji || ""} ${fromUser.name} ${fromUser.country || ""}` : fromKey;
-                return (
-                  <li key={idx} style={{ marginBottom: 10, listStyle: "disc", color: theme.text }}>
-                    <span style={{ fontWeight: 700 }}>{label}</span>
-                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                      <button
-                        style={{
-                          ...styles.joinButton,
-                          padding: "10px 12px",
-                          flex: "unset",
-                          background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
-                        }}
-                        onClick={() => onAcceptFollowRequestFrom && onAcceptFollowRequestFrom(fromKey)}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        style={{
-                          ...styles.cancelButton,
-                          padding: "10px 12px",
-                          marginTop: 0,
-                        }}
-                        onClick={() => onDeclineFollowRequestFrom && onDeclineFollowRequestFrom(fromKey)}
-                      >
-                        Decline
-                      </button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
+        {/* Follow Requests Notification - Now only visible in Notifications Inbox */}
 
         {/* Follow Back Suggestions */}
         {followBackSuggestions && followBackSuggestions.length > 0 && (
