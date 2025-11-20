@@ -4273,26 +4273,33 @@ function SocialHome({
           onClick={() => {
             setShowAdminMenu(false);
             if (previousView) {
-              if (previousView.type === 'calendar') {
-                setActiveBottomTab("calendar");
-                setShowCalendar(true);
-                setShowExplore(false);
-                if (previousView.selectedDate) {
-                  setSelectedDate(previousView.selectedDate);
+              // Close the preview first
+              setEventPreview(null);
+              
+              // Use setTimeout to ensure state updates happen after preview closes
+              setTimeout(() => {
+                if (previousView.type === 'calendar') {
+                  setActiveBottomTab("calendar");
+                  setShowCalendar(true);
+                  setShowExplore(false);
+                  if (previousView.selectedDate) {
+                    setSelectedDate(previousView.selectedDate);
+                  }
+                } else if (previousView.type === 'explore') {
+                  setActiveBottomTab("explore");
+                  setShowExplore(true);
+                  setShowCalendar(false);
+                } else if (previousView.type === 'events' && previousView.tab) {
+                  setActiveBottomTab("events");
+                  setShowCalendar(false);
+                  setShowExplore(false);
+                  setActiveTab(previousView.tab);
                 }
-              } else if (previousView.type === 'explore') {
-                setActiveBottomTab("explore");
-                setShowExplore(true);
-                setShowCalendar(false);
-              } else if (previousView.type === 'events' && previousView.tab) {
-                setActiveBottomTab("events");
-                setShowCalendar(false);
-                setShowExplore(false);
-                setActiveTab(previousView.tab);
-              }
-              setPreviousView(null);
+                setPreviousView(null);
+              }, 0);
+            } else {
+              setEventPreview(null);
             }
-            setEventPreview(null);
           }}
         >
           <div 
@@ -4317,31 +4324,42 @@ function SocialHome({
                 onClick={() => {
                   console.log('[NAVIGATION] Back button clicked. Previous view:', previousView);
                   if (previousView) {
-                    if (previousView.type === 'calendar') {
-                      console.log('[NAVIGATION] Returning to: Calendar');
-                      setActiveBottomTab("calendar");
-                      setShowCalendar(true);
-                      setShowExplore(false);
-                      if (previousView.selectedDate) {
-                        setSelectedDate(previousView.selectedDate);
+                    // Close the preview first
+                    setEventPreview(null);
+                    
+                    // Use setTimeout to ensure state updates happen after preview closes
+                    setTimeout(() => {
+                      if (previousView.type === 'calendar') {
+                        console.log('[NAVIGATION] Returning to: Calendar');
+                        setActiveBottomTab("calendar");
+                        setShowCalendar(true);
+                        setShowExplore(false);
+                        if (previousView.selectedDate) {
+                          setSelectedDate(previousView.selectedDate);
+                        }
+                      } else if (previousView.type === 'explore') {
+                        console.log('[NAVIGATION] Returning to: Explore');
+                        setActiveBottomTab("explore");
+                        setShowExplore(true);
+                        setShowCalendar(false);
+                      } else if (previousView.type === 'events' && previousView.tab) {
+                        console.log('[NAVIGATION] Returning to: Events tab', previousView.tab);
+                        console.log('[NAVIGATION] About to set activeBottomTab to: events');
+                        setActiveBottomTab("events");
+                        console.log('[NAVIGATION] About to set showCalendar to: false');
+                        setShowCalendar(false);
+                        console.log('[NAVIGATION] About to set showExplore to: false');
+                        setShowExplore(false);
+                        console.log('[NAVIGATION] About to set activeTab to:', previousView.tab);
+                        setActiveTab(previousView.tab);
+                        console.log('[NAVIGATION] All state updates called for tab:', previousView.tab);
                       }
-                    } else if (previousView.type === 'explore') {
-                      console.log('[NAVIGATION] Returning to: Explore');
-                      setActiveBottomTab("explore");
-                      setShowExplore(true);
-                      setShowCalendar(false);
-                    } else if (previousView.type === 'events' && previousView.tab) {
-                      console.log('[NAVIGATION] Returning to: Events tab', previousView.tab);
-                      setActiveBottomTab("events");
-                      setShowCalendar(false);
-                      setShowExplore(false);
-                      setActiveTab(previousView.tab);
-                    }
-                    setPreviousView(null);
+                      setPreviousView(null);
+                    }, 0);
                   } else {
                     console.log('[NAVIGATION] No previous view stored, staying on default');
+                    setEventPreview(null);
                   }
-                  setEventPreview(null);
                 }}
                 style={{
                   background: "transparent",
