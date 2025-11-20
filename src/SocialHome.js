@@ -5090,6 +5090,7 @@ function SocialHome({
                 const hasEvents = eventsOnDay.length > 0;
                 const isToday = new Date().toDateString() === date.toDateString();
                 const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
+                const isPast = date < new Date(new Date().setHours(0, 0, 0, 0)); // Check if date is before today
                 
                 return (
                   <button
@@ -5097,7 +5098,7 @@ function SocialHome({
                     onClick={() => setSelectedDate(date)}
                     style={{
                       padding: "12px 8px",
-                      background: isSelected ? theme.primary : isToday ? theme.gold : hasEvents ? theme.accent : "transparent",
+                      background: isSelected ? theme.primary : isToday ? theme.gold : hasEvents ? (isPast ? "#9CA3AF" : theme.accent) : "transparent",
                       color: isSelected || isToday || hasEvents ? "white" : theme.text,
                       border: "none",
                       borderRadius: 8,
@@ -5105,6 +5106,7 @@ function SocialHome({
                       fontWeight: hasEvents || isToday || isSelected ? 900 : 600,
                       fontSize: 14,
                       position: "relative",
+                      opacity: isPast && !isSelected ? 0.7 : 1,
                     }}
                   >
                     {day}
@@ -5117,7 +5119,7 @@ function SocialHome({
                         width: 4,
                         height: 4,
                         borderRadius: "50%",
-                        background: isToday ? "white" : theme.primary,
+                        background: isToday ? "white" : isPast ? "#D1D5DB" : theme.primary,
                       }} />
                     )}
                   </button>
