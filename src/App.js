@@ -1036,6 +1036,7 @@ function App() {
             }
           }}
           showDebug={true}
+          follows={follows}
           followingEvents={(follows[user?.username || user?.name] || []).map(fr => ({
             following: fr,
             events: userEvents[fr?.username || fr?.name] || []
@@ -1114,7 +1115,8 @@ function App() {
               // setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
               
               // Check if current user is already following back
-              const isAlreadyFollowingBack = follows[fromKey]?.some(f => (f.id || f.name) === (user?.id || user?.username || user?.name));
+              // We need to check if currentUser follows fromKey (not the other way around)
+              const isAlreadyFollowingBack = follows[currentUserKey]?.some(f => (f.id || f.name || f.username) === fromKey || (f.id || f.name || f.username) === (requester.id || requester.username));
               
               // Offer to follow back if not already following - add to suggestions instead of popup
               if (!isAlreadyFollowingBack) {

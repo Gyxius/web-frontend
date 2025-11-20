@@ -121,6 +121,7 @@ function SocialHome({
   onTemplateEventHandled = null,
   restoreNavigationState = null,
   onNavigationStateRestored = null,
+  follows = {},
   // Admin handoff: allow opening SocialHome to preview/edit a specific event
   adminMode = false,
   initialEventId = null,
@@ -5895,6 +5896,7 @@ function SocialHome({
           onAcceptFollowRequest={onAcceptFollowRequestFrom}
           onDeclineFollowRequest={onDeclineFollowRequestFrom}
           onFollowBackUser={onFollowBackUser}
+          follows={follows}
         />
       )}
 

@@ -16,6 +16,7 @@ function NotificationsInbox({
   onAcceptFollowRequest,
   onDeclineFollowRequest,
   onFollowBackUser,
+  follows = {},
 }) {
   const [notificationDetails, setNotificationDetails] = useState([]);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
@@ -365,19 +366,29 @@ function NotificationsInbox({
               const userName = fromUser ? fromUser.name : fromKey;
               const hasAccepted = acceptedFollowRequests.has(fromKey);
               
+              // Check if current user already follows the requester back
+              const currentUserKey = currentUser?.username || currentUser?.name;
+              const isAlreadyFollowingBack = follows[currentUserKey]?.some(f => 
+                (f.id || f.name || f.username) === fromKey || 
+                (f.id || f.name || f.username) === (fromUser?.id || fromUser?.username)
+              );
+              
+              // Don't show follow-back prompt if already following
+              const shouldShowFollowBack = hasAccepted && !isAlreadyFollowingBack;
+              
               return (
                 <div key={idx} style={styles.notificationCard}>
                   <div style={styles.notificationHeader}>
                     <div style={styles.eventName}>{userLabel}</div>
                   </div>
                   <div style={styles.notificationText}>
-                    {hasAccepted ? `Do you want to follow ${userName} back?` : "wants to follow you"}
+                    {shouldShowFollowBack ? `Do you want to follow ${userName} back?` : "wants to follow you"}
                   </div>
                   <div style={styles.buttonRow}>
                     <button 
                       style={styles.viewButton}
                       onClick={() => {
-                        if (hasAccepted) {
+                        if (shouldShowFollowBack) {
                           // Follow back action
                           if (onFollowBackUser) {
                             onFollowBackUser(fromKey);
@@ -388,19 +399,36 @@ function NotificationsInbox({
                             newSet.delete(fromKey);
                             return newSet;
                           });
+                        } else if (isAlreadyFollowingBack) {
+                          // Already following back, just dismiss the notification
+                          if (onDeclineFollowRequest) {
+                            onDeclineFollowRequest(fromKey);
+                          }
+                          setAcceptedFollowRequests(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(fromKey);
+                            return newSet;
+                          });
                         } else {
                           // Accept follow request
                           if (onAcceptFollowRequest) {
                             onAcceptFollowRequest(fromKey);
                           }
-                          // Mark as accepted to show follow-back prompt
-                          setAcceptedFollowRequests(prev => new Set(prev).add(fromKey));
+                          // Mark as accepted to show follow-back prompt (unless already following)
+                          if (!isAlreadyFollowingBack) {
+                            setAcceptedFollowRequests(prev => new Set(prev).add(fromKey));
+                          } else {
+                            // Already following, just dismiss
+                            if (onDeclineFollowRequest) {
+                              onDeclineFollowRequest(fromKey);
+                            }
+                          }
                         }
                       }}
                       onMouseEnter={(e) => e.target.style.background = theme.primaryDark}
                       onMouseLeave={(e) => e.target.style.background = theme.primary}
                     >
-                      Accept
+                      {isAlreadyFollowingBack && !shouldShowFollowBack ? 'Dismiss' : 'Accept'}
                     </button>
                     <button 
                       style={styles.markReadButton}
