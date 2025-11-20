@@ -168,6 +168,7 @@ function SocialHome({
   const [showWhereModal, setShowWhereModal] = useState(false);
   const [showWhenModal, setShowWhenModal] = useState(false);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [returnToCalendar, setReturnToCalendar] = useState(false); // Track if user came from calendar
 
   // Paris Trees feature state
   const [showParisTreesModal, setShowParisTreesModal] = useState(false);
@@ -4244,7 +4245,13 @@ function SocialHome({
             paddingBottom: 100,
           }}
           onClick={() => {
-            setEventPreview(null);
+            if (returnToCalendar) {
+              setEventPreview(null);
+              setReturnToCalendar(false);
+              setShowCalendar(true);
+            } else {
+              setEventPreview(null);
+            }
             setShowAdminMenu(false);
           }}
         >
@@ -4267,7 +4274,15 @@ function SocialHome({
             {/* Header with navigation and utility actions */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
               <button
-                onClick={() => setEventPreview(null)}
+                onClick={() => {
+                  if (returnToCalendar) {
+                    setEventPreview(null);
+                    setReturnToCalendar(false);
+                    setShowCalendar(true);
+                  } else {
+                    setEventPreview(null);
+                  }
+                }}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -4278,7 +4293,7 @@ function SocialHome({
                   padding: 0,
                 }}
               >
-                ← Back to Events
+                ← {returnToCalendar ? "Back to Calendar" : "Back to Events"}
               </button>
               
               <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -5161,6 +5176,7 @@ function SocialHome({
                       key={idx}
                       onClick={() => {
                         setShowCalendar(false);
+                        setReturnToCalendar(true); // Mark that we came from calendar
                         onJoinedEventClick && onJoinedEventClick(event);
                       }}
                       style={{
