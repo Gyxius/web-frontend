@@ -615,12 +615,16 @@ function App() {
               const requesterFollows = await api.getFollows(selectedKey);
               
               // Convert username strings to user objects
-              const currentUserFollowObjs = currentUserFollows.map(username => 
-                users.find(u => (u.name || u.username) === username) || { name: username, username }
-              );
-              const requesterFollowObjs = requesterFollows.map(username => 
-                users.find(u => (u.name || u.username) === username) || { name: username, username }
-              );
+              const currentUserFollowObjs = currentUserFollows.map(username => {
+                const found = users.find(u => (u.name === username || u.username === username));
+                if (found) return found;
+                return { name: username, username: username, id: username };
+              });
+              const requesterFollowObjs = requesterFollows.map(username => {
+                const found = users.find(u => (u.name === username || u.username === username));
+                if (found) return found;
+                return { name: username, username: username, id: username };
+              });
               
               // Update follows state with both users' data
               setFollows(prev => ({
@@ -1114,20 +1118,34 @@ function App() {
                 const currentUserFollows = await api.getFollows(currentUserKey);
                 const requesterFollows = await api.getFollows(fromKey);
                 
+                console.log('Current user follows:', currentUserFollows);
+                console.log('Requester follows:', requesterFollows);
+                
                 // Convert username strings to user objects
-                const currentUserFollowObjs = currentUserFollows.map(username => 
-                  users.find(u => (u.name || u.username) === username) || { name: username, username }
-                );
-                const requesterFollowObjs = requesterFollows.map(username => 
-                  users.find(u => (u.name || u.username) === username) || { name: username, username }
-                );
+                const currentUserFollowObjs = currentUserFollows.map(username => {
+                  const found = users.find(u => (u.name === username || u.username === username));
+                  if (found) return found;
+                  return { name: username, username: username, id: username };
+                });
+                const requesterFollowObjs = requesterFollows.map(username => {
+                  const found = users.find(u => (u.name === username || u.username === username));
+                  if (found) return found;
+                  return { name: username, username: username, id: username };
+                });
+                
+                console.log('Current user follow objects:', currentUserFollowObjs);
+                console.log('Requester follow objects:', requesterFollowObjs);
                 
                 // Update follows state with both users' data
-                setFollows(prev => ({
-                  ...prev,
-                  [currentUserKey]: currentUserFollowObjs,
-                  [fromKey]: requesterFollowObjs
-                }));
+                setFollows(prev => {
+                  const updated = {
+                    ...prev,
+                    [currentUserKey]: currentUserFollowObjs,
+                    [fromKey]: requesterFollowObjs
+                  };
+                  console.log('Updated follows state:', updated);
+                  return updated;
+                });
               } catch (error) {
                 console.error('Failed to reload follows data:', error);
               }
