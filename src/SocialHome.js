@@ -2822,7 +2822,7 @@ function SocialHome({
                   {[
                     { value: "language", label: "Language & Exchange", emoji: "💬", desc: "Conversation workshops, language games" },
                     { value: "cultural", label: "Cultural Exploration", emoji: "🎭", desc: "Museum visits, walking tours" },
-                    { value: "social", label: "Social & Nightlife", emoji: "�", desc: "Parties, karaoke, social gatherings" },
+                    { value: "social", label: "Social & Nightlife", emoji: "🎉", desc: "Parties, karaoke, social gatherings" },
                     { value: "food", label: "Food & Gastronomy", emoji: "🍽️", desc: "Cooking classes, tastings" },
                     { value: "sports", label: "Sports & Outdoors", emoji: "⚽", desc: "Hiking, sports, outdoor activities" },
                     { value: "professional", label: "Workshops & Professional", emoji: "💼", desc: "CV workshops, career events" },
@@ -5643,7 +5643,7 @@ function SocialHome({
                   cursor: "pointer",
                 }}
               >
-                � Cultural Exploration
+                🎭 Cultural Exploration
               </button>
               <button
                 onClick={() => {
