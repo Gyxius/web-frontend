@@ -609,29 +609,29 @@ function App() {
             // selectedKey is requesting to follow currentUser, so add: selectedKey -> currentUser
             await api.addFollow(selectedKey, currentUserKey);
             
-            // Update follows state: selectedProfile now follows current user
-            // This means: follows[selectedKey] contains currentUser
-            setFollows(prev => {
-              const updated = { ...prev };
+            // Reload follows data from API to get updated counts
+            try {
+              const currentUserFollows = await api.getFollows(currentUserKey);
+              const requesterFollows = await api.getFollows(selectedKey);
               
-              // Create object representing current user
-              const selfFollowObj = {
-                id: user?.id || user?.username || user?.name,
-                name: user?.name || user?.username,
-                emoji: user?.emoji,
-                country: user?.country,
-                desc: user?.desc,
-              };
+              // Convert username strings to user objects
+              const currentUserFollowObjs = currentUserFollows.map(username => 
+                users.find(u => (u.name || u.username) === username) || { name: username, username }
+              );
+              const requesterFollowObjs = requesterFollows.map(username => 
+                users.find(u => (u.name || u.username) === username) || { name: username, username }
+              );
               
-              // Add current user to selectedProfile's following list
-              // This represents: selectedKey follows currentUser
-              if (!updated[selectedKey]) updated[selectedKey] = [];
-              if (!updated[selectedKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
-                updated[selectedKey].push(selfFollowObj);
-              }
-              
-              return updated;
-            });
+              // Update follows state with both users' data
+              setFollows(prev => ({
+                ...prev,
+                [currentUserKey]: currentUserFollowObjs,
+                [selectedKey]: requesterFollowObjs
+              }));
+            } catch (error) {
+              console.error('Failed to reload follows data:', error);
+            }
+            
             setPendingFollowRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
           } catch (error) {
             console.error('Failed to accept follow request:', error);
@@ -1050,6 +1050,29 @@ function App() {
               // Send follow request via API
               await api.addFollow(currentUserKey, fromKey);
               
+              // Reload follows data from API
+              try {
+                const currentUserFollows = await api.getFollows(currentUserKey);
+                const requesterFollows = await api.getFollows(fromKey);
+                
+                // Convert username strings to user objects
+                const currentUserFollowObjs = currentUserFollows.map(username => 
+                  users.find(u => (u.name || u.username) === username) || { name: username, username }
+                );
+                const requesterFollowObjs = requesterFollows.map(username => 
+                  users.find(u => (u.name || u.username) === username) || { name: username, username }
+                );
+                
+                // Update follows state with both users' data
+                setFollows(prev => ({
+                  ...prev,
+                  [currentUserKey]: currentUserFollowObjs,
+                  [fromKey]: requesterFollowObjs
+                }));
+              } catch (error) {
+                console.error('Failed to reload follows data:', error);
+              }
+              
               // Send follow request back
               setPendingFollowRequests(prev => {
                 // Remove the original incoming request
@@ -1086,33 +1109,28 @@ function App() {
               // fromKey is requesting to follow currentUser, so add: fromKey -> currentUser
               await api.addFollow(fromKey, currentUserKey);
               
-              // Update follows state: requester now follows current user
-              // This means: follows[fromKey] contains currentUser
-              setFollows(prev => {
-                const updated = { ...prev };
+              // Reload follows data from API to get updated counts
+              try {
+                const currentUserFollows = await api.getFollows(currentUserKey);
+                const requesterFollows = await api.getFollows(fromKey);
                 
-                // Create object representing current user
-                const selfFollowObj = {
-                  id: user?.id || user?.username || user?.name,
-                  name: user?.name || user?.username,
-                  emoji: user?.emoji,
-                  country: user?.country,
-                  desc: user?.desc,
-                };
+                // Convert username strings to user objects
+                const currentUserFollowObjs = currentUserFollows.map(username => 
+                  users.find(u => (u.name || u.username) === username) || { name: username, username }
+                );
+                const requesterFollowObjs = requesterFollows.map(username => 
+                  users.find(u => (u.name || u.username) === username) || { name: username, username }
+                );
                 
-                // Add current user to requester's following list
-                // This represents: fromKey follows currentUser
-                if (!updated[fromKey]) updated[fromKey] = [];
-                if (!updated[fromKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
-                  updated[fromKey].push(selfFollowObj);
-                }
-                
-                return updated;
-              });
-              
-              // Remove from pending requests AFTER showing follow-back option
-              // Don't remove immediately - let the followBackSuggestions handle it
-              // setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
+                // Update follows state with both users' data
+                setFollows(prev => ({
+                  ...prev,
+                  [currentUserKey]: currentUserFollowObjs,
+                  [fromKey]: requesterFollowObjs
+                }));
+              } catch (error) {
+                console.error('Failed to reload follows data:', error);
+              }
               
               // Check if current user is already following back
               // We need to check if currentUser follows fromKey (not the other way around)
