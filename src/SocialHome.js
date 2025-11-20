@@ -4271,7 +4271,6 @@ function SocialHome({
             paddingBottom: 100,
           }}
           onClick={() => {
-            setEventPreview(null);
             setShowAdminMenu(false);
             if (previousView) {
               if (previousView.type === 'calendar') {
@@ -4286,6 +4285,7 @@ function SocialHome({
               }
               setPreviousView(null);
             }
+            setEventPreview(null);
           }}
         >
           <div 
@@ -4309,7 +4309,6 @@ function SocialHome({
               <button
                 onClick={() => {
                   console.log('[NAVIGATION] Back button clicked. Previous view:', previousView);
-                  setEventPreview(null);
                   if (previousView) {
                     if (previousView.type === 'calendar') {
                       console.log('[NAVIGATION] Returning to: Calendar');
@@ -4328,6 +4327,7 @@ function SocialHome({
                   } else {
                     console.log('[NAVIGATION] No previous view stored, staying on default');
                   }
+                  setEventPreview(null);
                 }}
                 style={{
                   background: "transparent",
