@@ -428,7 +428,7 @@ function NotificationsInbox({
                       onMouseEnter={(e) => e.target.style.background = theme.primaryDark}
                       onMouseLeave={(e) => e.target.style.background = theme.primary}
                     >
-                      {isAlreadyFollowingBack && !shouldShowFollowBack ? 'Dismiss' : 'Accept'}
+                      {hasAccepted && isAlreadyFollowingBack ? 'Dismiss' : 'Accept'}
                     </button>
                     <button 
                       style={styles.markReadButton}
