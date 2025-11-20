@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import users from "./users";
 
-function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, isFollowing, hasPendingRequest, incomingRequest, onAcceptFollowRequest, onDeclineFollowRequest, onRequestJoinEvent, joinedEvents, onRemoveFollow, followingCount = 0, followerCount = 0 }) {
+function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, isFollowing, hasPendingRequest, incomingRequest, onAcceptFollowRequest, onDeclineFollowRequest, onRequestJoinEvent, joinedEvents, onRemoveFollow, followingCount = 0, followerCount = 0, followers = [], following = [], onUserClick }) {
+  const [showFollowersList, setShowFollowersList] = useState(false);
+  const [showFollowingList, setShowFollowingList] = useState(false);
+  
   if (!user) return null;
   
   // If user object is incomplete (like from host), look up full user data
@@ -149,11 +152,17 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, is
 
         {/* Follower/Following stats */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 40, marginTop: 24, paddingTop: 16, borderTop: `2px solid ${theme.border}` }}>
-          <div style={{ textAlign: 'center' }}>
+          <div 
+            style={{ textAlign: 'center', cursor: 'pointer' }}
+            onClick={() => setShowFollowersList(true)}
+          >
             <div style={{ fontSize: 24, fontWeight: 700, color: theme.primary }}>{followerCount}</div>
             <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>Followers</div>
           </div>
-          <div style={{ textAlign: 'center' }}>
+          <div 
+            style={{ textAlign: 'center', cursor: 'pointer' }}
+            onClick={() => setShowFollowingList(true)}
+          >
             <div style={{ fontSize: 24, fontWeight: 700, color: theme.primary }}>{followingCount}</div>
             <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>Following</div>
           </div>
@@ -282,6 +291,176 @@ function UserProfile({ user, currentUser, getUserPoints, onBack, onAddFollow, is
           </div>
         )}
       </div>
+
+      {/* Followers List Modal */}
+      {showFollowersList && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: 20,
+          }}
+          onClick={() => setShowFollowersList(false)}
+        >
+          <div 
+            style={{
+              background: theme.card,
+              borderRadius: 18,
+              padding: 24,
+              maxWidth: 500,
+              width: '100%',
+              maxHeight: '80vh',
+              overflow: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: theme.text }}>Followers ({followerCount})</h3>
+              <button 
+                onClick={() => setShowFollowersList(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: 24,
+                  cursor: 'pointer',
+                  color: theme.textMuted,
+                }}
+              >×</button>
+            </div>
+            {followers.length === 0 ? (
+              <div style={{ textAlign: 'center', color: theme.textMuted, padding: 40 }}>
+                No followers yet
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {followers.map((follower, idx) => (
+                  <div 
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: 12,
+                      background: theme.bg,
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => {
+                      setShowFollowersList(false);
+                      onUserClick && onUserClick(follower);
+                    }}
+                  >
+                    <div style={{ fontSize: 32 }}>{follower.emoji || '👤'}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 16, color: theme.text }}>
+                        {follower.name}
+                      </div>
+                      {follower.desc && (
+                        <div style={{ fontSize: 13, color: theme.textMuted }}>
+                          {follower.desc}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Following List Modal */}
+      {showFollowingList && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: 20,
+          }}
+          onClick={() => setShowFollowingList(false)}
+        >
+          <div 
+            style={{
+              background: theme.card,
+              borderRadius: 18,
+              padding: 24,
+              maxWidth: 500,
+              width: '100%',
+              maxHeight: '80vh',
+              overflow: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: theme.text }}>Following ({followingCount})</h3>
+              <button 
+                onClick={() => setShowFollowingList(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: 24,
+                  cursor: 'pointer',
+                  color: theme.textMuted,
+                }}
+              >×</button>
+            </div>
+            {following.length === 0 ? (
+              <div style={{ textAlign: 'center', color: theme.textMuted, padding: 40 }}>
+                Not following anyone yet
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {following.map((followedUser, idx) => (
+                  <div 
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: 12,
+                      background: theme.bg,
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => {
+                      setShowFollowingList(false);
+                      onUserClick && onUserClick(followedUser);
+                    }}
+                  >
+                    <div style={{ fontSize: 32 }}>{followedUser.emoji || '👤'}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 16, color: theme.text }}>
+                        {followedUser.name}
+                      </div>
+                      {followedUser.desc && (
+                        <div style={{ fontSize: 13, color: theme.textMuted }}>
+                          {followedUser.desc}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -533,6 +533,20 @@ function App() {
                            (f.id || f.name || f.username) === (selectedProfile?.id || selectedProfile?.username))
     ).length;
     
+    // Get actual followers list (users who follow this profile)
+    const followersList = Object.entries(follows)
+      .filter(([userKey, followList]) => 
+        followList.some(f => (f.id || f.name || f.username) === selectedKey || 
+                             (f.id || f.name || f.username) === (selectedProfile?.id || selectedProfile?.username))
+      )
+      .map(([userKey]) => {
+        const followerUser = users.find(u => (u.name || u.username) === userKey);
+        return followerUser || { name: userKey, username: userKey };
+      });
+    
+    // Get actual following list (users this profile follows)
+    const followingList = follows[selectedKey] || [];
+    
     mainContent = (
       <UserProfile
         user={selectedProfile}
@@ -541,6 +555,9 @@ function App() {
         onBack={() => setSelectedProfile(null)}
         followingCount={followingCount}
         followerCount={followerCount}
+        followers={followersList}
+        following={followingList}
+        onUserClick={setSelectedProfile}
         onAddFollow={() => {
           // Send follow request
           if (!hasPendingRequest && !isFollowing) {
