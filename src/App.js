@@ -977,6 +977,8 @@ function App() {
           onAcceptFollowRequestFrom={(fromKey) => {
             const currentUserKey = user?.username || user?.name;
             const requester = users.find(u => u.name === fromKey || u.username === fromKey) || { name: fromKey, id: fromKey };
+            
+            // Add requester to current user's following list
             setFollows(prev => {
               const updated = { ...prev };
               if (!updated[currentUserKey]) updated[currentUserKey] = [];
@@ -996,7 +998,30 @@ function App() {
               }
               return updated;
             });
+            
+            // Remove from pending requests
             setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
+            
+            // Check if current user is already following back
+            const isAlreadyFollowingBack = follows[fromKey]?.some(f => (f.id || f.name) === (user?.id || user?.username || user?.name));
+            
+            // Offer to follow back if not already following
+            if (!isAlreadyFollowingBack) {
+              const requesterName = requester.name || fromKey;
+              const followBack = window.confirm(`${requester.emoji || '👤'} ${requesterName} is now following you! Would you like to follow them back?`);
+              
+              if (followBack) {
+                // Add current user to requester's pending requests (or directly to follows if auto-accept)
+                setPendingFollowRequests(prev => {
+                  const alreadyRequested = prev.some(req => req.from === currentUserKey && req.to === fromKey);
+                  if (!alreadyRequested) {
+                    return [...prev, { from: currentUserKey, to: fromKey, timestamp: Date.now() }];
+                  }
+                  return prev;
+                });
+                console.log(`📤 Follow request sent to ${requesterName}`);
+              }
+            }
           }}
           onDeclineFollowRequestFrom={(fromKey) => {
             setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
