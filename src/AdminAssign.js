@@ -100,8 +100,8 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     const emojiMap = {
       language: "💬",
       cultural: "🎭",
-      social: "�",
-      food: "�️",
+      social: "🎉",
+      food: "🍽️",
       sports: "⚽",
       professional: "💼",
     };
@@ -1336,11 +1336,11 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   }}
                 >
                   <option value="language">💬 Language & Exchange</option>
-                  <option value="cultural">� Cultural Exploration</option>
+                  <option value="cultural">🎭 Cultural Exploration</option>
                   <option value="social">🎉 Social & Nightlife</option>
                   <option value="food">🍽️ Food & Gastronomy</option>
                   <option value="sports">⚽ Sports & Outdoors</option>
-                  <option value="professional">� Workshops & Professional</option>
+                  <option value="professional">💼 Workshops & Professional</option>
                 </select>
               </div>
             </div>
