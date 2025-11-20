@@ -98,11 +98,12 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
 
   const getCategoryEmoji = (category) => {
     const emojiMap = {
-      food: "🍽️",
-      drinks: "🍹",
-      random: "🎲",
-      walk: "🚶",
-      coffee: "☕",
+      language: "💬",
+      cultural: "🎭",
+      social: "�",
+      food: "�️",
+      sports: "⚽",
+      professional: "💼",
     };
     return emojiMap[category] || "🎯";
   };
@@ -199,7 +200,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     date: "",
     time: "",
     endTime: "",
-    category: "food",
+    category: "language",
     languages: [], // Array of languages for exchange
     description: "",
     imageUrl: "", // Image URL for the event
@@ -329,12 +330,13 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
     const sample = members[0];
     const ev = sample.event || {};
     const location = ev.location || ev.place || "Cité";
-    const category = ev.category || "drinks";
+    const category = ev.category || "language";
     const tod = ev.timeOfDay || "evening";
     const langChosen = chooseLanguage(members);
     const { date, time } = timeFor(ev.timePreference, ev.timeOfDay);
-    const name = `${category === 'drinks' ? 'Drinks' : capitalize(category)}${langChosen && langChosen !== 'any' ? ' · ' + capitalize(langChosen) : ''}`;
+    const name = `${capitalize(category)}${langChosen && langChosen !== 'any' ? ' · ' + capitalize(langChosen) : ''}`;
     const place = pickPlaceFor(location) || ev.place || "";
+
     return {
       id: `prop-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
       name,
@@ -398,7 +400,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
       return false;
     }
     
-    // 2. Category match (food, drinks, party, random, walk)
+    // 2. Category match (language, cultural, social, food, sports, professional)
     if (r.category && e.category !== r.category) {
       return false;
     }
@@ -847,7 +849,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                           place: p.place || '',
                           date: p.date || '',
                           time: p.time || '',
-                          category: p.category || 'drinks',
+                          category: p.category || 'language',
                           languages: Array.isArray(p.languages) ? p.languages.slice() : [],
                           description: p.description || '',
                           participants: Array.isArray(p.participants) ? p.participants.slice() : [],
@@ -1035,11 +1037,12 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                     onChange={(e) => setEditProposal(prev => ({ ...prev, category: e.target.value }))}
                     style={{ width: '100%', padding: 10, border: `1px solid ${theme.border}`, borderRadius: 10 }}
                   >
+                    <option value="language">language</option>
+                    <option value="cultural">cultural</option>
+                    <option value="social">social</option>
                     <option value="food">food</option>
-                    <option value="drinks">drinks</option>
-                    <option value="party">party</option>
-                    <option value="random">random</option>
-                    <option value="walk">walk</option>
+                    <option value="sports">sports</option>
+                    <option value="professional">professional</option>
                   </select>
                 </div>
                 <div>
@@ -1332,11 +1335,12 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                     outline: "none",
                   }}
                 >
-                  <option value="food">🍽️ Food</option>
-                  <option value="drinks">🍹 Drinks</option>
-                  <option value="party">🎉 Party</option>
-                  <option value="random">🎲 Random</option>
-                  <option value="walk">🚶 A Walk</option>
+                  <option value="language">💬 Language & Exchange</option>
+                  <option value="cultural">� Cultural Exploration</option>
+                  <option value="social">🎉 Social & Nightlife</option>
+                  <option value="food">🍽️ Food & Gastronomy</option>
+                  <option value="sports">⚽ Sports & Outdoors</option>
+                  <option value="professional">� Workshops & Professional</option>
                 </select>
               </div>
             </div>
@@ -1770,7 +1774,7 @@ export default function AdminAssign({ searches, pendingRequests, onAssignEvent, 
                   date: "",
                   time: "",
                   endTime: "",
-                  category: "food",
+                  category: "language",
                   languages: [],
                   description: "",
                   imageUrl: "",
