@@ -15,9 +15,11 @@ function NotificationsInbox({
   followRequests = [],
   onAcceptFollowRequest,
   onDeclineFollowRequest,
+  onFollowBackUser,
 }) {
   const [notificationDetails, setNotificationDetails] = useState([]);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
+  const [acceptedFollowRequests, setAcceptedFollowRequests] = useState(new Set());
 
   useEffect(() => {
     // Enrich notifications with event details
@@ -360,6 +362,8 @@ function NotificationsInbox({
               const fromKey = req.from;
               const fromUser = users.find(u => u.name === fromKey || u.username === fromKey);
               const userLabel = fromUser ? `${fromUser.emoji || ""} ${fromUser.name} ${fromUser.country || ""}` : fromKey;
+              const userName = fromUser ? fromUser.name : fromKey;
+              const hasAccepted = acceptedFollowRequests.has(fromKey);
               
               return (
                 <div key={idx} style={styles.notificationCard}>
@@ -367,14 +371,24 @@ function NotificationsInbox({
                     <div style={styles.eventName}>{userLabel}</div>
                   </div>
                   <div style={styles.notificationText}>
-                    wants to follow you
+                    {hasAccepted ? `Do you want to follow ${userName} back?` : "wants to follow you"}
                   </div>
                   <div style={styles.buttonRow}>
                     <button 
                       style={styles.viewButton}
                       onClick={() => {
-                        if (onAcceptFollowRequest) {
-                          onAcceptFollowRequest(fromKey);
+                        if (hasAccepted) {
+                          // Follow back action
+                          if (onFollowBackUser) {
+                            onFollowBackUser(fromKey);
+                          }
+                        } else {
+                          // Accept follow request
+                          if (onAcceptFollowRequest) {
+                            onAcceptFollowRequest(fromKey);
+                          }
+                          // Mark as accepted to show follow-back prompt
+                          setAcceptedFollowRequests(prev => new Set(prev).add(fromKey));
                         }
                       }}
                       onMouseEnter={(e) => e.target.style.background = theme.primaryDark}

@@ -5934,6 +5934,7 @@ function SocialHome({
           followRequests={followRequestsIncoming}
           onAcceptFollowRequest={onAcceptFollowRequestFrom}
           onDeclineFollowRequest={onDeclineFollowRequestFrom}
+          onFollowBackUser={onFollowBackUser}
         />
       )}
 
