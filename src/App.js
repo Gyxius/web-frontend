@@ -606,16 +606,15 @@ function App() {
         onAcceptFollowRequest={async () => {
           try {
             // Accept incoming request via API
+            // selectedKey is requesting to follow currentUser, so add: selectedKey -> currentUser
             await api.addFollow(selectedKey, currentUserKey);
             
-            // Accept incoming request
+            // Update follows state: selectedProfile now follows current user
+            // This means: follows[selectedKey] contains currentUser
             setFollows(prev => {
               const updated = { ...prev };
-              if (!updated[currentUserKey]) updated[currentUserKey] = [];
-              if (!updated[currentUserKey].find(f => f.id === selectedProfile.id)) {
-                updated[currentUserKey].push(selectedProfile);
-              }
-              // Also add current user to selectedProfile's follows (robust id/name fallback)
+              
+              // Create object representing current user
               const selfFollowObj = {
                 id: user?.id || user?.username || user?.name,
                 name: user?.name || user?.username,
@@ -623,10 +622,14 @@ function App() {
                 country: user?.country,
                 desc: user?.desc,
               };
+              
+              // Add current user to selectedProfile's following list
+              // This represents: selectedKey follows currentUser
               if (!updated[selectedKey]) updated[selectedKey] = [];
               if (!updated[selectedKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
                 updated[selectedKey].push(selfFollowObj);
               }
+              
               return updated;
             });
             setPendingFollowRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
@@ -1079,15 +1082,15 @@ function App() {
             
             try {
               // Add follow relationship via API
+              // fromKey is requesting to follow currentUser, so add: fromKey -> currentUser
               await api.addFollow(fromKey, currentUserKey);
               
-              // Add requester to current user's following list
+              // Update follows state: requester now follows current user
+              // This means: follows[fromKey] contains currentUser
               setFollows(prev => {
                 const updated = { ...prev };
-                if (!updated[currentUserKey]) updated[currentUserKey] = [];
-                if (!updated[currentUserKey].find(f => (f.id || f.name) === (requester.id || requester.name))) {
-                  updated[currentUserKey].push(requester);
-                }
+                
+                // Create object representing current user
                 const selfFollowObj = {
                   id: user?.id || user?.username || user?.name,
                   name: user?.name || user?.username,
@@ -1095,10 +1098,14 @@ function App() {
                   country: user?.country,
                   desc: user?.desc,
                 };
+                
+                // Add current user to requester's following list
+                // This represents: fromKey follows currentUser
                 if (!updated[fromKey]) updated[fromKey] = [];
                 if (!updated[fromKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
                   updated[fromKey].push(selfFollowObj);
                 }
+                
                 return updated;
               });
               
