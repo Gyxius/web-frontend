@@ -28,8 +28,22 @@ function App() {
   const [userEvents, setUserEvents] = useState({});
   const [chatHistory, setChatHistory] = useState({});
   const [selectedProfile, setSelectedProfile] = useState(null);
-  const [follows, setFollows] = useState({});
-  const [pendingFollowRequests, setPendingFollowRequests] = useState([]);
+  const [follows, setFollows] = useState(() => {
+    try {
+      const saved = localStorage.getItem('follows');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [pendingFollowRequests, setPendingFollowRequests] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pendingFollowRequests');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [suggestedEvents, setSuggestedEvents] = useState({});
   const [publicEvents, setPublicEvents] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -80,6 +94,24 @@ function App() {
 
     loadUserData();
   }, [user]);
+
+  // Save follows to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('follows', JSON.stringify(follows));
+    } catch (error) {
+      console.error('Failed to save follows to localStorage:', error);
+    }
+  }, [follows]);
+
+  // Save pending follow requests to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('pendingFollowRequests', JSON.stringify(pendingFollowRequests));
+    } catch (error) {
+      console.error('Failed to save pendingFollowRequests to localStorage:', error);
+    }
+  }, [pendingFollowRequests]);
 
   // Expose a global hook so Admin panel can open the user event view
   useEffect(() => {
@@ -559,35 +591,49 @@ function App() {
         followers={followersList}
         following={followingList}
         onUserClick={setSelectedProfile}
-        onAddFollow={() => {
+        onAddFollow={async () => {
           // Send follow request
           if (!hasPendingRequest && !isFollowing) {
-            setPendingFollowRequests(prev => [...prev, { from: currentUserKey, to: selectedKey }]);
+            try {
+              await api.addFollow(currentUserKey, selectedKey);
+              setPendingFollowRequests(prev => [...prev, { from: currentUserKey, to: selectedKey }]);
+            } catch (error) {
+              console.error('Failed to send follow request:', error);
+              alert('Failed to send follow request. Please try again.');
+            }
           }
         }}
-        onAcceptFollowRequest={() => {
-          // Accept incoming request
-          setFollows(prev => {
-            const updated = { ...prev };
-            if (!updated[currentUserKey]) updated[currentUserKey] = [];
-            if (!updated[currentUserKey].find(f => f.id === selectedProfile.id)) {
-              updated[currentUserKey].push(selectedProfile);
-            }
-            // Also add current user to selectedProfile's follows (robust id/name fallback)
-            const selfFollowObj = {
-              id: user?.id || user?.username || user?.name,
-              name: user?.name || user?.username,
-              emoji: user?.emoji,
-              country: user?.country,
-              desc: user?.desc,
-            };
-            if (!updated[selectedKey]) updated[selectedKey] = [];
-            if (!updated[selectedKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
-              updated[selectedKey].push(selfFollowObj);
-            }
-            return updated;
-          });
-          setPendingFollowRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
+        onAcceptFollowRequest={async () => {
+          try {
+            // Accept incoming request via API
+            await api.addFollow(selectedKey, currentUserKey);
+            
+            // Accept incoming request
+            setFollows(prev => {
+              const updated = { ...prev };
+              if (!updated[currentUserKey]) updated[currentUserKey] = [];
+              if (!updated[currentUserKey].find(f => f.id === selectedProfile.id)) {
+                updated[currentUserKey].push(selectedProfile);
+              }
+              // Also add current user to selectedProfile's follows (robust id/name fallback)
+              const selfFollowObj = {
+                id: user?.id || user?.username || user?.name,
+                name: user?.name || user?.username,
+                emoji: user?.emoji,
+                country: user?.country,
+                desc: user?.desc,
+              };
+              if (!updated[selectedKey]) updated[selectedKey] = [];
+              if (!updated[selectedKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
+                updated[selectedKey].push(selfFollowObj);
+              }
+              return updated;
+            });
+            setPendingFollowRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
+          } catch (error) {
+            console.error('Failed to accept follow request:', error);
+            alert('Failed to accept follow request. Please try again.');
+          }
         }}
         onDeclineFollowRequest={() => {
           setPendingFollowRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
@@ -993,63 +1039,81 @@ function App() {
           })).filter(fe => Array.isArray(fe.events) && fe.events.length > 0)}
           followRequestsIncoming={pendingFollowRequests.filter(r => r.to === (user?.username || user?.name))}
           followBackSuggestions={followBackSuggestions}
-          onFollowBackUser={(fromKey) => {
+          onFollowBackUser={async (fromKey) => {
             const currentUserKey = user?.username || user?.name;
-            // Send follow request back
-            setPendingFollowRequests(prev => {
-              const alreadyRequested = prev.some(req => req.from === currentUserKey && req.to === fromKey);
-              if (!alreadyRequested) {
-                return [...prev, { from: currentUserKey, to: fromKey, timestamp: Date.now() }];
-              }
-              return prev;
-            });
-            // Remove from suggestions
-            setFollowBackSuggestions(prev => prev.filter(s => s.userKey !== fromKey));
-            console.log(`📤 Follow request sent back to ${fromKey}`);
+            
+            try {
+              // Send follow request via API
+              await api.addFollow(currentUserKey, fromKey);
+              
+              // Send follow request back
+              setPendingFollowRequests(prev => {
+                const alreadyRequested = prev.some(req => req.from === currentUserKey && req.to === fromKey);
+                if (!alreadyRequested) {
+                  return [...prev, { from: currentUserKey, to: fromKey, timestamp: Date.now() }];
+                }
+                return prev;
+              });
+              
+              // Remove from suggestions
+              setFollowBackSuggestions(prev => prev.filter(s => s.userKey !== fromKey));
+              console.log(`📤 Follow request sent back to ${fromKey}`);
+            } catch (error) {
+              console.error('Failed to send follow request:', error);
+              alert('Failed to send follow request. Please try again.');
+            }
           }}
           onDismissFollowBackSuggestion={(fromKey) => {
             setFollowBackSuggestions(prev => prev.filter(s => s.userKey !== fromKey));
           }}
-          onAcceptFollowRequestFrom={(fromKey) => {
+          onAcceptFollowRequestFrom={async (fromKey) => {
             const currentUserKey = user?.username || user?.name;
             const requester = users.find(u => u.name === fromKey || u.username === fromKey) || { name: fromKey, id: fromKey };
             
-            // Add requester to current user's following list
-            setFollows(prev => {
-              const updated = { ...prev };
-              if (!updated[currentUserKey]) updated[currentUserKey] = [];
-              if (!updated[currentUserKey].find(f => (f.id || f.name) === (requester.id || requester.name))) {
-                updated[currentUserKey].push(requester);
-              }
-              const selfFollowObj = {
-                id: user?.id || user?.username || user?.name,
-                name: user?.name || user?.username,
-                emoji: user?.emoji,
-                country: user?.country,
-                desc: user?.desc,
-              };
-              if (!updated[fromKey]) updated[fromKey] = [];
-              if (!updated[fromKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
-                updated[fromKey].push(selfFollowObj);
-              }
-              return updated;
-            });
-            
-            // Remove from pending requests
-            setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
-            
-            // Check if current user is already following back
-            const isAlreadyFollowingBack = follows[fromKey]?.some(f => (f.id || f.name) === (user?.id || user?.username || user?.name));
-            
-            // Offer to follow back if not already following - add to suggestions instead of popup
-            if (!isAlreadyFollowingBack) {
-              setFollowBackSuggestions(prev => {
-                const alreadySuggested = prev.some(s => s.userKey === fromKey);
-                if (!alreadySuggested) {
-                  return [...prev, { userKey: fromKey, user: requester, timestamp: Date.now() }];
+            try {
+              // Add follow relationship via API
+              await api.addFollow(fromKey, currentUserKey);
+              
+              // Add requester to current user's following list
+              setFollows(prev => {
+                const updated = { ...prev };
+                if (!updated[currentUserKey]) updated[currentUserKey] = [];
+                if (!updated[currentUserKey].find(f => (f.id || f.name) === (requester.id || requester.name))) {
+                  updated[currentUserKey].push(requester);
                 }
-                return prev;
+                const selfFollowObj = {
+                  id: user?.id || user?.username || user?.name,
+                  name: user?.name || user?.username,
+                  emoji: user?.emoji,
+                  country: user?.country,
+                  desc: user?.desc,
+                };
+                if (!updated[fromKey]) updated[fromKey] = [];
+                if (!updated[fromKey].find(f => (f.id || f.name) === selfFollowObj.id)) {
+                  updated[fromKey].push(selfFollowObj);
+                }
+                return updated;
               });
+              
+              // Remove from pending requests
+              setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
+              
+              // Check if current user is already following back
+              const isAlreadyFollowingBack = follows[fromKey]?.some(f => (f.id || f.name) === (user?.id || user?.username || user?.name));
+              
+              // Offer to follow back if not already following - add to suggestions instead of popup
+              if (!isAlreadyFollowingBack) {
+                setFollowBackSuggestions(prev => {
+                  const alreadySuggested = prev.some(s => s.userKey === fromKey);
+                  if (!alreadySuggested) {
+                    return [...prev, { userKey: fromKey, user: requester, timestamp: Date.now() }];
+                  }
+                  return prev;
+                });
+              }
+            } catch (error) {
+              console.error('Failed to accept follow request:', error);
+              alert('Failed to accept follow request. Please try again.');
             }
           }}
           onDeclineFollowRequestFrom={(fromKey) => {
