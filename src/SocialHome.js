@@ -1007,6 +1007,8 @@ function SocialHome({
         </div>
 
         {/* Tab Navigation - Frimake Style or Explore Tabs */}
+        {/* Hide tabs when in Following view */}
+        {activeBottomTab !== "following" && (
         <div style={{
           display: "flex",
           justifyContent: "space-around",
@@ -1159,6 +1161,7 @@ function SocialHome({
             </>
           )}
         </div>
+        )}
 
         {/* Filter Buttons Row - Only show in Explore mode */}
         {showExplore && (
