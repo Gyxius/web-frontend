@@ -2890,7 +2890,14 @@ function SocialHome({
                         gap: 8,
                         textAlign: "left",
                       }}
-                      onClick={() => setNewEvent({...newEvent, category: cat.value})}
+                      onClick={() => {
+                        setNewEvent({...newEvent, category: cat.value});
+                        // Auto-advance to next step after selecting category
+                        setTimeout(() => {
+                          console.log('[CATEGORY SELECTED] Auto-advancing to Step 4');
+                          setCreateEventStep(4);
+                        }, 300);
+                      }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
                         <div style={{ fontSize: 28 }}>{cat.emoji}</div>
