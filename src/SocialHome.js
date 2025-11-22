@@ -3,7 +3,7 @@ import { FaUserCircle } from "react-icons/fa";
 import users from "./users";
 import LocationPicker from "./LocationPicker";
 import "./SocialHome.animations.css";
-import { createEvent, getEventById, updateEvent, unarchiveEvent, archiveEvent } from "./api";
+import { createEvent, getEventById, updateEvent, unarchiveEvent, archiveEvent, deleteEvent } from "./api";
 import NotificationsInbox from "./NotificationsInbox";
 import ImageCropper from "./ImageCropper";
 import { FULL_LANGUAGES } from "./constants/languages";
@@ -4544,8 +4544,7 @@ function SocialHome({
                     setShowAdminMenu(false);
                     if (window.confirm("⚠️ Delete this event permanently? This cannot be undone!")) {
                       try {
-                        const { default: api } = await import("./api");
-                        await api.deleteEvent(eventPreview.id, userName);
+                        await deleteEvent(eventPreview.id, userName);
                         alert("Event deleted successfully!");
                         setEventPreview(null);
                         window.location.reload();
