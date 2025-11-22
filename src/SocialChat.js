@@ -1786,6 +1786,25 @@ function SocialChat({
               // Check if current user is the host
               const isHost = event?.host === currentUser || event?.host?.name === currentUser || event?.host?.username === currentUser;
               
+              // Format timestamp
+              const formatTimestamp = (timestamp) => {
+                if (!timestamp) return '';
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffHours < 24) return `${diffHours}h ago`;
+                if (diffDays < 7) return `${diffDays}d ago`;
+                
+                // Show actual date if older than a week
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              };
+              
               return (
                 <div
                   key={i}
@@ -1817,7 +1836,19 @@ function SocialChat({
                     >
                       {displayName}
                     </span>
-                    {m.text}
+                    <div>{m.text}</div>
+                    
+                    {/* Timestamp */}
+                    {m.timestamp && (
+                      <div style={{
+                        fontSize: 11,
+                        color: mine ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)',
+                        marginTop: 4,
+                        fontWeight: 500,
+                      }}>
+                        {formatTimestamp(m.timestamp)}
+                      </div>
+                    )}
                     
                     {/* Delete button for host */}
                     {isHost && m.id && (
