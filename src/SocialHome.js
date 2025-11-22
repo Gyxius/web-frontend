@@ -2081,7 +2081,9 @@ function SocialHome({
                       border: `1px solid ${theme.track}`,
                       opacity: 0.8,
                       position: "relative",
+                      cursor: "pointer",
                     }}
+                    onClick={() => setEventPreview(item)}
                   >
                     {/* Archived badge */}
                     <div style={{
