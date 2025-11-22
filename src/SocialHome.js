@@ -1006,16 +1006,32 @@ function SocialHome({
           </div>
         </div>
 
-        {/* Tab Navigation - Frimake Style or Explore Tabs */}
-        {/* Hide tabs when in Following view */}
-        {activeBottomTab !== "following" && (
+        {/* Tab Navigation - Frimake Style or Explore Tabs or Following */}
         <div style={{
           display: "flex",
           justifyContent: "space-around",
           padding: "0 16px 8px",
           borderBottom: `2px solid ${theme.bg}`,
         }}>
-          {showExplore ? (
+          {activeBottomTab === "following" ? (
+            // Following tab - single tab when viewing following feed
+            <button
+              style={{
+                flex: 1,
+                padding: "14px 8px",
+                background: "none",
+                border: "none",
+                borderBottom: `4px solid ${theme.primary}`,
+                fontWeight: 900,
+                fontSize: 16,
+                color: theme.text,
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+            >
+              👥 Following
+            </button>
+          ) : showExplore ? (
             // Explore tabs: Upcoming, Today, Tomorrow, Weekend
             <>
               <button
@@ -1161,7 +1177,6 @@ function SocialHome({
             </>
           )}
         </div>
-        )}
 
         {/* Filter Buttons Row - Only show in Explore mode */}
         {showExplore && (
