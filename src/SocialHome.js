@@ -4939,27 +4939,29 @@ function SocialHome({
 
             {/* Action Buttons */}
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
-              {/* Join This Event Button */}
-              <button
-                style={{
-                  flex: 1,
-                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
-                  color: "white",
-                  border: "none",
-                  borderRadius: 14,
-                  padding: 16,
-                  fontWeight: 900,
-                  fontSize: 16,
-                  cursor: "pointer",
-                  boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
-                }}
-                onClick={() => {
-                  onJoinPublicEvent && onJoinPublicEvent(eventPreview);
-                  setEventPreview(null);
-                }}
-              >
-                🎉 Join This Event
-              </button>
+              {/* Join This Event Button - Only show if event is not archived */}
+              {!eventPreview.isArchived && (
+                <button
+                  style={{
+                    flex: 1,
+                    background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                    color: "white",
+                    border: "none",
+                    borderRadius: 14,
+                    padding: 16,
+                    fontWeight: 900,
+                    fontSize: 16,
+                    cursor: "pointer",
+                    boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                  }}
+                  onClick={() => {
+                    onJoinPublicEvent && onJoinPublicEvent(eventPreview);
+                    setEventPreview(null);
+                  }}
+                >
+                  🎉 Join This Event
+                </button>
+              )}
               
               {/* For featured events, also show "Create Your Own" button */}
               {(eventPreview.isFeatured || (eventPreview.createdBy && eventPreview.createdBy.toLowerCase() === 'admin')) && (
