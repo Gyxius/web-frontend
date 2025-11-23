@@ -1142,34 +1142,6 @@ function EditMyProfile({ userName, joinedEvents = [], onBack, onSignOut, startEd
         )}
         */}
 
-        {/* Sign Out Button - Always visible when not editing */}
-        {!isEditing && (
-          <div style={{ marginTop: 24 }}>
-            <button
-              style={{
-                ...styles.button,
-                background: "#EA2B2B",
-                color: "white",
-                width: "100%",
-                fontWeight: 900,
-                fontSize: 16,
-                padding: "14px 20px",
-                border: "none",
-                borderRadius: 14,
-                cursor: "pointer",
-                boxShadow: "0 4px 12px rgba(234,43,43,0.25)",
-              }}
-              onClick={() => {
-                if (window.confirm("Are you sure you want to sign out?")) {
-                  onSignOut && onSignOut();
-                }
-              }}
-            >
-              🚪 Sign Out
-            </button>
-          </div>
-        )}
-
         {isEditing && (
           <div style={styles.buttonGroup}>
             <button
