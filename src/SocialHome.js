@@ -5707,14 +5707,28 @@ function SocialHome({
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '20px',
+              alignItems: 'flex-start',
+              marginBottom: '8px',
             }}>
-              <h2 style={{
-                margin: 0,
-                color: theme === 'dark' ? '#fff' : '#000',
-                fontSize: '24px',
-              }}>Past Events</h2>
+              <div>
+                <h2 style={{
+                  margin: 0,
+                  color: theme === 'dark' ? '#fff' : '#000',
+                  fontSize: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  📦 Past Events
+                </h2>
+                <p style={{
+                  margin: '4px 0 0 0',
+                  color: theme === 'dark' ? '#888' : '#666',
+                  fontSize: '14px',
+                }}>
+                  Events you've attended or hosted
+                </p>
+              </div>
               <button
                 onClick={() => setShowPastEventsModal(false)}
                 style={{
@@ -5777,27 +5791,32 @@ function SocialHome({
                     >
                       <div style={{
                         fontSize: '16px',
-                        fontWeight: 'bold',
+                        fontWeight: '600',
                         color: theme === 'dark' ? '#fff' : '#000',
                         marginBottom: '8px',
                       }}>
                         {event.title}
                       </div>
-                      <div style={{
-                        fontSize: '14px',
-                        color: theme === 'dark' ? '#888' : '#666',
-                      }}>
-                        {formatDateOnly(event.date)}
-                      </div>
                       {event.location && (
                         <div style={{
                           fontSize: '14px',
                           color: theme === 'dark' ? '#888' : '#666',
-                          marginTop: '4px',
+                          marginBottom: '4px',
                         }}>
                           📍 {event.location}
                         </div>
                       )}
+                      <div style={{
+                        fontSize: '14px',
+                        color: theme === 'dark' ? '#888' : '#666',
+                      }}>
+                        🗓 {event.date ? new Date(event.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        }) : 'Date not available'}
+                      </div>
                     </div>
                   ))}
               </div>
