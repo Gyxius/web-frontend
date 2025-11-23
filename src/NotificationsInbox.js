@@ -329,7 +329,7 @@ function NotificationsInbox({
         <button 
           style={{
             ...styles.profileButton,
-            background: theme.accent,
+            background: '#1DA1F2',
           }}
           onClick={() => {
             if (onViewPublicProfile) {
@@ -338,7 +338,7 @@ function NotificationsInbox({
             }
           }}
           onMouseEnter={(e) => e.target.style.background = '#1591C7'}
-          onMouseLeave={(e) => e.target.style.background = theme.accent}
+          onMouseLeave={(e) => e.target.style.background = '#1DA1F2'}
         >
           👁️ View My Public Profile
         </button>
