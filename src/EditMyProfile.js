@@ -15,7 +15,7 @@ const hashString = (s) => {
   return Math.abs(h);
 };
 
-function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAccessAdminPanel }) {
+function EditMyProfile({ userName, joinedEvents = [], onBack, onSignOut, startEditing = false, onAccessAdminPanel }) {
   const theme = {
     bg: "#F7F7F5",
     card: "#FFFFFF",
@@ -1141,6 +1141,45 @@ function EditMyProfile({ userName, onBack, onSignOut, startEditing = false, onAc
           </div>
         )}
         */}
+
+        {/* Past Events Section - Show archived events */}
+        {!isEditing && (() => {
+          const archivedEvents = joinedEvents.filter(e => e.isArchived);
+          if (archivedEvents.length === 0) return null;
+          
+          return (
+            <div style={{ ...styles.section, marginTop: 24 }}>
+              <label style={styles.label}>📦 Past Events</label>
+              <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 12 }}>
+                Events you've attended or hosted
+              </div>
+              <div style={{ display: 'grid', gap: 12 }}>
+                {archivedEvents.map((event, idx) => (
+                  <div 
+                    key={idx}
+                    style={{
+                      padding: 14,
+                      background: theme.bg,
+                      borderRadius: 12,
+                      border: `1px solid ${theme.border}`,
+                      opacity: 0.9,
+                    }}
+                  >
+                    <div style={{ fontWeight: 800, fontSize: 15, color: theme.text, marginBottom: 6 }}>
+                      {event.name || 'Event'}
+                    </div>
+                    <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 4 }}>
+                      📍 {event.venue || event.location || 'Location'}
+                    </div>
+                    <div style={{ fontSize: 13, color: theme.textMuted }}>
+                      🗓 {event.date ? new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Date not set'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Sign Out Button - Always visible when not editing */}
         {!isEditing && (

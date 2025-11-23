@@ -310,6 +310,7 @@ function App() {
     mainContent = (
       <EditMyProfile
         userName={user?.username || user?.name}
+        joinedEvents={joinedEvents}
         onBack={() => { setShowEditProfile(false); setJustRegistered(false); }}
         onSignOut={handleSignOut}
         startEditing={!!justRegistered}
