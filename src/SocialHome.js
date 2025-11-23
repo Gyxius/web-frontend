@@ -5766,59 +5766,166 @@ function SocialHome({
                     const dateB = new Date(b.date || b.start_time);
                     return dateB - dateA;
                   })
-                  .map(event => (
-                    <div
-                      key={event.id}
-                      onClick={() => {
-                        setShowPastEventsModal(false);
-                        if (onJoinedEventClick) {
-                          onJoinedEventClick(event);
-                        }
-                      }}
-                      style={{
-                        padding: '16px',
-                        backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = theme === 'dark' ? '#333' : '#e8e8e8';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = theme === 'dark' ? '#2a2a2a' : '#f5f5f5';
-                      }}
-                    >
-                      <div style={{
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: theme === 'dark' ? '#fff' : '#000',
-                        marginBottom: '8px',
-                      }}>
-                        {event.title}
-                      </div>
-                      {event.location && (
-                        <div style={{
-                          fontSize: '14px',
-                          color: theme === 'dark' ? '#888' : '#666',
-                          marginBottom: '4px',
-                        }}>
-                          📍 {event.location}
+                  .map(event => {
+                    const categoryBadge = getCategoryBadge(event.category);
+                    return (
+                      <div
+                        key={event.id}
+                        onClick={() => {
+                          setShowPastEventsModal(false);
+                          if (onJoinedEventClick) {
+                            onJoinedEventClick(event);
+                          }
+                        }}
+                        style={{
+                          background: theme.card,
+                          padding: 16,
+                          borderRadius: 14,
+                          border: `1px solid ${theme.track}`,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                          <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
+                            {event.title || event.name}
+                          </div>
                         </div>
-                      )}
-                      <div style={{
-                        fontSize: '14px',
-                        color: theme === 'dark' ? '#888' : '#666',
-                      }}>
-                        🗓 {event.date ? new Date(event.date).toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        }) : 'Date not available'}
+
+                        {event.imageUrl && (
+                          <div style={{
+                            width: '100%',
+                            height: 160,
+                            borderRadius: 12,
+                            marginBottom: 12,
+                            backgroundImage: `url(${event.imageUrl})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                          }} />
+                        )}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {/* Host Info */}
+                          {(() => {
+                            if (event.host) {
+                              const hostDisplayName = (event.host.username || event.host.name || '').toLowerCase() === 'admin'
+                                ? 'Admin'
+                                : (event.host.name || event.host.username || 'Unknown');
+                              return (
+                                <div style={{ fontSize: 14, color: theme.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span>👤</span>
+                                  <span>
+                                    Hosted by <span style={{ fontWeight: 700, color: theme.accent }}>
+                                      {event.host.emoji} {hostDisplayName}
+                                    </span>
+                                  </span>
+                                </div>
+                              );
+                            } else if (event.createdBy) {
+                              const hostUser = users.find(u => u.name === event.createdBy || u.username === event.createdBy);
+                              if (hostUser) {
+                                const hostDisplayName = (hostUser.username || hostUser.name || '').toLowerCase() === 'admin'
+                                  ? 'Admin'
+                                  : (hostUser.name || hostUser.username || 'Unknown');
+                                return (
+                                  <div style={{ fontSize: 14, color: theme.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <span>👤</span>
+                                    <span>
+                                      Hosted by <span style={{ fontWeight: 700, color: theme.accent }}>
+                                        {hostUser.emoji} {hostDisplayName}
+                                      </span>
+                                    </span>
+                                  </div>
+                                );
+                              }
+                            }
+                            return null;
+                          })()}
+
+                          {event.location && (
+                            <div style={{ fontSize: 15, color: theme.text, display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span>📍</span>
+                              <span style={{ fontWeight: 600 }}>
+                                {event.venue || (event.location === 'cite' ? 'Cité' : event.location === 'paris' ? 'Paris' : event.location)}
+                                {event.venue && event.location && `, ${event.location === 'cite' ? 'Cité' : event.location === 'paris' ? 'Paris' : event.location}`}
+                              </span>
+                            </div>
+                          )}
+
+                          <div style={{ fontSize: 15, color: theme.text, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span>🗓</span>
+                            <span style={{ fontWeight: 600 }}>{formatDateOnly(event.date)}</span>
+                          </div>
+
+                          <div style={{ fontSize: 14, color: theme.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span>👥</span>
+                            <span>
+                              {(() => {
+                                const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
+                                return event.capacity 
+                                  ? `${attendeeCount}/${event.capacity} spots filled` 
+                                  : `${attendeeCount} ${attendeeCount === 1 ? 'attendee' : 'attendees'}`;
+                              })()}
+                            </span>
+                          </div>
+
+                          {event.languages && event.languages.length > 0 && (
+                            <div style={{ 
+                              fontSize: 14, 
+                              color: theme.text, 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 6,
+                              flexWrap: 'wrap',
+                            }}>
+                              <span>�️</span>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                {event.languages.map(lang => (
+                                  <span 
+                                    key={lang}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: 4,
+                                      padding: '4px 10px',
+                                      borderRadius: 999,
+                                      background: theme.card,
+                                      border: `1.5px solid ${theme.border}`,
+                                      fontSize: 12,
+                                      fontWeight: 600,
+                                      color: theme.text,
+                                    }}
+                                  >
+                                    <span style={{ fontSize: 14 }}>{getLanguageEmoji(lang)}</span>
+                                    <span>{lang}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {event.category && (
+                            <div style={{ marginTop: 4 }}>
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                padding: '6px 12px',
+                                borderRadius: 999,
+                                background: categoryBadge.color,
+                                color: 'white',
+                                fontSize: 13,
+                                fontWeight: 700,
+                              }}>
+                                <span>{categoryBadge.emoji}</span>
+                                <span>{event.category}</span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             )}
           </div>
