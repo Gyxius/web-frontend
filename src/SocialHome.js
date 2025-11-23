@@ -5747,7 +5747,11 @@ function SocialHome({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {joinedEvents
                   .filter(e => e.isArchived)
-                  .sort((a, b) => new Date(b.start_time) - new Date(a.start_time))
+                  .sort((a, b) => {
+                    const dateA = new Date(a.date || a.start_time);
+                    const dateB = new Date(b.date || b.start_time);
+                    return dateB - dateA;
+                  })
                   .map(event => (
                     <div
                       key={event.id}
@@ -5783,12 +5787,7 @@ function SocialHome({
                         fontSize: '14px',
                         color: theme === 'dark' ? '#888' : '#666',
                       }}>
-                        {new Date(event.start_time).toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
+                        {formatDateOnly(event.date)}
                       </div>
                       {event.location && (
                         <div style={{
