@@ -162,7 +162,7 @@ function SocialHome({
   });
   
   // New state for Frimake-style navigation
-  const [activeTab, setActiveTab] = useState("featured"); // "featured", "joined", "hosted", "archived"
+  const [activeTab, setActiveTab] = useState("home"); // "home", "joined", "hosted"
   const [activeBottomTab, setActiveBottomTab] = useState("events"); // "events", "explore", "calendar", "profile"
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -900,70 +900,17 @@ function SocialHome({
           justifyContent: "space-between",
           padding: "12px 16px",
         }}>
+          {/* Left: User Profile Avatar */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <img 
-              src={`${API_URL}/static/assets/logo.png`} 
-              alt="Logo" 
-              style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: "50%", cursor: 'pointer' }}
-              onClick={() => {
-                // Reset to default homepage state
-                setActiveBottomTab("events");
-                setViewMode("my");
-                setActiveTab("featured");
-                setShowExplore(false);
-                setShowCalendar(false);
-                setShowSearchModal(false);
-                setShowWhereModal(false);
-                setShowWhenModal(false);
-                setShowFiltersModal(false);
-                setEventPreview(null);
-                setShowCreateEventModal(false);
-                setShowNotificationsInbox(false);
-              }}
-            />
-            {/* Play Button for Paris Trees Feature */}
-            <button
-              onClick={() => {
-                setShowParisTreesModal(true);
-                setParisTreesView("selection");
-                setSelectedTree(null);
-              }}
-              style={{
-                background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                border: 'none',
-                borderRadius: '50%',
-                width: 40,
-                height: 40,
-                display: 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
-              }}
-            >
-              <span style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>▶</span>
-            </button>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: theme.text }}>
-            Lemi <span style={{ fontSize: 17, fontWeight: 600, color: theme.textMuted }}>Paris</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {/* Avatar with notification badge on the right (click avatar to open notifications) */}
             {(() => {
               const avatarUrl = getCurrentUserAvatarUrl();
               return (
                 <button
-                  onClick={() => setShowNotificationsInbox(true)}
-                  aria-label="Open notifications"
+                  onClick={() => {
+                    setActiveBottomTab("profile");
+                    onEditProfile && onEditProfile();
+                  }}
+                  aria-label="Open profile"
                   style={{
                     background: 'none',
                     border: 'none',
@@ -972,38 +919,107 @@ function SocialHome({
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    position: 'relative'
                   }}
                 >
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="avatar" style={{ width: 36, height: 36, borderRadius: 999, display: 'block' }} />
+                    <img src={avatarUrl} alt="avatar" style={{ width: 40, height: 40, borderRadius: 999, display: 'block', border: `2px solid ${theme.primary}` }} />
                   ) : (
-                    <FaUserCircle size={28} />
-                  )}
-                  {(notificationCount + (followRequestsIncoming?.length || 0)) > 0 && (
-                    <div style={{
-                      position: 'absolute',
-                      top: -6,
-                      right: -6,
-                      background: '#FF4444',
-                      color: 'white',
-                      borderRadius: '50%',
-                      minWidth: 18,
-                      height: 18,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 11,
-                      fontWeight: 'bold',
-                      padding: (notificationCount + (followRequestsIncoming?.length || 0)) > 9 ? '0 4px' : 0,
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                    }}>
-                      {(notificationCount + (followRequestsIncoming?.length || 0)) > 99 ? '99+' : (notificationCount + (followRequestsIncoming?.length || 0))}
-                    </div>
+                    <FaUserCircle size={32} color={theme.primary} />
                   )}
                 </button>
               );
             })()}
+          </div>
+
+          {/* Center: Lemi Paris branding */}
+          <div 
+            style={{ 
+              fontSize: 20, 
+              fontWeight: 900, 
+              color: theme.text,
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              // Reset to default homepage state
+              setActiveBottomTab("events");
+              setViewMode("my");
+              setActiveTab("home");
+              setShowExplore(false);
+              setShowCalendar(false);
+              setShowSearchModal(false);
+              setShowWhereModal(false);
+              setShowWhenModal(false);
+              setShowFiltersModal(false);
+              setEventPreview(null);
+              setShowCreateEventModal(false);
+              setShowNotificationsInbox(false);
+            }}
+          >
+            Lemi <span style={{ fontSize: 17, fontWeight: 600, color: theme.textMuted }}>Paris</span>
+          </div>
+
+          {/* Right: Search Icon + Notifications */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* Search Icon */}
+            <button
+              onClick={() => {
+                setActiveBottomTab("explore");
+                setShowExplore(true);
+                setShowCalendar(false);
+                setShowSearchModal(true);
+              }}
+              aria-label="Search events"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span style={{ fontSize: 22, color: theme.text }}>🔍</span>
+            </button>
+
+            {/* Notifications with badge */}
+            <button
+              onClick={() => setShowNotificationsInbox(true)}
+              aria-label="Open notifications"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative'
+              }}
+            >
+              <span style={{ fontSize: 24, color: theme.text }}>🔔</span>
+              {(notificationCount + (followRequestsIncoming?.length || 0)) > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: -6,
+                  right: -6,
+                  background: '#FF4444',
+                  color: 'white',
+                  borderRadius: '50%',
+                  minWidth: 18,
+                  height: 18,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 'bold',
+                  padding: (notificationCount + (followRequestsIncoming?.length || 0)) > 9 ? '0 4px' : 0,
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}>
+                  {(notificationCount + (followRequestsIncoming?.length || 0)) > 99 ? '99+' : (notificationCount + (followRequestsIncoming?.length || 0))}
+                </div>
+              )}
+            </button>
           </div>
         </div>
 
@@ -1105,25 +1121,8 @@ function SocialHome({
               </button>
             </>
           ) : (
-            // Regular tabs: Featured, Joined, Hosted, Archived
+            // Regular tabs: Joined, Hosted
             <>
-              <button
-                onClick={() => setActiveTab("featured")}
-                style={{
-                  flex: 1,
-                  padding: "14px 8px",
-                  background: "none",
-                  border: "none",
-                  borderBottom: activeTab === "featured" ? `4px solid ${theme.primary}` : "4px solid transparent",
-                  fontWeight: activeTab === "featured" ? 900 : 600,
-                  fontSize: 16,
-                  color: activeTab === "featured" ? theme.text : theme.textMuted,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-              >
-                Featured
-              </button>
               <button
                 onClick={() => setActiveTab("joined")}
                 style={{
@@ -1593,167 +1592,309 @@ function SocialHome({
       )}
 
       {/* Tab Content */}
-      {activeTab === "featured" && !showExplore && (
+      {activeTab === "home" && !showExplore && (
         <>
-      {/* Featured Events - Template Events Created by Admin */}
-      {(() => {
-        // Filter for featured events (isFeatured === true OR created by admin) and exclude joined events
-        const featuredEvents = publicEvents.filter(event => {
-          // Must be a featured event OR created by admin
-          const isFeaturedOrAdmin = event.isFeatured || (event.createdBy && event.createdBy.toLowerCase() === 'admin');
-          if (!isFeaturedOrAdmin) return false;
-          
-          // Must not be already joined
-          return !joinedEvents.some(je => String(je.id) === String(event.id));
-        });
-        
-        if (!featuredEvents || featuredEvents.length === 0) {
-          return (
-            <div style={styles.highlightCard}>
-              <div style={styles.highlightTitle}>🎉 Featured Events</div>
-              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-                Main events happening - organize language exchanges or hangouts around them!
-              </div>
-              <div style={{ ...styles.empty, margin: "20px 0 20px 0" }}>
-                No featured events available yet.
-              </div>
+          {/* Welcome & Quick Alert */}
+          <div style={{
+            background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+            padding: "20px 16px",
+            borderRadius: 16,
+            marginBottom: 16,
+            color: "white",
+          }}>
+            <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 8 }}>
+              Bonjour, {currentUser?.name || userName}! 👋
             </div>
-          );
-        }
-        
-        return (
-        <div style={styles.highlightCard}>
-          <div style={styles.highlightTitle}>🎉 Featured Events</div>
-          <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
-            Big events happening this week — join or create hangouts around them!
+            <div style={{ fontSize: 14, opacity: 0.95 }}>
+              Welcome back to your personalized event dashboard
+            </div>
           </div>
-          {featuredEvents.slice(0, 5).map((event, idx) => {
-            const categoryBadge = getCategoryBadge(event.category);
-            return (
-            <div key={idx} style={{ 
-              background: theme.card, 
-              padding: 16, 
-              borderRadius: 14, 
-              marginBottom: 12,
-              border: `1px solid ${theme.track}`,
-              cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-            }}
-            onClick={() => setEventPreview(event)}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                <div style={{ fontWeight: 900, fontSize: 18, color: theme.text, flex: 1, lineHeight: 1.3 }}>
-                  {event.name}
-                </div>
-              </div>
-              
-              {event.imageUrl && (
-                <div style={{
-                  width: "100%",
-                  height: 160,
-                  borderRadius: 12,
-                  marginBottom: 12,
-                  backgroundImage: `url(${event.imageUrl})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }} />
-              )}
-              
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {event.location && (
-                  <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
-                    <span>📍</span>
-                    <span style={{ fontWeight: 600 }}>
-                      {event.venue || (event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location)}
-                      {event.venue && event.location && `, ${event.location === "cite" ? "Cité" : event.location === "paris" ? "Paris" : event.location}`}
-                    </span>
-                  </div>
-                )}
-                
-                <div style={{ fontSize: 15, color: theme.text, display: "flex", alignItems: "center", gap: 6 }}>
-                  <span>🗓</span>
-                  <span style={{ fontWeight: 600 }}>{formatDateOnly(event.date) || event.time}</span>
-                </div>
-                
-                <div style={{ fontSize: 14, color: theme.textMuted, display: "flex", alignItems: "center", gap: 6 }}>
-                  <span>👥</span>
-                  <span>
-                    {(() => {
-                      // Count: host (if exists) + participants, avoiding double-counting
-                      const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
-                      return event.capacity 
-                        ? `${attendeeCount}/${event.capacity} spots filled` 
-                        : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
-                    })()}
-                  </span>
-                </div>
-                
-                {event.languages && event.languages.length > 0 && (
-                  <div style={{ 
-                    fontSize: 14, 
-                    color: theme.text, 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: 6,
-                    flexWrap: "wrap",
-                  }}>
-                    <span>🗣️</span>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {event.languages.map(lang => (
-                        <span 
-                          key={lang}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            padding: "4px 10px",
-                            borderRadius: 999,
-                            background: theme.card,
-                            border: `1.5px solid ${theme.border}`,
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: theme.text,
-                          }}
-                        >
-                          <span style={{ fontSize: 14 }}>{getLanguageEmoji(lang)}</span>
-                          <span>{lang}</span>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {event.category && (
-                  <div style={{ marginTop: 4 }}>
-                    <span style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      padding: "6px 12px",
-                      borderRadius: 999,
-                      background: categoryBadge.color,
-                      color: "white",
-                      fontSize: 13,
-                      fontWeight: 700,
-                    }}>
-                      <span>{categoryBadge.emoji}</span>
-                      <span>{categoryBadge.label}</span>
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-            );
-          })}
-          {featuredEvents.length > 5 && (
-            <div style={{ fontSize: 13, color: theme.textMuted, textAlign: "center", marginTop: 8 }}>
-              +{featuredEvents.length - 5} more featured event{featuredEvents.length - 5 !== 1 ? "s" : ""} available
-            </div>
-          )}
-        </div>
-        );
-      })()}
 
+          {/* My Next Event Card */}
+          {(() => {
+            const upcomingEvents = joinedEvents
+              .filter(e => !e.isArchived && e.date)
+              .sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            if (upcomingEvents.length === 0) {
+              return (
+                <div style={{
+                  ...styles.highlightCard,
+                  background: theme.accent,
+                  border: `2px solid ${theme.primary}`,
+                }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: theme.text, marginBottom: 8 }}>
+                    📅 My Next Event
+                  </div>
+                  <div style={{ fontSize: 14, color: theme.textMuted }}>
+                    You haven't joined any events yet. Explore events below!
+                  </div>
+                </div>
+              );
+            }
+
+            const nextEvent = upcomingEvents[0];
+            const categoryBadge = getCategoryBadge(nextEvent.category);
+
+            return (
+              <div
+                style={{
+                  ...styles.highlightCard,
+                  background: `linear-gradient(135deg, rgba(88, 204, 2, 0.1), rgba(88, 204, 2, 0.05))`,
+                  border: `2px solid ${theme.primary}`,
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  if (onJoinedEventClick) {
+                    onJoinedEventClick(nextEvent);
+                  }
+                }}
+              >
+                <div style={{ fontSize: 18, fontWeight: 900, color: theme.text, marginBottom: 12 }}>
+                  📅 My Next Event
+                </div>
+                
+                {nextEvent.imageUrl && (
+                  <div style={{
+                    width: "100%",
+                    height: 180,
+                    borderRadius: 12,
+                    marginBottom: 12,
+                    backgroundImage: `url(${nextEvent.imageUrl})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }} />
+                )}
+
+                <div style={{ fontSize: 20, fontWeight: 900, color: theme.text, marginBottom: 12 }}>
+                  {nextEvent.title || nextEvent.name}
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ fontSize: 16, color: theme.text, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>🗓</span>
+                    <span style={{ fontWeight: 700 }}>{formatDateOnly(nextEvent.date)}</span>
+                  </div>
+                  
+                  {nextEvent.time && (
+                    <div style={{ fontSize: 16, color: theme.text, display: "flex", alignItems: "center", gap: 8 }}>
+                      <span>⏰</span>
+                      <span style={{ fontWeight: 700 }}>{nextEvent.time}</span>
+                      {nextEvent.endTime && <span style={{ fontWeight: 700 }}>- {nextEvent.endTime}</span>}
+                    </div>
+                  )}
+
+                  {nextEvent.location && (
+                    <div style={{ fontSize: 16, color: theme.text, display: "flex", alignItems: "center", gap: 8 }}>
+                      <span>📍</span>
+                      <span style={{ fontWeight: 700 }}>
+                        {nextEvent.venue || (nextEvent.location === "cite" ? "Cité" : nextEvent.location === "paris" ? "Paris" : nextEvent.location)}
+                      </span>
+                    </div>
+                  )}
+
+                  {nextEvent.category && (
+                    <div style={{ marginTop: 8 }}>
+                      <span style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "6px 12px",
+                        borderRadius: 999,
+                        background: categoryBadge.color,
+                        color: "white",
+                        fontSize: 13,
+                        fontWeight: 700,
+                      }}>
+                        <span>{categoryBadge.emoji}</span>
+                        <span>{categoryBadge.label}</span>
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Official Lemi Picks - Featured Events Carousel */}
+          {(() => {
+            const featuredEvents = publicEvents.filter(event => {
+              const isFeaturedOrAdmin = event.isFeatured || (event.createdBy && event.createdBy.toLowerCase() === 'admin');
+              if (!isFeaturedOrAdmin) return false;
+              return !joinedEvents.some(je => String(je.id) === String(event.id));
+            });
+
+            if (featuredEvents.length === 0) return null;
+
+            return (
+              <div style={styles.highlightCard}>
+                <div style={styles.highlightTitle}>✨ Official Lemi Picks 🇫🇷</div>
+                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
+                  Curated events and experiences for international students
+                </div>
+
+                <div style={{
+                  display: "flex",
+                  gap: 12,
+                  overflowX: "auto",
+                  paddingBottom: 8,
+                }}>
+                  {featuredEvents.slice(0, 6).map((event, idx) => {
+                    const categoryBadge = getCategoryBadge(event.category);
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          minWidth: 280,
+                          background: theme.card,
+                          borderRadius: 14,
+                          overflow: "hidden",
+                          border: `1px solid ${theme.track}`,
+                          cursor: "pointer",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                        }}
+                        onClick={() => setEventPreview(event)}
+                      >
+                        {event.imageUrl && (
+                          <div style={{
+                            width: "100%",
+                            height: 160,
+                            backgroundImage: `url(${event.imageUrl})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }} />
+                        )}
+                        
+                        <div style={{ padding: 16 }}>
+                          <div style={{ fontWeight: 900, fontSize: 16, color: theme.text, marginBottom: 8 }}>
+                            {event.name}
+                          </div>
+                          
+                          {event.location && (
+                            <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 4 }}>
+                              📍 {event.venue || event.location}
+                            </div>
+                          )}
+                          
+                          <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 8 }}>
+                            🗓 {formatDateOnly(event.date)}
+                          </div>
+
+                          {event.category && (
+                            <span style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              padding: "4px 10px",
+                              borderRadius: 999,
+                              background: categoryBadge.color,
+                              color: "white",
+                              fontSize: 12,
+                              fontWeight: 700,
+                            }}>
+                              {categoryBadge.emoji} {categoryBadge.label}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Recommended For You */}
+          {(() => {
+            // Get events user hasn't joined yet
+            const availableEvents = publicEvents.filter(event => {
+              return !joinedEvents.some(je => String(je.id) === String(event.id)) &&
+                     !event.isArchived &&
+                     !(event.isFeatured || (event.createdBy && event.createdBy.toLowerCase() === 'admin'));
+            });
+
+            if (availableEvents.length === 0) return null;
+
+            // Simple recommendation: recent events from the community
+            const recommendedEvents = availableEvents.slice(0, 6);
+
+            return (
+              <div style={styles.highlightCard}>
+                <div style={styles.highlightTitle}>💡 Recommended For You</div>
+                <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
+                  Events from the community you might enjoy
+                </div>
+
+                <div style={{
+                  display: "flex",
+                  gap: 12,
+                  overflowX: "auto",
+                  paddingBottom: 8,
+                }}>
+                  {recommendedEvents.map((event, idx) => {
+                    const categoryBadge = getCategoryBadge(event.category);
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          minWidth: 280,
+                          background: theme.card,
+                          borderRadius: 14,
+                          overflow: "hidden",
+                          border: `1px solid ${theme.track}`,
+                          cursor: "pointer",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                        }}
+                        onClick={() => setEventPreview(event)}
+                      >
+                        {event.imageUrl && (
+                          <div style={{
+                            width: "100%",
+                            height: 160,
+                            backgroundImage: `url(${event.imageUrl})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }} />
+                        )}
+                        
+                        <div style={{ padding: 16 }}>
+                          <div style={{ fontWeight: 900, fontSize: 16, color: theme.text, marginBottom: 8 }}>
+                            {event.name}
+                          </div>
+                          
+                          {event.location && (
+                            <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 4 }}>
+                              📍 {event.venue || event.location}
+                            </div>
+                          )}
+                          
+                          <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 8 }}>
+                            🗓 {formatDateOnly(event.date)}
+                          </div>
+
+                          {event.category && (
+                            <span style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              padding: "4px 10px",
+                              borderRadius: 999,
+                              background: categoryBadge.color,
+                              color: "white",
+                              fontSize: 12,
+                              fontWeight: 700,
+                            }}>
+                              {categoryBadge.emoji} {categoryBadge.label}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </>
       )}
 
