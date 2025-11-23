@@ -130,6 +130,7 @@ function SocialHome({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [showNotificationsInbox, setShowNotificationsInbox] = useState(false);
+  const [showPastEventsModal, setShowPastEventsModal] = useState(false);
   const [createEventStep, setCreateEventStep] = useState(1);
   const [eventPreview, setEventPreview] = useState(null); // For previewing events before joining
   const [adminEditMode, setAdminEditMode] = useState(false);
@@ -5668,7 +5669,142 @@ function SocialHome({
           onDeclineFollowRequest={onDeclineFollowRequestFrom}
           onFollowBackUser={onFollowBackUser}
           follows={follows}
+          joinedEvents={joinedEvents}
+          onViewPastEvents={() => setShowPastEventsModal(true)}
         />
+      )}
+
+      {/* Past Events Modal */}
+      {showPastEventsModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setShowPastEventsModal(false)}
+        >
+          <div 
+            style={{
+              backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+              borderRadius: '12px',
+              padding: '24px',
+              width: '90%',
+              maxWidth: '600px',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              position: 'relative',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+            }}>
+              <h2 style={{
+                margin: 0,
+                color: theme === 'dark' ? '#fff' : '#000',
+                fontSize: '24px',
+              }}>Past Events</h2>
+              <button
+                onClick={() => setShowPastEventsModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: theme === 'dark' ? '#fff' : '#000',
+                  padding: '0',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {joinedEvents.filter(e => e.isArchived).length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '40px 20px',
+                color: theme === 'dark' ? '#888' : '#666',
+              }}>
+                No past events yet
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {joinedEvents
+                  .filter(e => e.isArchived)
+                  .sort((a, b) => new Date(b.start_time) - new Date(a.start_time))
+                  .map(event => (
+                    <div
+                      key={event.id}
+                      onClick={() => {
+                        setShowPastEventsModal(false);
+                        if (onJoinedEventClick) {
+                          onJoinedEventClick(event);
+                        }
+                      }}
+                      style={{
+                        padding: '16px',
+                        backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f5f5f5',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme === 'dark' ? '#333' : '#e8e8e8';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = theme === 'dark' ? '#2a2a2a' : '#f5f5f5';
+                      }}
+                    >
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        color: theme === 'dark' ? '#fff' : '#000',
+                        marginBottom: '8px',
+                      }}>
+                        {event.title}
+                      </div>
+                      <div style={{
+                        fontSize: '14px',
+                        color: theme === 'dark' ? '#888' : '#666',
+                      }}>
+                        {new Date(event.start_time).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </div>
+                      {event.location && (
+                        <div style={{
+                          fontSize: '14px',
+                          color: theme === 'dark' ? '#888' : '#666',
+                          marginTop: '4px',
+                        }}>
+                          📍 {event.location}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Image Cropper Modal */}

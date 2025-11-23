@@ -17,6 +17,8 @@ function NotificationsInbox({
   onDeclineFollowRequest,
   onFollowBackUser,
   follows = {},
+  joinedEvents = [],
+  onViewPastEvents,
 }) {
   const [notificationDetails, setNotificationDetails] = useState([]);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
@@ -340,6 +342,31 @@ function NotificationsInbox({
         >
           👁️ View My Public Profile
         </button>
+
+        {/* Past Events Button */}
+        {(() => {
+          const archivedCount = joinedEvents.filter(e => e.isArchived).length;
+          if (archivedCount === 0) return null;
+          
+          return (
+            <button 
+              style={{
+                ...styles.profileButton,
+                background: '#9333EA',
+              }}
+              onClick={() => {
+                if (onViewPastEvents) {
+                  onViewPastEvents();
+                  onClose();
+                }
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#7E22CE'}
+              onMouseLeave={(e) => e.target.style.background = '#9333EA'}
+            >
+              📦 Past Events ({archivedCount})
+            </button>
+          );
+        })()}
 
         <button
           style={styles.signOutButton}
