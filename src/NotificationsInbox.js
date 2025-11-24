@@ -271,7 +271,7 @@ function NotificationsInbox({
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.container} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
-          <span>Notifications</span>
+          <span>{showNotifications ? 'Notifications' : 'My Account'}</span>
           <button style={styles.closeButton} onClick={onClose}>×</button>
         </div>
 
