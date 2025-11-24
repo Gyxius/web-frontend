@@ -456,20 +456,103 @@ function Login({ onLogin, onRegistered }) {
           <img src={`${API_URL}/static/assets/logo.png`} alt="Lemi Logo" style={{ width:60, height:60, objectFit:'contain' }} />
         </div>
         <h2 style={{ textAlign:'center', fontSize:22, fontWeight:900, color:theme.text, marginBottom:6 }}>{isRegistering? 'Create Your Profile':'Welcome to Lemi'}</h2>
-        <p style={{ textAlign:'center', color:theme.textMuted, fontSize:14.5, marginBottom:16 }}>Lemi makes it easy for internationals in Paris to connect. Whether you're a student, an expat, or just arriving in the city, you can find events, meet new people, and organise spontaneous hangouts.</p>
+        <p style={{ textAlign:'center', color:theme.textMuted, fontSize:14.5, marginBottom:16, lineHeight:1.5 }}>
+          Lemi makes it easy for <strong style={{ color:theme.text }}>internationals in Paris</strong> to connect. 
+          Whether you're a student, an expat, or just arriving in the city, you can find events, meet new people, and organise <strong style={{ color:theme.text }}>spontaneous hangouts</strong>.
+        </p>
         {isRegistering && stepIndicator}
         {!isRegistering && (
           <form onSubmit={e=>{ e.preventDefault(); handleSubmit(); }} autoComplete="off">
-            <input type="text" placeholder="Username" value={userName} onChange={e=>setUserName(e.target.value)} style={inputStyle} autoComplete="username" />
-            <div style={{ position:'relative' }}>
-              <input type={showPassword? 'text':'password'} placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} style={inputStyle} autoComplete="current-password" />
-              <button type="button" onClick={()=>setShowPassword(p=>!p)} style={{ position:'absolute', right:10, top:10, background:'none', border:'none', color:theme.textMuted, cursor:'pointer', fontWeight:700 }}>{showPassword? 'Hide':'Show'}</button>
+            <input 
+              type="text" 
+              placeholder="Username or Email" 
+              value={userName} 
+              onChange={e=>setUserName(e.target.value)} 
+              style={inputStyle} 
+              autoComplete="username" 
+            />
+            <div style={{ position:'relative', marginBottom:8 }}>
+              <input 
+                type={showPassword? 'text':'password'} 
+                placeholder="Password" 
+                value={password} 
+                onChange={e=>setPassword(e.target.value)} 
+                style={inputStyle} 
+                autoComplete="current-password" 
+              />
+              <button 
+                type="button" 
+                onClick={()=>setShowPassword(p=>!p)} 
+                style={{ position:'absolute', right:10, top:10, background:'none', border:'none', color:theme.textMuted, cursor:'pointer', fontWeight:700 }}
+              >
+                {showPassword? 'Hide':'Show'}
+              </button>
             </div>
-            <button type="submit" disabled={loading || !userName.trim()} style={{ width:'100%', padding:'12px 14px', borderRadius:14, border:'none', background:`linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`, color:'white', fontWeight:900, fontSize:16, cursor: loading||!userName.trim()? 'not-allowed':'pointer', boxShadow:'0 10px 22px rgba(88,204,2,0.28)', opacity: loading||!userName.trim()? .6:1 }}>{loading? 'Logging in…':'🟢 Log In'}</button>
-            {error && <p style={{ color:theme.danger, textAlign:'center', fontWeight:700 }}>{error}</p>}
+            <div style={{ textAlign:'right', marginBottom:16 }}>
+              <button 
+                type="button" 
+                onClick={()=>alert('Password reset functionality coming soon!')} 
+                style={{ background:'none', border:'none', color:theme.primary, fontSize:13, cursor:'pointer', textDecoration:'none', fontWeight:600 }}
+                onMouseEnter={(e)=>e.target.style.textDecoration='underline'}
+                onMouseLeave={(e)=>e.target.style.textDecoration='none'}
+              >
+                Forgot Password?
+              </button>
+            </div>
+            <button 
+              type="submit" 
+              disabled={loading || !userName.trim() || !password.trim()} 
+              style={{ 
+                width:'100%', 
+                padding:'12px 14px', 
+                borderRadius:14, 
+                border:'none', 
+                background: (loading || !userName.trim() || !password.trim()) 
+                  ? theme.border 
+                  : `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`, 
+                color: (loading || !userName.trim() || !password.trim()) 
+                  ? theme.textMuted 
+                  : 'white', 
+                fontWeight:900, 
+                fontSize:16, 
+                cursor: (loading || !userName.trim() || !password.trim()) ? 'not-allowed' : 'pointer', 
+                boxShadow: (loading || !userName.trim() || !password.trim()) 
+                  ? 'none' 
+                  : '0 10px 22px rgba(88,204,2,0.28)', 
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {loading? 'Logging in…':'🟢 Log In'}
+            </button>
+            {error && <p style={{ color:theme.danger, textAlign:'center', fontWeight:700, marginTop:12 }}>{error}</p>}
             <div style={{ textAlign:'center', marginTop:16, fontSize:14 }}>
               <span style={{ color:theme.textMuted }}>Don't have an account? </span>
-              <button type="button" onClick={()=>{ setIsRegistering(true); setError(''); setPassword(''); setConfirmPassword(''); setCurrentStep(1); }} style={{ background:'none', border:'none', color:theme.primary, fontWeight:700, cursor:'pointer', textDecoration:'underline', fontSize:14 }}>Sign Up</button>
+              <button 
+                type="button" 
+                onClick={()=>{ setIsRegistering(true); setError(''); setPassword(''); setConfirmPassword(''); setCurrentStep(1); }} 
+                style={{ 
+                  background:'none', 
+                  border:`2px solid ${theme.primary}`, 
+                  color:theme.primaryDark, 
+                  fontWeight:700, 
+                  cursor:'pointer', 
+                  fontSize:14,
+                  padding:'6px 16px',
+                  borderRadius:8,
+                  marginLeft:8,
+                  transition:'all 0.2s ease'
+                }}
+                onMouseEnter={(e)=>{
+                  e.target.style.background = theme.primary;
+                  e.target.style.color = 'white';
+                }}
+                onMouseLeave={(e)=>{
+                  e.target.style.background = 'none';
+                  e.target.style.color = theme.primaryDark;
+                }}
+              >
+                Sign Up
+              </button>
             </div>
           </form>
         )}
