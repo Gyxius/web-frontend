@@ -315,71 +315,76 @@ function NotificationsInbox({
           })()}
         </div>
 
-        <button 
-          style={styles.profileButton}
-          onClick={() => {
-            onViewProfile();
-            onClose();
-          }}
-          onMouseEnter={(e) => e.target.style.background = theme.primaryDark}
-          onMouseLeave={(e) => e.target.style.background = theme.primary}
-        >
-          See My Profile
-        </button>
+        {/* Profile buttons - Only show when NOT showing notifications (when opened from profile avatar) */}
+        {!showNotifications && (
+          <>
+            <button 
+              style={styles.profileButton}
+              onClick={() => {
+                onViewProfile();
+                onClose();
+              }}
+              onMouseEnter={(e) => e.target.style.background = theme.primaryDark}
+              onMouseLeave={(e) => e.target.style.background = theme.primary}
+            >
+              See My Profile
+            </button>
 
-        <button 
-          style={{
-            ...styles.profileButton,
-            background: '#1DA1F2',
-          }}
-          onClick={() => {
-            if (onViewPublicProfile) {
-              onViewPublicProfile();
-              onClose();
-            }
-          }}
-          onMouseEnter={(e) => e.target.style.background = '#1591C7'}
-          onMouseLeave={(e) => e.target.style.background = '#1DA1F2'}
-        >
-          👁️ View My Public Profile
-        </button>
-
-        {/* Past Events Button */}
-        {(() => {
-          const archivedCount = joinedEvents.filter(e => e.isArchived).length;
-          if (archivedCount === 0) return null;
-          
-          return (
             <button 
               style={{
                 ...styles.profileButton,
-                background: '#9333EA',
+                background: '#1DA1F2',
               }}
               onClick={() => {
-                if (onViewPastEvents) {
-                  onViewPastEvents();
+                if (onViewPublicProfile) {
+                  onViewPublicProfile();
                   onClose();
                 }
               }}
-              onMouseEnter={(e) => e.target.style.background = '#7E22CE'}
-              onMouseLeave={(e) => e.target.style.background = '#9333EA'}
+              onMouseEnter={(e) => e.target.style.background = '#1591C7'}
+              onMouseLeave={(e) => e.target.style.background = '#1DA1F2'}
             >
-              📦 Past Events ({archivedCount})
+              👁️ View My Public Profile
             </button>
-          );
-        })()}
 
-        <button
-          style={styles.signOutButton}
-          onClick={() => {
-            if (onSignOut) onSignOut();
-            onClose();
-          }}
-          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.98)")}
-          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-        >
-          🚪 Sign Out
-        </button>
+            {/* Past Events Button */}
+            {(() => {
+              const archivedCount = joinedEvents.filter(e => e.isArchived).length;
+              if (archivedCount === 0) return null;
+              
+              return (
+                <button 
+                  style={{
+                    ...styles.profileButton,
+                    background: '#9333EA',
+                  }}
+                  onClick={() => {
+                    if (onViewPastEvents) {
+                      onViewPastEvents();
+                      onClose();
+                    }
+                  }}
+                  onMouseEnter={(e) => e.target.style.background = '#7E22CE'}
+                  onMouseLeave={(e) => e.target.style.background = '#9333EA'}
+                >
+                  📦 Past Events ({archivedCount})
+                </button>
+              );
+            })()}
+
+            <button
+              style={styles.signOutButton}
+              onClick={() => {
+                if (onSignOut) onSignOut();
+                onClose();
+              }}
+              onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.98)")}
+              onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            >
+              🚪 Sign Out
+            </button>
+          </>
+        )}
 
         {/* Follow Requests Section */}
         {followRequests && followRequests.length > 0 && (
