@@ -456,7 +456,7 @@ function Login({ onLogin, onRegistered }) {
           <img src={`${API_URL}/static/assets/logo.png`} alt="Lemi Logo" style={{ width:60, height:60, objectFit:'contain' }} />
         </div>
         <h2 style={{ textAlign:'center', fontSize:22, fontWeight:900, color:theme.text, marginBottom:6 }}>{isRegistering? 'Create Your Profile':'Welcome to Lemi'}</h2>
-        <p style={{ textAlign:'center', color:theme.textMuted, fontSize:14.5, marginBottom:16 }}>Lemi helps international & Erasmus students and Cité residents meet, organize hangouts, and explore the city together.</p>
+        <p style={{ textAlign:'center', color:theme.textMuted, fontSize:14.5, marginBottom:16 }}>Lemi makes it easy for internationals in Paris to connect. Whether you're a student, an expat, or just arriving in the city, you can find events, meet new people, and organise spontaneous hangouts.</p>
         {isRegistering && stepIndicator}
         {!isRegistering && (
           <form onSubmit={e=>{ e.preventDefault(); handleSubmit(); }} autoComplete="off">
