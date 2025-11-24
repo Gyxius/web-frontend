@@ -6,6 +6,7 @@ import "./SocialHome.animations.css";
 import { createEvent, getEventById, updateEvent, archiveEvent, deleteEvent } from "./api";
 import NotificationsInbox from "./NotificationsInbox";
 import ImageCropper from "./ImageCropper";
+import LemiGuide from "./LemiGuide";
 import { FULL_LANGUAGES } from "./constants/languages";
 
 // Helper to format long addresses to concise format
@@ -132,6 +133,7 @@ function SocialHome({
   const [showNotificationsInbox, setShowNotificationsInbox] = useState(false);
   const [showNotificationsOnly, setShowNotificationsOnly] = useState(true); // Track if showing full notifications or just profile buttons
   const [showPastEventsModal, setShowPastEventsModal] = useState(false);
+  const [showLemiGuide, setShowLemiGuide] = useState(false);
   const [createEventStep, setCreateEventStep] = useState(1);
   const [eventPreview, setEventPreview] = useState(null); // For previewing events before joining
   const [adminEditMode, setAdminEditMode] = useState(false);
@@ -5817,6 +5819,10 @@ function SocialHome({
           joinedEvents={joinedEvents}
           onViewPastEvents={() => setShowPastEventsModal(true)}
           showNotifications={showNotificationsOnly}
+          onOpenLemiGuide={() => setShowLemiGuide(true)}
+          onOpenAdminDashboard={() => {
+            alert("Admin Dashboard feature coming soon!");
+          }}
         />
       )}
 
@@ -7093,6 +7099,14 @@ function SocialHome({
             )}
           </div>
         </div>
+      )}
+
+      {/* Lemi Guide Modal */}
+      {showLemiGuide && (
+        <LemiGuide
+          onClose={() => setShowLemiGuide(false)}
+          currentUser={currentUser}
+        />
       )}
     </div>
   );

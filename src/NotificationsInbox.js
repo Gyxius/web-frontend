@@ -20,6 +20,8 @@ function NotificationsInbox({
   joinedEvents = [],
   onViewPastEvents,
   showNotifications = true, // New prop to control whether to show notifications section
+  onOpenLemiGuide, // New prop for opening Lemi Guide
+  onOpenAdminDashboard, // New prop for opening Admin Dashboard
 }) {
   const [notificationDetails, setNotificationDetails] = useState([]);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
@@ -369,6 +371,50 @@ function NotificationsInbox({
                 >
                   📦 Past Events ({archivedCount})
                 </button>
+              );
+            })()}
+
+            {/* Admin-only Buttons */}
+            {(() => {
+              const isAdmin = currentUser?.name === "Admin" || currentUser?.username === "admin";
+              if (!isAdmin) return null;
+              
+              return (
+                <>
+                  <button 
+                    style={{
+                      ...styles.profileButton,
+                      background: '#F97316',
+                    }}
+                    onClick={() => {
+                      if (onOpenAdminDashboard) {
+                        onOpenAdminDashboard();
+                        onClose();
+                      }
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = '#EA580C'}
+                    onMouseLeave={(e) => e.target.style.background = '#F97316'}
+                  >
+                    🎛️ Admin Dashboard
+                  </button>
+
+                  <button 
+                    style={{
+                      ...styles.profileButton,
+                      background: '#58CC02',
+                    }}
+                    onClick={() => {
+                      if (onOpenLemiGuide) {
+                        onOpenLemiGuide();
+                        onClose();
+                      }
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = '#37B300'}
+                    onMouseLeave={(e) => e.target.style.background = '#58CC02'}
+                  >
+                    🧭 Lemi Guide
+                  </button>
+                </>
               );
             })()}
 
