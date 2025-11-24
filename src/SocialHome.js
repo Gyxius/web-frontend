@@ -130,6 +130,7 @@ function SocialHome({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [showNotificationsInbox, setShowNotificationsInbox] = useState(false);
+  const [showNotificationsOnly, setShowNotificationsOnly] = useState(true); // Track if showing full notifications or just profile buttons
   const [showPastEventsModal, setShowPastEventsModal] = useState(false);
   const [createEventStep, setCreateEventStep] = useState(1);
   const [eventPreview, setEventPreview] = useState(null); // For previewing events before joining
@@ -907,10 +908,10 @@ function SocialHome({
               return (
                 <button
                   onClick={() => {
-                    setActiveBottomTab("profile");
-                    onEditProfile && onEditProfile();
+                    setShowNotificationsInbox(true);
+                    setShowNotificationsOnly(false); // Don't show message notifications, only profile buttons
                   }}
-                  aria-label="Open profile"
+                  aria-label="Open profile menu"
                   style={{
                     background: 'none',
                     border: 'none',
@@ -984,7 +985,10 @@ function SocialHome({
 
             {/* Notifications with badge */}
             <button
-              onClick={() => setShowNotificationsInbox(true)}
+              onClick={() => {
+                setShowNotificationsInbox(true);
+                setShowNotificationsOnly(true); // Show full notifications including messages
+              }}
               aria-label="Open notifications"
               style={{
                 background: 'none',
@@ -5812,6 +5816,7 @@ function SocialHome({
           follows={follows}
           joinedEvents={joinedEvents}
           onViewPastEvents={() => setShowPastEventsModal(true)}
+          showNotifications={showNotificationsOnly}
         />
       )}
 

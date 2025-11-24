@@ -19,6 +19,7 @@ function NotificationsInbox({
   follows = {},
   joinedEvents = [],
   onViewPastEvents,
+  showNotifications = true, // New prop to control whether to show notifications section
 }) {
   const [notificationDetails, setNotificationDetails] = useState([]);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
@@ -490,55 +491,60 @@ function NotificationsInbox({
           </>
         )}
 
-        <div style={styles.sectionTitle}>
-          📬 Message Notifications
-        </div>
-
-        {notificationDetails.length === 0 ? (
-          <div style={styles.emptyState}>
-            🎉 All caught up!<br/>
-            No new notifications
-          </div>
-        ) : (
-          notificationDetails.map((notification) => (
-            <div key={notification.eventId} style={styles.notificationCard}>
-              <div style={styles.notificationHeader}>
-                <div style={styles.eventName}>{notification.eventName}</div>
-                <div style={styles.badge}>
-                  {notification.count} new
-                </div>
-              </div>
-              <div style={styles.notificationText}>
-                You have {notification.count} unread message{notification.count > 1 ? "s" : ""} in this event chat
-              </div>
-              <div style={styles.buttonRow}>
-                <button 
-                  style={{...styles.viewButton, opacity: isMarkingRead ? 0.6 : 1}}
-                  onClick={() => handleViewEvent(notification.event, notification.eventId)}
-                  disabled={isMarkingRead}
-                  onMouseEnter={(e) => !isMarkingRead && (e.target.style.background = theme.primaryDark)}
-                  onMouseLeave={(e) => !isMarkingRead && (e.target.style.background = theme.primary)}
-                >
-                  {isMarkingRead ? "Processing..." : "View Chat"}
-                </button>
-                <button 
-                  style={{...styles.markReadButton, opacity: isMarkingRead ? 0.6 : 1}}
-                  onClick={() => handleMarkAsRead(notification.eventId)}
-                  disabled={isMarkingRead}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = theme.bg;
-                    e.target.style.borderColor = theme.primary;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "white";
-                    e.target.style.borderColor = theme.border;
-                  }}
-                >
-                  Mark Read
-                </button>
-              </div>
+        {/* Message Notifications Section - Only show if showNotifications is true */}
+        {showNotifications && (
+          <>
+            <div style={styles.sectionTitle}>
+              📬 Message Notifications
             </div>
-          ))
+
+            {notificationDetails.length === 0 ? (
+              <div style={styles.emptyState}>
+                🎉 All caught up!<br/>
+                No new notifications
+              </div>
+            ) : (
+              notificationDetails.map((notification) => (
+                <div key={notification.eventId} style={styles.notificationCard}>
+                  <div style={styles.notificationHeader}>
+                    <div style={styles.eventName}>{notification.eventName}</div>
+                    <div style={styles.badge}>
+                      {notification.count} new
+                    </div>
+                  </div>
+                  <div style={styles.notificationText}>
+                    You have {notification.count} unread message{notification.count > 1 ? "s" : ""} in this event chat
+                  </div>
+                  <div style={styles.buttonRow}>
+                    <button 
+                      style={{...styles.viewButton, opacity: isMarkingRead ? 0.6 : 1}}
+                      onClick={() => handleViewEvent(notification.event, notification.eventId)}
+                      disabled={isMarkingRead}
+                      onMouseEnter={(e) => !isMarkingRead && (e.target.style.background = theme.primaryDark)}
+                      onMouseLeave={(e) => !isMarkingRead && (e.target.style.background = theme.primary)}
+                    >
+                      {isMarkingRead ? "Processing..." : "View Chat"}
+                    </button>
+                    <button 
+                      style={{...styles.markReadButton, opacity: isMarkingRead ? 0.6 : 1}}
+                      onClick={() => handleMarkAsRead(notification.eventId)}
+                      disabled={isMarkingRead}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = theme.bg;
+                        e.target.style.borderColor = theme.primary;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = "white";
+                        e.target.style.borderColor = theme.border;
+                      }}
+                    >
+                      Mark Read
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </>
         )}
       </div>
     </div>
