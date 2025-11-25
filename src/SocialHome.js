@@ -1228,43 +1228,47 @@ function SocialHome({
         {activeTab === "myevents" && !showExplore && (
           <div style={{
             display: "flex",
-            gap: 0,
+            gap: 8,
             marginBottom: 16,
-            borderBottom: `1px solid ${theme.border}`,
+            padding: "8px",
+            background: theme.accent,
+            borderRadius: 12,
           }}>
             <button
               onClick={() => setMyEventsSubtab("joined")}
               style={{
                 flex: 1,
-                padding: "12px 8px",
-                background: "none",
+                padding: "10px 16px",
+                background: myEventsSubtab === "joined" ? theme.primary : "transparent",
                 border: "none",
-                borderBottom: myEventsSubtab === "joined" ? `3px solid ${theme.primary}` : "3px solid transparent",
-                fontWeight: myEventsSubtab === "joined" ? 900 : 600,
-                fontSize: 15,
-                color: myEventsSubtab === "joined" ? theme.text : theme.textMuted,
+                borderRadius: 8,
+                fontWeight: 700,
+                fontSize: 14,
+                color: myEventsSubtab === "joined" ? "white" : theme.textMuted,
                 cursor: "pointer",
                 transition: "all 0.2s",
+                boxShadow: myEventsSubtab === "joined" ? "0 2px 8px rgba(88,204,2,0.3)" : "none",
               }}
             >
-              Joined
+              📅 Joined
             </button>
             <button
               onClick={() => setMyEventsSubtab("hosted")}
               style={{
                 flex: 1,
-                padding: "12px 8px",
-                background: "none",
+                padding: "10px 16px",
+                background: myEventsSubtab === "hosted" ? theme.primary : "transparent",
                 border: "none",
-                borderBottom: myEventsSubtab === "hosted" ? `3px solid ${theme.primary}` : "3px solid transparent",
-                fontWeight: myEventsSubtab === "hosted" ? 900 : 600,
-                fontSize: 15,
-                color: myEventsSubtab === "hosted" ? theme.text : theme.textMuted,
+                borderRadius: 8,
+                fontWeight: 700,
+                fontSize: 14,
+                color: myEventsSubtab === "hosted" ? "white" : theme.textMuted,
                 cursor: "pointer",
                 transition: "all 0.2s",
+                boxShadow: myEventsSubtab === "hosted" ? "0 2px 8px rgba(88,204,2,0.3)" : "none",
               }}
             >
-              Hosted
+              🎤 Hosted
             </button>
           </div>
         )}
