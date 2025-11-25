@@ -4084,105 +4084,6 @@ function SocialHome({
                     ← Back
                   </button>
                   <button
-                    style={{
-                      flex: 1,
-                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
-                      color: "white",
-                      border: "none",
-                      borderRadius: 14,
-                      padding: isMobile ? "14px" : "16px",
-                      fontWeight: 900,
-                      fontSize: isMobile ? 16 : 18,
-                      cursor: "pointer",
-                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
-                    }}
-                    onClick={() => handleNextStep(12, 13)}
-                  >
-                    Next →
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 13: Target by What Brings You Here (Optional) */}
-            {createEventStep === 13 && (
-              <div 
-                data-step="13"
-                style={{ textAlign: "center", ...fadeIn }}
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    console.log('[ENTER KEY] Step 13 → Creating Event');
-                    e.preventDefault();
-                    // Trigger the create button click
-                    document.querySelector('[data-create-event-btn]')?.click();
-                  }
-                }}
-              >
-                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
-                  Target by purpose of stay? ✈️
-                </h3>
-                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
-                  Show this event to specific groups (optional - leave empty for everyone)
-                </p>
-                
-                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 32 }}>
-                  {[
-                    { value: "erasmus", label: "🎓 Erasmus / Exchange" },
-                    { value: "degree", label: "📚 Degree student" },
-                    { value: "working", label: "💼 Working / Internship" },
-                    { value: "visiting", label: "✈️ Visiting / Short stay" },
-                    { value: "local", label: "🏘️ Local resident" },
-                    { value: "other", label: "🌍 Other" },
-                  ].map((option) => {
-                    const isSelected = newEvent.targetReasons.includes(option.value);
-                    return (
-                      <button
-                        key={option.value}
-                        style={{
-                          padding: isMobile ? 16 : 20,
-                          borderRadius: 14,
-                          border: `2px solid ${isSelected ? theme.primary : theme.border}`,
-                          background: isSelected ? theme.primary : theme.card,
-                          color: isSelected ? "white" : theme.text,
-                          fontSize: isMobile ? 15 : 16,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                          textAlign: "left",
-                        }}
-                        onClick={() => {
-                          if (isSelected) {
-                            setNewEvent({...newEvent, targetReasons: newEvent.targetReasons.filter(r => r !== option.value)});
-                          } else {
-                            setNewEvent({...newEvent, targetReasons: [...newEvent.targetReasons, option.value]});
-                          }
-                        }}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button
-                    style={{
-                      flex: 1,
-                      padding: isMobile ? "14px" : "16px",
-                      borderRadius: 14,
-                      border: `2px solid ${theme.border}`,
-                      background: theme.card,
-                      color: theme.text,
-                      fontWeight: 900,
-                      fontSize: isMobile ? 16 : 18,
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setCreateEventStep(12)}
-                  >
-                    ← Back
-                  </button>
-                  <button
                     data-create-event-btn
                     style={{
                       flex: 1,
@@ -4275,6 +4176,9 @@ function SocialHome({
                 </div>
               </div>
             )}
+
+            {/* Step 13: Target by What Brings You Here (Optional) - HIDDEN */}
+            {createEventStep === 13 && null}
 
             {/* Close Button */}
             <button
