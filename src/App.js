@@ -1179,6 +1179,9 @@ function App() {
           onDeclineFollowRequestFrom={(fromKey) => {
             setPendingFollowRequests(prev => prev.filter(req => !(req.from === fromKey && req.to === (user?.username || user?.name))));
           }}
+          onAccessAdminPanel={(user?.username || user?.name)?.toLowerCase() === 'admin' ? () => {
+            setShowAdminPanel(true);
+          } : undefined}
         />
       </>
     );

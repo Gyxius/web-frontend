@@ -127,6 +127,7 @@ function SocialHome({
   adminMode = false,
   initialEventId = null,
   onBackFromAdmin = null,
+  onAccessAdminPanel,
 }) {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
@@ -5820,9 +5821,7 @@ function SocialHome({
           onViewPastEvents={() => setShowPastEventsModal(true)}
           showNotifications={showNotificationsOnly}
           onOpenLemiGuide={() => setShowLemiGuide(true)}
-          onOpenAdminDashboard={() => {
-            alert("Admin Dashboard feature coming soon!");
-          }}
+          onOpenAdminDashboard={onAccessAdminPanel}
         />
       )}
 
