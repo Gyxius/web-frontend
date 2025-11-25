@@ -166,7 +166,8 @@ function SocialHome({
   });
   
   // New state for Frimake-style navigation
-  const [activeTab, setActiveTab] = useState("home"); // "home", "joined", "hosted"
+  const [activeTab, setActiveTab] = useState("home"); // "home", "myevents"
+  const [myEventsSubtab, setMyEventsSubtab] = useState("joined"); // "joined", "hosted"
   const [activeBottomTab, setActiveBottomTab] = useState("events"); // "events", "explore", "calendar", "profile"
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -1183,7 +1184,7 @@ function SocialHome({
               </button>
             </>
           ) : (
-            // Regular tabs: Joined, Hosted
+            // Main tabs: Home, My Events
             <>
               <button
                 onClick={() => setActiveTab("home")}
@@ -1200,28 +1201,73 @@ function SocialHome({
                   transition: "all 0.2s",
                 }}
               >
-                Joined
+                Home
               </button>
               <button
-                onClick={() => setActiveTab("hosted")}
+                onClick={() => setActiveTab("myevents")}
                 style={{
                   flex: 1,
                   padding: "14px 8px",
                   background: "none",
                   border: "none",
-                  borderBottom: activeTab === "hosted" ? `4px solid ${theme.primary}` : "4px solid transparent",
-                  fontWeight: activeTab === "hosted" ? 900 : 600,
+                  borderBottom: activeTab === "myevents" ? `4px solid ${theme.primary}` : "4px solid transparent",
+                  fontWeight: activeTab === "myevents" ? 900 : 600,
                   fontSize: 16,
-                  color: activeTab === "hosted" ? theme.text : theme.textMuted,
+                  color: activeTab === "myevents" ? theme.text : theme.textMuted,
                   cursor: "pointer",
                   transition: "all 0.2s",
                 }}
               >
-                Hosted
+                My Events
               </button>
             </>
           )}
         </div>
+
+        {/* Subtabs for My Events */}
+        {activeTab === "myevents" && !showExplore && (
+          <div style={{
+            display: "flex",
+            gap: 0,
+            marginBottom: 16,
+            borderBottom: `1px solid ${theme.border}`,
+          }}>
+            <button
+              onClick={() => setMyEventsSubtab("joined")}
+              style={{
+                flex: 1,
+                padding: "12px 8px",
+                background: "none",
+                border: "none",
+                borderBottom: myEventsSubtab === "joined" ? `3px solid ${theme.primary}` : "3px solid transparent",
+                fontWeight: myEventsSubtab === "joined" ? 900 : 600,
+                fontSize: 15,
+                color: myEventsSubtab === "joined" ? theme.text : theme.textMuted,
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+            >
+              Joined
+            </button>
+            <button
+              onClick={() => setMyEventsSubtab("hosted")}
+              style={{
+                flex: 1,
+                padding: "12px 8px",
+                background: "none",
+                border: "none",
+                borderBottom: myEventsSubtab === "hosted" ? `3px solid ${theme.primary}` : "3px solid transparent",
+                fontWeight: myEventsSubtab === "hosted" ? 900 : 600,
+                fontSize: 15,
+                color: myEventsSubtab === "hosted" ? theme.text : theme.textMuted,
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+            >
+              Hosted
+            </button>
+          </div>
+        )}
 
         {/* Filter Buttons Row - Only show in Explore mode */}
         {showExplore && (
@@ -1962,8 +2008,8 @@ function SocialHome({
         </>
       )}
 
-      {/* TAB: My Joined Events */}
-      {activeTab === "joined" && !showExplore && (
+      {/* TAB: My Events - Joined */}
+      {activeTab === "myevents" && myEventsSubtab === "joined" && !showExplore && (
         <>
           {/* My Joined Events Content */}
           {joinedEvents.filter(item => !(item.host && item.host.name === userName) && !item.isArchived).length > 0 ? (
@@ -2111,8 +2157,8 @@ function SocialHome({
         </>
       )}
 
-      {/* TAB: My Hosted Events */}
-      {activeTab === "hosted" && !showExplore && (
+      {/* TAB: My Events - Hosted */}
+      {activeTab === "myevents" && myEventsSubtab === "hosted" && !showExplore && (
         <>
           {joinedEvents.filter(item => item.host && item.host.name === userName && !item.isArchived).length > 0 ? (
             <div style={styles.highlightCard}>
