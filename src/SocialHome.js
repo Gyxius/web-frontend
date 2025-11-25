@@ -3202,7 +3202,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(4)}
+                    onClick={() => setCreateEventStep(5)}
                   >
                     ← Back
                   </button>
@@ -3223,7 +3223,7 @@ function SocialHome({
                           cursor: newEvent.time && !invalidRange ? "pointer" : "not-allowed",
                           boxShadow: newEvent.time && !invalidRange ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
                         }}
-                        onClick={() => newEvent.time && !invalidRange && handleNextStep(5, 6)}
+                        onClick={() => newEvent.time && !invalidRange && handleNextStep(6, 7)}
                         disabled={!newEvent.time || invalidRange}
                       >
                         Next →
