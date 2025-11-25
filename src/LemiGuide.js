@@ -46,25 +46,6 @@ function LemiGuide({ onClose, currentUser }) {
     daysRemaining: 75,
   };
 
-  const tasks = [
-    { id: 1, title: "Schedule Your Prefecture Appointment", status: "completed", description: "Book your appointment online through the prefecture website" },
-    { id: 2, title: "Gather Required Documents", status: "completed", description: "Collect passport, current residence permit, proof of enrollment, and proof of residence" },
-    { id: 3, title: "Get Your Passport Photos", status: "completed", description: "Take 2 recent ID photos that meet French requirements" },
-    { id: 4, title: "Obtain Proof of Residence", status: "in-progress", description: "Get a utility bill or rent receipt dated within the last 3 months" },
-    { id: 5, title: "Request Your Student Certificate", status: "pending", description: "Ask your university for an enrollment certificate (certificat de scolarité)" },
-    { id: 6, title: "Prepare Financial Documents", status: "pending", description: "Bank statements showing sufficient funds for the past 3 months" },
-    { id: 7, title: "Fill Out the Application Form", status: "pending", description: "Complete the CERFA form for residence permit renewal" },
-    { id: 8, title: "Pay the Application Fee", status: "pending", description: "Purchase tax stamps (timbre fiscal) worth €225" },
-    { id: 9, title: "Make Document Copies", status: "pending", description: "Photocopy all original documents for submission" },
-    { id: 10, title: "Attend Prefecture Appointment", status: "pending", description: "Bring all documents to your scheduled appointment" },
-    { id: 11, title: "Submit Biometric Data", status: "pending", description: "Provide fingerprints and photo at the prefecture" },
-    { id: 12, title: "Receive Receipt (Récépissé)", status: "pending", description: "Get your temporary residence authorization" },
-    { id: 13, title: "Wait for Processing", status: "pending", description: "Track your application status online (typically 2-3 months)" },
-    { id: 14, title: "Receive Notification", status: "pending", description: "Check for SMS/email about your residence permit approval" },
-    { id: 15, title: "Pick Up Your Residence Permit", status: "pending", description: "Collect your new residence card from the prefecture" },
-    { id: 16, title: "Activate Your Permit Online", status: "pending", description: "Validate your residence permit on the government website" },
-  ];
-
   return (
     <div style={{
       position: 'fixed',
