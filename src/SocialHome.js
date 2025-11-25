@@ -3136,10 +3136,10 @@ function SocialHome({
                   tabIndex={0}
                 >
                   <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
-                    What languages will you speak? 🗣️
+                    What Languages Will Be Featured? 🌐
                   </h3>
                   <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 24 }}>
-                    Select all languages that will be featured. This helps international students and speakers know if they can join the conversation.
+                    Select all languages that will be prominently used, spoken, or featured during this event. This helps international students and speakers confidently decide if they can fully participate and understand the content.
                   </p>
                   
                   {!showAllLanguages ? (
