@@ -1555,9 +1555,9 @@ function SocialHome({
                             const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
                             return event.capacity 
                               ? event.capacity === 999
-                                ? `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"} (No limit)`
+                                ? `${attendeeCount} ${attendeeCount === 1 ? "participant" : "participants"}`
                                 : `${attendeeCount}/${event.capacity} spots filled`
-                              : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
+                              : `${attendeeCount} ${attendeeCount === 1 ? "participant" : "participants"}`;
                           })()}
                         </span>
                       </div>
@@ -2066,7 +2066,9 @@ function SocialHome({
                           {(() => {
                             const attendeeCount = (item.crew?.length || 0) + (item.participants?.length || 0);
                             return item.capacity 
-                              ? `${attendeeCount}/${item.capacity} spots filled` 
+                              ? item.capacity === 999
+                                ? `${attendeeCount} ${attendeeCount === 1 ? "participant" : "participants"}`
+                                : `${attendeeCount}/${item.capacity} spots filled`
                               : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
                           })()}
                         </span>
