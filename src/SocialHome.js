@@ -3676,43 +3676,45 @@ function SocialHome({
                   </button>
                 </div>
 
-                {/* Custom Input */}
-                <div style={{ marginBottom: 24 }}>
-                  <label style={{ 
-                    display: "block", 
-                    fontSize: 14, 
-                    fontWeight: 700, 
-                    color: theme.textMuted, 
-                    marginBottom: 8 
-                  }}>
-                    Or enter a custom number:
-                  </label>
-                  <input
-                    type="number"
-                    min="2"
-                    max="100"
-                    value={newEvent.capacity || ''}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value >= 2 && value <= 100) {
-                        setNewEvent({...newEvent, capacity: value});
-                      }
-                    }}
-                    onKeyDown={(e) => handleEnterKeyPress(e, newEvent.capacity, 8, 7)}
-                    placeholder="Enter number (2-100)"
-                    autoFocus
-                    style={{
-                      width: "100%",
-                      maxWidth: 200,
-                      padding: isMobile ? 12 : 14,
-                      borderRadius: 14,
-                      border: `2px solid ${theme.border}`,
-                      fontSize: 16,
-                      textAlign: "center",
-                      fontWeight: 700,
-                    }}
-                  />
-                </div>
+                {/* Custom Input - Only show if No Limit is not selected */}
+                {newEvent.capacity !== 999 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={{ 
+                      display: "block", 
+                      fontSize: 14, 
+                      fontWeight: 700, 
+                      color: theme.textMuted, 
+                      marginBottom: 8 
+                    }}>
+                      Or enter a custom number:
+                    </label>
+                    <input
+                      type="number"
+                      min="2"
+                      max="100"
+                      value={newEvent.capacity || ''}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        if (value >= 2 && value <= 100) {
+                          setNewEvent({...newEvent, capacity: value});
+                        }
+                      }}
+                      onKeyDown={(e) => handleEnterKeyPress(e, newEvent.capacity, 8, 7)}
+                      placeholder="Enter number (2-100)"
+                      autoFocus
+                      style={{
+                        width: "100%",
+                        maxWidth: 200,
+                        padding: isMobile ? 12 : 14,
+                        borderRadius: 14,
+                        border: `2px solid ${theme.border}`,
+                        fontSize: 16,
+                        textAlign: "center",
+                        fontWeight: 700,
+                      }}
+                    />
+                  </div>
+                )}
 
                 <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
                   <button
