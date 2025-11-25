@@ -1554,7 +1554,9 @@ function SocialHome({
                             // Count: host (if exists) + participants, avoiding double-counting
                             const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
                             return event.capacity 
-                              ? `${attendeeCount}/${event.capacity} spots filled` 
+                              ? event.capacity === 999
+                                ? `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"} (No limit)`
+                                : `${attendeeCount}/${event.capacity} spots filled`
                               : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
                           })()}
                         </span>
@@ -1625,24 +1627,24 @@ function SocialHome({
                         marginTop: 12,
                         opacity: (() => {
                           const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
-                          return (event.capacity && attendeeCount >= event.capacity) ? 0.5 : 1;
+                          return (event.capacity && event.capacity !== 999 && attendeeCount >= event.capacity) ? 0.5 : 1;
                         })(),
                         cursor: (() => {
                           const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
-                          return (event.capacity && attendeeCount >= event.capacity) ? "not-allowed" : "pointer";
+                          return (event.capacity && event.capacity !== 999 && attendeeCount >= event.capacity) ? "not-allowed" : "pointer";
                         })(),
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
                         const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
-                        if (event.capacity && attendeeCount >= event.capacity) {
+                        if (event.capacity && event.capacity !== 999 && attendeeCount >= event.capacity) {
                           alert("⚠️ This event is full! Maximum capacity of " + event.capacity + " people has been reached.");
                           return;
                         }
                         onJoinPublicEvent && onJoinPublicEvent(event);
                       }}
                     >
-                      {(event.capacity && event.crew && event.crew.length >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event"}
+                      {(event.capacity && event.capacity !== 999 && event.crew && event.crew.length >= event.capacity) ? "⚠️ Event Full" : "🎉 Join Event"}
                     </button>
                   </div>
                   );
@@ -3618,7 +3620,7 @@ function SocialHome({
                   gap: 12, 
                   marginBottom: 24,
                   maxWidth: 400,
-                  margin: "0 auto 32px auto",
+                  margin: "0 auto 24px auto",
                 }}>
                   {[4, 6, 8, 10, 12, 15, 20, 25, 30].map((size) => (
                     <button
@@ -3642,6 +3644,36 @@ function SocialHome({
                       {size}
                     </button>
                   ))}
+                </div>
+
+                {/* No Limit Option */}
+                <div style={{ marginBottom: 24 }}>
+                  <button
+                    onClick={() => setNewEvent({...newEvent, capacity: 999})}
+                    style={{
+                      width: "100%",
+                      maxWidth: 400,
+                      padding: "16px 20px",
+                      borderRadius: 14,
+                      border: `3px solid ${newEvent.capacity === 999 ? theme.primary : theme.border}`,
+                      background: newEvent.capacity === 999 
+                        ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` 
+                        : theme.card,
+                      color: newEvent.capacity === 999 ? "white" : theme.text,
+                      fontWeight: 900,
+                      fontSize: 18,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      boxShadow: newEvent.capacity === 999 ? "0 4px 12px rgba(88,204,2,0.3)" : "none",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <span style={{ fontSize: 24 }}>∞</span>
+                    <span>No Limit</span>
+                  </button>
                 </div>
 
                 {/* Custom Input */}
