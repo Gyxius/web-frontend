@@ -2125,7 +2125,7 @@ function SocialHome({
                       </div>
                       
                       {item.category && (
-                        <div style={{ marginTop: 4 }}>
+                        <div style={{ marginTop: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           <span style={{
                             display: "inline-flex",
                             alignItems: "center",
@@ -2140,6 +2140,21 @@ function SocialHome({
                             <span>{categoryBadge.emoji}</span>
                             <span>{categoryBadge.label}</span>
                           </span>
+                          {item.subcategory && (
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              padding: '6px 12px',
+                              borderRadius: 999,
+                              background: theme.card,
+                              border: `1.5px solid ${categoryBadge.color}`,
+                              color: theme.text,
+                              fontSize: 12,
+                              fontWeight: 600,
+                            }}>
+                              {item.subcategory}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -2277,7 +2292,7 @@ function SocialHome({
                       )}
                       
                       {item.category && (
-                        <div style={{ marginTop: 4 }}>
+                        <div style={{ marginTop: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           <span style={{
                             display: "inline-flex",
                             alignItems: "center",
@@ -2292,6 +2307,21 @@ function SocialHome({
                             <span>{categoryBadge.emoji}</span>
                             <span>{categoryBadge.label}</span>
                           </span>
+                          {item.subcategory && (
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              padding: '6px 12px',
+                              borderRadius: 999,
+                              background: theme.card,
+                              border: `1.5px solid ${categoryBadge.color}`,
+                              color: theme.text,
+                              fontSize: 12,
+                              fontWeight: 600,
+                            }}>
+                              {item.subcategory}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -4178,6 +4208,7 @@ function SocialHome({
                           end_time: newEvent.endTime || null,
                           description: newEvent.description || "",
                           category: newEvent.category,
+                          subcategory: newEvent.subcategory || "",
                           languages: newEvent.languages,
                           image_url: newEvent.imageUrl || "",
                           is_public: true,
@@ -6114,7 +6145,7 @@ function SocialHome({
                           )}
 
                           {event.category && (
-                            <div style={{ marginTop: 4 }}>
+                            <div style={{ marginTop: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                               <span style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
@@ -6129,6 +6160,21 @@ function SocialHome({
                                 <span>{categoryBadge.emoji}</span>
                                 <span>{event.category}</span>
                               </span>
+                              {event.subcategory && (
+                                <span style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  padding: '6px 12px',
+                                  borderRadius: 999,
+                                  background: theme.card,
+                                  border: `1.5px solid ${categoryBadge.color}`,
+                                  color: theme.text,
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                }}>
+                                  {event.subcategory}
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>
