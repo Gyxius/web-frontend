@@ -181,8 +181,12 @@ async function getCroppedImg(imageSrc, pixelCrop) {
         console.error('Canvas is empty');
         return;
       }
-      const fileUrl = URL.createObjectURL(blob);
-      resolve(fileUrl);
+      // Convert blob to data URL instead of creating a temporary blob URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result);
+      };
+      reader.readAsDataURL(blob);
     }, 'image/jpeg', 0.95);
   });
 }
