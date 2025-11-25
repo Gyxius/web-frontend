@@ -1186,16 +1186,16 @@ function SocialHome({
             // Regular tabs: Joined, Hosted
             <>
               <button
-                onClick={() => setActiveTab("joined")}
+                onClick={() => setActiveTab("home")}
                 style={{
                   flex: 1,
                   padding: "14px 8px",
                   background: "none",
                   border: "none",
-                  borderBottom: activeTab === "joined" ? `4px solid ${theme.primary}` : "4px solid transparent",
-                  fontWeight: activeTab === "joined" ? 900 : 600,
+                  borderBottom: activeTab === "home" ? `4px solid ${theme.primary}` : "4px solid transparent",
+                  fontWeight: activeTab === "home" ? 900 : 600,
                   fontSize: 16,
-                  color: activeTab === "joined" ? theme.text : theme.textMuted,
+                  color: activeTab === "home" ? theme.text : theme.textMuted,
                   cursor: "pointer",
                   transition: "all 0.2s",
                 }}
