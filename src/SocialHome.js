@@ -2229,7 +2229,9 @@ function SocialHome({
                           {(() => {
                             const attendeeCount = (item.host ? 1 : 0) + (item.participants?.length || 0);
                             return item.capacity 
-                              ? `${attendeeCount}/${item.capacity} spots filled` 
+                              ? item.capacity === 999
+                                ? `${attendeeCount} ${attendeeCount === 1 ? "participant" : "participants"}`
+                                : `${attendeeCount}/${item.capacity} spots filled`
                               : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
                           })()}
                         </span>
@@ -2541,7 +2543,9 @@ function SocialHome({
                         👥 {(() => {
                           const attendeeCount = (item.host ? 1 : 0) + (item.participants?.length || 0);
                           return item.capacity 
-                            ? `${attendeeCount}/${item.capacity} spots filled` 
+                            ? item.capacity === 999
+                              ? `${attendeeCount} ${attendeeCount === 1 ? "participant" : "participants"}`
+                              : `${attendeeCount}/${item.capacity} spots filled`
                             : `${attendeeCount} ${attendeeCount === 1 ? "attendee" : "attendees"}`;
                         })()}
                       </div>
@@ -6062,7 +6066,9 @@ function SocialHome({
                               {(() => {
                                 const attendeeCount = (event.host ? 1 : 0) + (event.participants?.length || 0);
                                 return event.capacity 
-                                  ? `${attendeeCount}/${event.capacity} spots filled` 
+                                  ? event.capacity === 999
+                                    ? `${attendeeCount} ${attendeeCount === 1 ? 'participant' : 'participants'}`
+                                    : `${attendeeCount}/${event.capacity} spots filled`
                                   : `${attendeeCount} ${attendeeCount === 1 ? 'attendee' : 'attendees'}`;
                               })()}
                             </span>
