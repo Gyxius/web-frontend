@@ -213,6 +213,7 @@ function SocialHome({
   endTime: "",
     description: "",
     category: "language",
+    subcategory: "", // Sub-category/event format within the main category
     languages: [], // Array of languages that will be spoken
     capacity: 6, // Maximum number of participants
     imageUrl: "", // Background image for the event
@@ -468,6 +469,60 @@ function SocialHome({
     };
     return categoryMap[category?.toLowerCase()] || categoryMap["other"];
   };
+
+  // Subcategory options for each main category
+  const subcategories = {
+    "language": [
+      { value: "conversation", emoji: "🗣️", label: "Conversation Workshop" },
+      { value: "study", emoji: "📚", label: "Study Session (Language Focus)" },
+      { value: "tutoring", emoji: "🧑‍🏫", label: "French Tutoring/Practice" },
+      { value: "tandem", emoji: "🤝", label: "Culture Swap / TANDEM" },
+      { value: "bookclub", emoji: "📖", label: "Book Club (Multi-lingual)" },
+      { value: "other-language", emoji: "🌐", label: "Other Language Event" },
+    ],
+    "cultural": [
+      { value: "museum", emoji: "🖼️", label: "Museum Visit / Exhibition" },
+      { value: "walking-tour", emoji: "🚶‍♀️", label: "Guided Walking Tour" },
+      { value: "day-trip", emoji: "🚌", label: "Day Trip (e.g., Versailles, Giverny)" },
+      { value: "landmark", emoji: "🗼", label: "Historic Landmark Visit" },
+      { value: "film", emoji: "🎬", label: "Thematic Film Screening" },
+      { value: "other-cultural", emoji: "🗺️", label: "Other Cultural Event" },
+    ],
+    "social": [
+      { value: "party", emoji: "🥳", label: "Student Party / Clubbing" },
+      { value: "drinks", emoji: "🥂", label: "Casual Drinks / Bar Crawl" },
+      { value: "karaoke", emoji: "🎤", label: "Karaoke / Open Mic" },
+      { value: "games", emoji: "🎲", label: "Board Games / Card Games" },
+      { value: "hangout", emoji: "☕", label: "Simple Hangout / Meetup" },
+      { value: "other-social", emoji: "✨", label: "Other Social Gathering" },
+    ],
+    "food": [
+      { value: "cooking", emoji: "👩‍🍳", label: "Cooking Class / Dinner Workshop" },
+      { value: "restaurant", emoji: "🍽️", label: "Restaurant Dinner / Lunch" },
+      { value: "brunch", emoji: "🥞", label: "Brunch" },
+      { value: "picnic", emoji: "🧺", label: "Picnic / Potluck" },
+      { value: "tasting", emoji: "🍷", label: "Tasting Event (Wine, Cheese, Pastry)" },
+      { value: "other-food", emoji: "🍹", label: "Other Food/Drink Event" },
+    ],
+    "sports": [
+      { value: "team-sports", emoji: "⚽", label: "Team Sports (e.g., Football, Basketball)" },
+      { value: "fitness", emoji: "💪", label: "Gym / Fitness Class" },
+      { value: "urban-walk", emoji: "👟", label: "Urban Walk / Run (e.g., along Seine)" },
+      { value: "nature", emoji: "🌲", label: "Nature Walk / Hiking (e.g., nearby forest)" },
+      { value: "biking", emoji: "🚴", label: "Biking Tour / Rental Trip" },
+      { value: "other-sports", emoji: "🥅", label: "Other Sports/Outdoor Activity" },
+    ],
+    "professional": [
+      { value: "career", emoji: "📄", label: "Career / CV Workshop" },
+      { value: "academic", emoji: "📝", label: "Academic Study Group" },
+      { value: "admin", emoji: "🆔", label: "Visa / Admin Help Session" },
+      { value: "networking", emoji: "👔", label: "Networking Event" },
+      { value: "speaking", emoji: "🎙️", label: "Public Speaking Practice" },
+      { value: "tech", emoji: "💻", label: "Tech / Skill Workshop" },
+      { value: "other-workshop", emoji: "💡", label: "Other Workshop" },
+    ],
+  };
+
 
   const formatDateOnly = (dateStr) => {
     if (!dateStr) return "";
@@ -2825,10 +2880,10 @@ function SocialHome({
                         textAlign: "left",
                       }}
                       onClick={() => {
-                        setNewEvent({...newEvent, category: cat.value});
-                        // Auto-advance to next step after selecting category
+                        setNewEvent({...newEvent, category: cat.value, subcategory: ""}); // Reset subcategory when category changes
+                        // Auto-advance to subcategory selection
                         setTimeout(() => {
-                          console.log('[CATEGORY SELECTED] Auto-advancing to Step 4');
+                          console.log('[CATEGORY SELECTED] Auto-advancing to Step 4 (Subcategory)');
                           setCreateEventStep(4);
                         }, 300);
                       }}
@@ -2882,8 +2937,102 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 4: Date */}
-            {createEventStep === 4 && (() => {
+            {/* Step 4: Subcategory */}
+            {createEventStep === 4 && (
+              <div
+                style={{
+                  textAlign: "center",
+                  ...fadeIn,
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newEvent.subcategory) {
+                    setCreateEventStep(5);
+                  }
+                }}
+                tabIndex={0}
+              >
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  What type of {getCategoryBadge(newEvent.category).label.toLowerCase()}? 🎯
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Choose the format that best describes your event
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 24 }}>
+                  {subcategories[newEvent.category]?.map(subcat => (
+                    <button
+                      key={subcat.value}
+                      style={{
+                        padding: isMobile ? 16 : 18,
+                        borderRadius: 14,
+                        border: `2px solid ${newEvent.subcategory === subcat.value ? theme.primary : theme.border}`,
+                        background: newEvent.subcategory === subcat.value ? theme.primary : theme.card,
+                        color: newEvent.subcategory === subcat.value ? "white" : theme.text,
+                        fontSize: isMobile ? 15 : 16,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        textAlign: "left",
+                      }}
+                      onClick={() => {
+                        setNewEvent({...newEvent, subcategory: subcat.value});
+                        // Auto-advance to next step after selecting subcategory
+                        setTimeout(() => {
+                          console.log('[SUBCATEGORY SELECTED] Auto-advancing to Step 5 (Date)');
+                          setCreateEventStep(5);
+                        }, 300);
+                      }}
+                    >
+                      <div style={{ fontSize: 24 }}>{subcat.emoji}</div>
+                      <span style={{ fontWeight: 900 }}>{subcat.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(3)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      background: newEvent.subcategory
+                        ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`
+                        : theme.border,
+                      color: newEvent.subcategory ? "white" : theme.textMuted,
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: newEvent.subcategory ? "pointer" : "not-allowed",
+                      transition: "all 0.2s",
+                    }}
+                    onClick={() => newEvent.subcategory && setCreateEventStep(5)}
+                    disabled={!newEvent.subcategory}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: Date */}
+            {createEventStep === 5 && (() => {
               // Get today's date in YYYY-MM-DD format
               const todayStr = new Date().toISOString().split('T')[0];
               
@@ -2960,7 +3109,7 @@ function SocialHome({
                       cursor: (newEvent.date && !isDateInPast) ? "pointer" : "not-allowed",
                       boxShadow: (newEvent.date && !isDateInPast) ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
                     }}
-                    onClick={() => newEvent.date && !isDateInPast && handleNextStep(4, 5)}
+                    onClick={() => newEvent.date && !isDateInPast && handleNextStep(5, 6)}
                     disabled={!newEvent.date || isDateInPast}
                   >
                     Next →
@@ -2970,10 +3119,10 @@ function SocialHome({
               );
             })()}
 
-            {/* Step 5: Time Range */}
-            {createEventStep === 5 && (
+            {/* Step 6: Time Range */}
+            {createEventStep === 6 && (
               <div 
-                data-step="5"
+                data-step="6"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -3085,8 +3234,8 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 6: Languages */}
-            {createEventStep === 6 && (() => {
+            {/* Step 7: Languages */}
+            {createEventStep === 7 && (() => {
               // Get user's profile language for personalization
               const getUserProfileLanguage = () => {
                 try {
@@ -3125,12 +3274,12 @@ function SocialHome({
 
               return (
                 <div 
-                  data-step="6"
+                  data-step="7"
                   style={{ textAlign: "center", ...fadeIn }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newEvent.languages.length > 0) {
-                      console.log('[ENTER KEY] Step 6 → Step 7');
-                      setCreateEventStep(7);
+                      console.log('[ENTER KEY] Step 7 → Step 8');
+                      setCreateEventStep(8);
                     }
                   }}
                   tabIndex={0}
@@ -3402,7 +3551,7 @@ function SocialHome({
                         cursor: "pointer",
                       }}
                       onClick={() => {
-                        setCreateEventStep(5);
+                        setCreateEventStep(6);
                         setShowAllLanguages(false);
                         setLanguageSearchQuery("");
                       }}
@@ -3427,7 +3576,7 @@ function SocialHome({
                       }}
                       onClick={() => {
                         if (newEvent.languages.length > 0) {
-                          setCreateEventStep(7);
+                          setCreateEventStep(8);
                           setShowAllLanguages(false);
                           setLanguageSearchQuery("");
                         }
@@ -3441,10 +3590,10 @@ function SocialHome({
               );
             })()}
 
-            {/* Step 7: Capacity */}
-            {createEventStep === 7 && (
+            {/* Step 8: Capacity */}
+            {createEventStep === 8 && (
               <div 
-                data-step="7"
+                data-step="8"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -3546,7 +3695,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(6)}
+                    onClick={() => setCreateEventStep(7)}
                   >
                     ← Back
                   </button>
@@ -3563,7 +3712,7 @@ function SocialHome({
                       cursor: newEvent.capacity ? "pointer" : "not-allowed",
                       boxShadow: newEvent.capacity ? "0 6px 16px rgba(88,204,2,0.28)" : "none",
                     }}
-                    onClick={() => newEvent.capacity && handleNextStep(7, 8)}
+                    onClick={() => newEvent.capacity && handleNextStep(8, 9)}
                     disabled={!newEvent.capacity}
                   >
                     Next →
@@ -3572,19 +3721,19 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 8: Description (Optional) */}
-            {createEventStep === 8 && (
+            {/* Step 9: Description (Optional) */}
+            {createEventStep === 9 && (
               <div 
-                data-step="8"
+                data-step="9"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   // Allow Enter on container (when textarea not focused) to proceed
                   // But allow normal Enter in textarea for new lines
                   if (e.key === 'Enter' && !e.shiftKey && e.target.tagName !== 'TEXTAREA') {
-                    console.log('[ENTER KEY] Step 8 → Step 9');
+                    console.log('[ENTER KEY] Step 9 → Step 10');
                     e.preventDefault();
-                    handleNextStep(8, 9);
+                    handleNextStep(9, 10);
                   }
                 }}
               >
@@ -3600,7 +3749,7 @@ function SocialHome({
                   onKeyDown={(e) => {
                     if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
                       e.preventDefault();
-                      setCreateEventStep(9);
+                      setCreateEventStep(10);
                     }
                   }}
                   placeholder="What should people know about this event? (optional)"
@@ -3630,7 +3779,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(7)}
+                    onClick={() => setCreateEventStep(8)}
                   >
                     ← Back
                   </button>
@@ -3647,7 +3796,7 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => handleNextStep(8, 9)}
+                    onClick={() => handleNextStep(9, 10)}
                   >
                     Next →
                   </button>
@@ -3655,17 +3804,17 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 9: Image Upload (Optional) */}
-            {createEventStep === 9 && (
+            {/* Step 10: Image Upload (Optional) */}
+            {createEventStep === 10 && (
               <div 
-                data-step="9"
+                data-step="10"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
-                    console.log('[ENTER KEY] Step 9 → Step 10');
+                    console.log('[ENTER KEY] Step 10 - Proceed to submit/targeting');
                     e.preventDefault();
-                    setCreateEventStep(10);
+                    // Could proceed to targeting step if added
                   }
                 }}
               >
@@ -3780,7 +3929,7 @@ function SocialHome({
                 />
                 
                 <p style={{ fontSize: 12, color: theme.textMuted, marginBottom: 24, fontStyle: "italic" }}>
-                  � Use an image URL from Unsplash, Pexels, or Imgur
+                  💡 Use an image URL from Unsplash, Pexels, or Imgur
                 </p>
 
                 <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
@@ -3796,7 +3945,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(8)}
+                    onClick={() => setCreateEventStep(9)}
                   >
                     ← Back
                   </button>
@@ -3813,7 +3962,7 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => handleNextStep(9, 10)}
+                    onClick={() => handleNextStep(10, 11)}
                   >
                     Next →
                   </button>
@@ -3821,17 +3970,17 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 10: Target Interests (Optional) */}
-            {createEventStep === 10 && (
+            {/* Step 11: Target Interests (Optional) */}
+            {createEventStep === 11 && (
               <div 
-                data-step="10"
+                data-step="11"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
-                    console.log('[ENTER KEY] Step 10 → Step 11');
+                    console.log('[ENTER KEY] Step 11 → Step 12');
                     e.preventDefault();
-                    setCreateEventStep(11);
+                    setCreateEventStep(12);
                   }
                 }}
               >
@@ -3886,7 +4035,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(9)}
+                    onClick={() => setCreateEventStep(10)}
                   >
                     ← Back
                   </button>
@@ -3911,17 +4060,17 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 11: Target Cité Connection (Optional) */}
-            {createEventStep === 11 && (
+            {/* Step 12: Target Cité Connection (Optional) */}
+            {createEventStep === 12 && (
               <div 
-                data-step="11"
+                data-step="12"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
-                    console.log('[ENTER KEY] Step 11 → Step 12');
+                    console.log('[ENTER KEY] Step 12 → Step 13');
                     e.preventDefault();
-                    setCreateEventStep(12);
+                    setCreateEventStep(13);
                   }
                 }}
               >
@@ -3983,7 +4132,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(10)}
+                    onClick={() => setCreateEventStep(11)}
                   >
                     ← Back
                   </button>
@@ -4008,15 +4157,15 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 12: Target by What Brings You Here (Optional) */}
-            {createEventStep === 12 && (
+            {/* Step 13: Target by What Brings You Here (Optional) */}
+            {createEventStep === 13 && (
               <div 
-                data-step="12"
+                data-step="13"
                 style={{ textAlign: "center", ...fadeIn }}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
-                    console.log('[ENTER KEY] Step 12 → Creating Event');
+                    console.log('[ENTER KEY] Step 13 → Creating Event');
                     e.preventDefault();
                     // Trigger the create button click
                     document.querySelector('[data-create-event-btn]')?.click();
@@ -4082,7 +4231,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(11)}
+                    onClick={() => setCreateEventStep(12)}
                   >
                     ← Back
                   </button>
