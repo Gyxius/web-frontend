@@ -46,8 +46,6 @@ function LemiGuide({ onClose, currentUser }) {
     daysRemaining: 75,
   };
 
-  const progressPercentage = Math.round((userContext.stepsCompleted / userContext.totalSteps) * 100);
-
   const tasks = [
     { id: 1, title: "Schedule Your Prefecture Appointment", status: "completed", description: "Book your appointment online through the prefecture website" },
     { id: 2, title: "Gather Required Documents", status: "completed", description: "Collect passport, current residence permit, proof of enrollment, and proof of residence" },
@@ -66,26 +64,6 @@ function LemiGuide({ onClose, currentUser }) {
     { id: 15, title: "Pick Up Your Residence Permit", status: "pending", description: "Collect your new residence card from the prefecture" },
     { id: 16, title: "Activate Your Permit Online", status: "pending", description: "Validate your residence permit on the government website" },
   ];
-
-  const nextTask = tasks.find(t => t.status === "in-progress") || tasks.find(t => t.status === "pending");
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "completed": return theme.success;
-      case "in-progress": return theme.warning;
-      case "pending": return theme.textMuted;
-      default: return theme.textMuted;
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "completed": return "✅";
-      case "in-progress": return "🔄";
-      case "pending": return "⏳";
-      default: return "📝";
-    }
-  };
 
   return (
     <div style={{
