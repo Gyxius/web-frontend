@@ -4096,7 +4096,7 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => handleNextStep(11, 12)}
+                    onClick={() => handleNextStep(12, 13)}
                   >
                     Next →
                   </button>
