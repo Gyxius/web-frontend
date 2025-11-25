@@ -3994,7 +3994,7 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => handleNextStep(10, 11)}
+                    onClick={() => handleNextStep(10, 12)}
                   >
                     Next →
                   </button>
@@ -4002,95 +4002,8 @@ function SocialHome({
               </div>
             )}
 
-            {/* Step 11: Target Interests (Optional) */}
-            {createEventStep === 11 && (
-              <div 
-                data-step="11"
-                style={{ textAlign: "center", ...fadeIn }}
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    console.log('[ENTER KEY] Step 11 → Step 12');
-                    e.preventDefault();
-                    setCreateEventStep(12);
-                  }
-                }}
-              >
-                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
-                  Target specific interests? 🎯
-                </h3>
-                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
-                  Choose interests to show this event to people who share them (optional - leave empty for everyone)
-                </p>
-                
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr 1fr", gap: 12, marginBottom: 32 }}>
-                  {["Sports", "Music", "Art", "Movies", "Books", "Gaming", "Travel", "Food", "Technology", "Fashion", "Photography", "Fitness"].map((interest) => {
-                    const isSelected = newEvent.targetInterests.includes(interest);
-                    return (
-                      <button
-                        key={interest}
-                        style={{
-                          padding: isMobile ? "12px 8px" : "14px 12px",
-                          borderRadius: 12,
-                          border: `2px solid ${isSelected ? theme.primary : theme.border}`,
-                          background: isSelected ? theme.primary : theme.card,
-                          color: isSelected ? "white" : theme.text,
-                          fontSize: isMobile ? 14 : 15,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                        }}
-                        onClick={() => {
-                          if (isSelected) {
-                            setNewEvent({...newEvent, targetInterests: newEvent.targetInterests.filter(i => i !== interest)});
-                          } else {
-                            setNewEvent({...newEvent, targetInterests: [...newEvent.targetInterests, interest]});
-                          }
-                        }}
-                      >
-                        {interest}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button
-                    style={{
-                      flex: 1,
-                      padding: isMobile ? "14px" : "16px",
-                      borderRadius: 14,
-                      border: `2px solid ${theme.border}`,
-                      background: theme.card,
-                      color: theme.text,
-                      fontWeight: 900,
-                      fontSize: isMobile ? 16 : 18,
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setCreateEventStep(10)}
-                  >
-                    ← Back
-                  </button>
-                  <button
-                    style={{
-                      flex: 1,
-                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
-                      color: "white",
-                      border: "none",
-                      borderRadius: 14,
-                      padding: isMobile ? "14px" : "16px",
-                      fontWeight: 900,
-                      fontSize: isMobile ? 16 : 18,
-                      cursor: "pointer",
-                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
-                    }}
-                    onClick={() => handleNextStep(10, 11)}
-                  >
-                    Next →
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Step 11: Target Interests (Optional) - SKIPPED */}
+            {createEventStep === 11 && null}
 
             {/* Step 12: Target Cité Connection (Optional) */}
             {createEventStep === 12 && (
@@ -4164,7 +4077,7 @@ function SocialHome({
                       fontSize: isMobile ? 16 : 18,
                       cursor: "pointer",
                     }}
-                    onClick={() => setCreateEventStep(11)}
+                    onClick={() => setCreateEventStep(10)}
                   >
                     ← Back
                   </button>
