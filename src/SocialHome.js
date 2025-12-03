@@ -4590,11 +4590,28 @@ function SocialHome({
                   // Check if current user is the host - compare both name and username fields
                   const currentUsername = currentUser?.username || userName;
                   const currentName = currentUser?.name || userName;
-                  const isHost = 
-                    eventPreview?.host?.name === currentName || 
-                    eventPreview?.host?.name === currentUsername ||
-                    eventPreview?.createdBy === currentName || 
-                    eventPreview?.createdBy === currentUsername;
+                  
+                  // Check against all possible user identifier fields
+                  const userIdentifiers = [currentName, currentUsername, userName].filter(Boolean);
+                  const hostIdentifiers = [
+                    eventPreview?.host?.name, 
+                    eventPreview?.host?.username,
+                    eventPreview?.createdBy
+                  ].filter(Boolean);
+                  
+                  // Check if any user identifier matches any host identifier
+                  const isHost = userIdentifiers.some(userId => 
+                    hostIdentifiers.some(hostId => hostId === userId)
+                  );
+                  
+                  // DEBUG: Log the comparison values
+                  console.log('🔍 Host Check Debug:', {
+                    eventName: eventPreview?.name,
+                    hostIdentifiers,
+                    userIdentifiers,
+                    isHost,
+                    isAdmin
+                  });
                   
                   return (isAdmin || isHost) ? (
                   <button
