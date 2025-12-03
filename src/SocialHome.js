@@ -4728,18 +4728,6 @@ function SocialHome({
                 >
                   📦 Archive Event
                 </button>
-                {(() => {
-                  // Check if current user is the host - compare both name and username fields
-                  const currentUsername = currentUser?.username || userName;
-                  const currentName = currentUser?.name || userName;
-                  const isHost = 
-                    eventPreview?.host?.name === currentName || 
-                    eventPreview?.host?.name === currentUsername ||
-                    eventPreview?.createdBy === currentName || 
-                    eventPreview?.createdBy === currentUsername;
-                  
-                  if (!isHost) return null; // Only hosts can duplicate
-                  return (
                 <button
                   onClick={() => {
                     setShowAdminMenu(false);
@@ -4788,8 +4776,6 @@ function SocialHome({
                 >
                   📋 Duplicate Event
                 </button>
-                  );
-                })()}
                 <button
                   onClick={async () => {
                     setShowAdminMenu(false);
