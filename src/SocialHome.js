@@ -3,7 +3,7 @@ import { FaUserCircle } from "react-icons/fa";
 import users from "./users";
 import LocationPicker from "./LocationPicker";
 import "./SocialHome.animations.css";
-import { createEvent, getEventById, updateEvent, archiveEvent, deleteEvent } from "./api";
+import { createEvent, getEventById, updateEvent, archiveEvent, deleteEvent, getUserProfile } from "./api";
 import NotificationsInbox from "./NotificationsInbox";
 import ImageCropper from "./ImageCropper";
 import LemiGuide from "./LemiGuide";
@@ -142,6 +142,25 @@ function SocialHome({
   const [showAdminMenu, setShowAdminMenu] = useState(false);
   // View mode: 'my' shows only user's joined events, 'following' shows only following users' joined events
   const [viewMode, setViewMode] = useState("my");
+  const [userProfile, setUserProfile] = useState(null); // Store user profile with firstName
+
+  // Fetch user profile to get firstName
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (currentUser?.name || userName) {
+        try {
+          const username = currentUser?.name || userName;
+          const profile = await getUserProfile(username);
+          if (profile) {
+            setUserProfile(profile);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+        }
+      }
+    };
+    fetchUserProfile();
+  }, [currentUser, userName]);
   
   // Log step changes and auto-focus container for keyboard navigation
   useEffect(() => {
@@ -1727,7 +1746,7 @@ function SocialHome({
             color: "white",
           }}>
             <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 8 }}>
-              Bonjour, {currentUser?.name || userName}! 👋
+              Bonjour, {userProfile?.firstName || currentUser?.name || userName}! 👋
             </div>
             <div style={{ fontSize: 14, opacity: 0.95 }}>
               Welcome back to your personalized event dashboard
