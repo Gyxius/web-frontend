@@ -4721,6 +4721,60 @@ function SocialHome({
                 >
                   📦 Archive Event
                 </button>
+                {(() => {
+                  const isHost = eventPreview?.host?.name === userName || eventPreview?.createdBy === userName;
+                  if (!isHost) return null; // Only hosts can duplicate
+                  return (
+                <button
+                  onClick={() => {
+                    setShowAdminMenu(false);
+                    // Populate form with event data for duplication
+                    setNewEvent({
+                      name: eventPreview.title || eventPreview.name || "",
+                      location: eventPreview.location || "cite",
+                      venue: eventPreview.venue || "",
+                      address: eventPreview.address || "",
+                      coordinates: eventPreview.coordinates || null,
+                      date: "", // Leave date empty for user to set new date
+                      time: eventPreview.time || "",
+                      endTime: eventPreview.endTime || "",
+                      description: eventPreview.description || "",
+                      category: eventPreview.category || "language",
+                      subcategory: eventPreview.subcategory || "",
+                      languages: eventPreview.languages || [],
+                      capacity: eventPreview.capacity || 6,
+                      imageUrl: eventPreview.imageUrl || "",
+                      templateEventId: null,
+                      targetInterests: eventPreview.targetInterests || [],
+                      targetCiteConnection: eventPreview.targetCiteConnection || [],
+                      targetReasons: eventPreview.targetReasons || [],
+                    });
+                    setEventPreview(null);
+                    setShowCreateEventModal(true);
+                    setCreateEventStep(1);
+                  }}
+                  style={{
+                    width: "100%",
+                    background: "white",
+                    color: theme.text,
+                    border: "none",
+                    padding: "12px 20px",
+                    textAlign: "left",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    borderBottom: "1px solid #eee",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                >
+                  📋 Duplicate Event
+                </button>
+                  );
+                })()}
                 <button
                   onClick={async () => {
                     setShowAdminMenu(false);
