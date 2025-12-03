@@ -4587,7 +4587,14 @@ function SocialHome({
                 {/* Admin/Host Controls */}
                 {(() => {
                   const isAdmin = currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin" || userName === "admin";
-                  const isHost = eventPreview?.host?.name === userName || eventPreview?.createdBy === userName;
+                  // Check if current user is the host - compare both name and username fields
+                  const currentUsername = currentUser?.username || userName;
+                  const currentName = currentUser?.name || userName;
+                  const isHost = 
+                    eventPreview?.host?.name === currentName || 
+                    eventPreview?.host?.name === currentUsername ||
+                    eventPreview?.createdBy === currentName || 
+                    eventPreview?.createdBy === currentUsername;
                   
                   return (isAdmin || isHost) ? (
                   <button
@@ -4722,7 +4729,15 @@ function SocialHome({
                   📦 Archive Event
                 </button>
                 {(() => {
-                  const isHost = eventPreview?.host?.name === userName || eventPreview?.createdBy === userName;
+                  // Check if current user is the host - compare both name and username fields
+                  const currentUsername = currentUser?.username || userName;
+                  const currentName = currentUser?.name || userName;
+                  const isHost = 
+                    eventPreview?.host?.name === currentName || 
+                    eventPreview?.host?.name === currentUsername ||
+                    eventPreview?.createdBy === currentName || 
+                    eventPreview?.createdBy === currentUsername;
+                  
                   if (!isHost) return null; // Only hosts can duplicate
                   return (
                 <button
