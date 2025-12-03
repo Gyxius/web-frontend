@@ -296,6 +296,8 @@ function App() {
 
   let mainContent;
   let socialHomeContent = null;
+  
+  // Main Content Rendering
   if (!user) {
     mainContent = (
       <Login

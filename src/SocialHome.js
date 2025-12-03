@@ -569,23 +569,28 @@ function SocialHome({
     }).join(" ↔ ")}`;
   };
 
-  // 🟢 Duolingo-inspired theme
+  // 🎨 Modern, Young & Fresh Theme - Soft, Muted Tones
   const theme = {
-    bg: "#F7F7F5",          // off-white used in Duolingo surfaces
+    bg: "#F5F7FA",          // Soft gray-blue background (minimalist)
     card: "#FFFFFF",
-    text: "#1F2937",        // slate-800
-    textMuted: "#6B7280",   // slate-500
-    border: "#E5E7EB",      // light gray for borders
-    primary: "#58CC02",     // Duolingo green
-    primaryDark: "#37B300", // darker green for gradient/hover
-    accent: "#1CB0F6",      // sky blue links/sections
-    gold: "#FFDE59",        // crown gold
-    danger: "#EA2B2B",      // Duolingo red
-    track: "#E5E7EB",       // progress track
-    shadow: "0 4px 14px rgba(0,0,0,0.06)",
-    shadowSoft: "0 10px 30px rgba(0,0,0,0.08)",
-    radius: 18,
-    radiusLg: 22,
+    text: "#1A202C",        // Pure black for headers
+    textMuted: "#718096",   // Soft dark gray for body text
+    border: "#E2E8F0",      // Very subtle border
+    primary: "#7C3AED",     // Vibrant purple accent (used sparingly for CTAs)
+    primaryDark: "#6D28D9", // Darker purple for gradients
+    accent: "#EC4899",      // Soft coral/pink accent
+    accentSoft: "#FBB6CE",  // Very soft pink
+    sage: "#10B981",        // Muted sage green
+    gold: "#F59E0B",        // Warm amber gold
+    danger: "#EF4444",      // Modern red
+    track: "#E5E7EB",       // Progress track
+    // Modern soft shadows - multi-layered, subtle elevation
+    shadowSoft: "0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.04)",
+    shadowMedium: "0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 24px rgba(0, 0, 0, 0.06)",
+    shadowStrong: "0 4px 16px rgba(0, 0, 0, 0.06), 0 16px 48px rgba(0, 0, 0, 0.08)",
+    radius: 16,             // Generous rounding
+    radiusLg: 20,           // Extra generous for cards
+    radiusXl: 24,           // Hero elements
   };
 
   const isMobile = window.innerWidth <= 600;
@@ -642,7 +647,7 @@ function SocialHome({
       padding: isMobile ? 12 : 24,
       maxWidth: 520,
       margin: "0 auto",
-      fontFamily: "Inter, Roboto, Nunito Sans, Arial, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif",
     },
     header: {
       display: "flex",
@@ -695,28 +700,28 @@ function SocialHome({
       textShadow: "0 1px 0 rgba(0,0,0,0.15)",
     },
 
-    // Cards
+    // Cards - Modern with soft shadows
     highlightCard: {
       backgroundColor: theme.card,
-      padding: isMobile ? 14 : 20,
-      borderRadius: isMobile ? 14 : theme.radiusLg,
+      padding: isMobile ? 18 : 24,
+      borderRadius: isMobile ? theme.radius : theme.radiusLg,
       marginBottom: isMobile ? 16 : 22,
-      boxShadow: theme.shadow,
-      border: "1px solid #EEF2F7",
+      boxShadow: theme.shadowSoft,
+      border: "1px solid rgba(226, 232, 240, 0.6)",
     },
     highlightTitle: {
-      fontSize: isMobile ? 14 : 16,
-      fontWeight: 900,
+      fontSize: isMobile ? 15 : 17,
+      fontWeight: 800,
       marginBottom: 8,
       color: theme.primary,
-      letterSpacing: "0.3px",
+      letterSpacing: "-0.3px",
     },
     highlightEvent: {
-      fontSize: isMobile ? 17 : 20,
+      fontSize: isMobile ? 18 : 21,
       fontWeight: 800,
       marginBottom: 6,
       color: theme.text,
-      letterSpacing: "-0.2px",
+      letterSpacing: "-0.4px",
     },
     section: { marginBottom: 20 },
     sectionTitle: {
@@ -1090,8 +1095,10 @@ function SocialHome({
         <div style={{
           display: "flex",
           justifyContent: "space-around",
-          padding: "0 16px 8px",
-          borderBottom: `2px solid ${theme.bg}`,
+          padding: "0 16px 0",
+          borderBottom: `1px solid ${theme.border}`,
+          background: theme.card,
+          position: "relative",
         }}>
           {activeBottomTab === "following" ? (
             // Following tab - single tab when viewing following feed
@@ -1190,15 +1197,16 @@ function SocialHome({
                 onClick={() => setActiveTab("home")}
                 style={{
                   flex: 1,
-                  padding: "14px 8px",
+                  padding: "16px 8px 14px",
                   background: "none",
                   border: "none",
-                  borderBottom: activeTab === "home" ? `4px solid ${theme.primary}` : "4px solid transparent",
-                  fontWeight: activeTab === "home" ? 900 : 600,
+                  fontWeight: activeTab === "home" ? 800 : 600,
                   fontSize: 16,
-                  color: activeTab === "home" ? theme.text : theme.textMuted,
+                  color: activeTab === "home" ? theme.primary : theme.textMuted,
                   cursor: "pointer",
-                  transition: "all 0.2s",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  position: "relative",
+                  borderBottom: activeTab === "home" ? `3px solid ${theme.primary}` : "3px solid transparent",
                 }}
               >
                 Home
@@ -1207,15 +1215,16 @@ function SocialHome({
                 onClick={() => setActiveTab("myevents")}
                 style={{
                   flex: 1,
-                  padding: "14px 8px",
+                  padding: "16px 8px 14px",
                   background: "none",
                   border: "none",
-                  borderBottom: activeTab === "myevents" ? `4px solid ${theme.primary}` : "4px solid transparent",
-                  fontWeight: activeTab === "myevents" ? 900 : 600,
+                  fontWeight: activeTab === "myevents" ? 800 : 600,
                   fontSize: 16,
-                  color: activeTab === "myevents" ? theme.text : theme.textMuted,
+                  color: activeTab === "myevents" ? theme.primary : theme.textMuted,
                   cursor: "pointer",
-                  transition: "all 0.2s",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  position: "relative",
+                  borderBottom: activeTab === "myevents" ? `3px solid ${theme.primary}` : "3px solid transparent",
                 }}
               >
                 My Events
@@ -1229,25 +1238,26 @@ function SocialHome({
           <div style={{
             display: "flex",
             gap: 8,
-            marginBottom: 16,
-            padding: "8px",
-            background: theme.accent,
-            borderRadius: 12,
+            marginBottom: 18,
+            padding: "6px",
+            background: "#F8FAFC",
+            borderRadius: theme.radius,
+            border: `1px solid ${theme.border}`,
           }}>
             <button
               onClick={() => setMyEventsSubtab("joined")}
               style={{
                 flex: 1,
-                padding: "10px 16px",
-                background: myEventsSubtab === "joined" ? theme.primary : "transparent",
+                padding: "12px 18px",
+                background: myEventsSubtab === "joined" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : "transparent",
                 border: "none",
-                borderRadius: 8,
+                borderRadius: theme.radius - 4,
                 fontWeight: 700,
                 fontSize: 14,
                 color: myEventsSubtab === "joined" ? "white" : theme.textMuted,
                 cursor: "pointer",
-                transition: "all 0.2s",
-                boxShadow: myEventsSubtab === "joined" ? "0 2px 8px rgba(88,204,2,0.3)" : "none",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: myEventsSubtab === "joined" ? `0 2px 12px ${theme.primary}30` : "none",
               }}
             >
               📅 Joined
@@ -1256,16 +1266,16 @@ function SocialHome({
               onClick={() => setMyEventsSubtab("hosted")}
               style={{
                 flex: 1,
-                padding: "10px 16px",
-                background: myEventsSubtab === "hosted" ? theme.primary : "transparent",
+                padding: "12px 18px",
+                background: myEventsSubtab === "hosted" ? `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})` : "transparent",
                 border: "none",
-                borderRadius: 8,
+                borderRadius: theme.radius - 4,
                 fontWeight: 700,
                 fontSize: 14,
                 color: myEventsSubtab === "hosted" ? "white" : theme.textMuted,
                 cursor: "pointer",
-                transition: "all 0.2s",
-                boxShadow: myEventsSubtab === "hosted" ? "0 2px 8px rgba(88,204,2,0.3)" : "none",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: myEventsSubtab === "hosted" ? `0 2px 12px ${theme.primary}30` : "none",
               }}
             >
               🎤 Hosted
@@ -1734,15 +1744,49 @@ function SocialHome({
               return (
                 <div style={{
                   ...styles.highlightCard,
-                  background: theme.accent,
-                  border: `2px solid ${theme.primary}`,
+                  background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(124, 58, 237, 0.08))',
+                  border: `2px solid transparent`,
+                  backgroundImage: `linear-gradient(white, white), linear-gradient(135deg, ${theme.accent}, ${theme.primary})`,
+                  backgroundOrigin: 'border-box',
+                  backgroundClip: 'padding-box, border-box',
+                  boxShadow: theme.shadowMedium,
                 }}>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: theme.text, marginBottom: 8 }}>
-                    📅 My Next Event
+                  <div style={{ fontSize: 26, fontWeight: 900, color: theme.text, marginBottom: 14, letterSpacing: '-0.5px' }}>
+                    🇫🇷 Bienvenue à Paris! 🎉
                   </div>
-                  <div style={{ fontSize: 14, color: theme.textMuted }}>
-                    You haven't joined any events yet. Explore events below!
+                  <div style={{ fontSize: 16, color: theme.textMuted, marginBottom: 24, lineHeight: 1.7, fontWeight: 500 }}>
+                    Your Parisian journey starts now. Find your first language exchange, cultural tour, or administrative workshop!
                   </div>
+                  <button
+                    onClick={() => {
+                      setActiveBottomTab("explore");
+                      setShowExplore(true);
+                      setShowCalendar(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '16px 28px',
+                      background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryDark} 100%)`,
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: theme.radius,
+                      fontSize: 16,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: `0 4px 16px ${theme.primary}40`,
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.01)';
+                      e.currentTarget.style.boxShadow = `0 8px 24px ${theme.primary}50`;
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.boxShadow = `0 4px 16px ${theme.primary}40`;
+                    }}
+                  >
+                    🔍 Start Exploring Events
+                  </button>
                 </div>
               );
             }
@@ -1841,7 +1885,7 @@ function SocialHome({
             if (featuredEvents.length === 0) return null;
 
             return (
-              <div style={styles.highlightCard}>
+              <div style={styles.highlightCard} data-lemi-picks="true">
                 <div style={styles.highlightTitle}>✨ Official Lemi Picks 🇫🇷</div>
                 <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
                   Curated events and experiences for international students
@@ -2163,13 +2207,86 @@ function SocialHome({
                 })}
             </div>
           ) : (
-            <div style={styles.highlightCard}>
-              <div style={styles.highlightTitle}>📅 My Joined Events</div>
-              <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 12 }}>
-                Events you have joined
+            <div style={{
+              ...styles.highlightCard,
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(124, 58, 237, 0.05))',
+              border: `1px solid ${theme.border}`,
+              boxShadow: theme.shadowSoft,
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: theme.text, marginBottom: 12, letterSpacing: '-0.3px' }}>
+                🌟 Ready to Connect?
               </div>
-              <div style={{ ...styles.empty, margin: "20px 0 20px 0" }}>
-                No joined events yet. Explore Featured Events to join!
+              <div style={{ fontSize: 15, color: theme.textMuted, marginBottom: 24, lineHeight: 1.7, fontWeight: 500 }}>
+                Join an event today! Find our top recommendations in the <strong style={{color: theme.text}}>Official Lemi Picks</strong> carousel below, or tap the Explore button to search by date and location.
+              </div>
+              <div style={{ display: 'flex', gap: 12, flexDirection: 'column' }}>
+                <button
+                  onClick={() => {
+                    // Scroll to the Lemi Picks carousel
+                    const lemiPicksElement = document.querySelector('[data-lemi-picks]');
+                    if (lemiPicksElement) {
+                      lemiPicksElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                      // If not found, navigate to home tab where it should be visible
+                      setActiveTab("home");
+                      setTimeout(() => {
+                        const elem = document.querySelector('[data-lemi-picks]');
+                        if (elem) elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }, 100);
+                    }
+                  }}
+                  style={{
+                    padding: '14px 22px',
+                    background: `linear-gradient(135deg, ${theme.sage} 0%, ${theme.sage}DD 100%)`,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: theme.radius,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: `0 2px 12px ${theme.sage}30`,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = `0 4px 16px ${theme.sage}40`;
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = `0 2px 12px ${theme.sage}30`;
+                  }}
+                >
+                  ✨ View Lemi Picks
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveBottomTab("explore");
+                    setShowExplore(true);
+                    setShowCalendar(false);
+                  }}
+                  style={{
+                    padding: '14px 22px',
+                    background: 'white',
+                    color: theme.primary,
+                    border: `1.5px solid ${theme.border}`,
+                    borderRadius: theme.radius,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: theme.shadowSoft,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.borderColor = theme.primary;
+                    e.currentTarget.style.boxShadow = `0 2px 12px ${theme.primary}20`;
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.borderColor = theme.border;
+                    e.currentTarget.style.boxShadow = theme.shadowSoft;
+                  }}
+                >
+                  🔍 Go to Explore Tab
+                </button>
               </div>
             </div>
           )}
@@ -5381,8 +5498,9 @@ function SocialHome({
           onClick={() => {
             setActiveBottomTab("events");
             setViewMode("my");
-            setActiveTab("featured");
+            setActiveTab("home");
             setShowExplore(false);
+            setShowCalendar(false);
           }}
           style={{
             flex: 1,
