@@ -4584,14 +4584,12 @@ function SocialHome({
                   🔗
                 </button>
                 
-                {/* Admin/Host Controls */}
+                {/* Settings Menu for admins and hosts only */}
                 {(() => {
                   const isAdmin = currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin" || userName === "admin";
-                  // Check if current user is the host - compare both name and username fields
                   const currentUsername = currentUser?.username || userName;
                   const currentName = currentUser?.name || userName;
                   
-                  // Check against all possible user identifier fields
                   const userIdentifiers = [currentName, currentUsername, userName].filter(Boolean);
                   const hostIdentifiers = [
                     eventPreview?.host?.name, 
@@ -4599,35 +4597,55 @@ function SocialHome({
                     eventPreview?.createdBy
                   ].filter(Boolean);
                   
-                  // Check if any user identifier matches any host identifier
                   const isHost = userIdentifiers.some(userId => 
                     hostIdentifiers.some(hostId => hostId === userId)
                   );
                   
-                  // Show settings menu to admins OR hosts only
                   return (isAdmin || isHost) ? (
-                  <button
-                    onClick={() => {
-                      setShowAdminMenu(!showAdminMenu);
-                    }}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      fontSize: 20,
-                      cursor: "pointer",
-                      color: theme.textMuted,
-                      padding: 0,
-                    }}
-                  >
-                    ⚙️
-                  </button>
+                    <button
+                      onClick={() => {
+                        setShowAdminMenu(!showAdminMenu);
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        fontSize: 20,
+                        cursor: "pointer",
+                        color: theme.textMuted,
+                        padding: 0,
+                      }}
+                    >
+                      ⚙️
+                    </button>
                   ) : null;
                 })()}
               </div>
             </div>
 
             {/* Admin Dropdown Menu */}
-            {showAdminMenu && (
+            {showAdminMenu && (() => {
+              // Check if current user is admin or host
+              const isAdmin = currentUser?.name === "Admin" || currentUser?.username === "admin" || adminMode || userName === "Admin" || userName === "admin";
+              
+              const hostIdentifiers = [
+                eventPreview.host,
+                eventPreview.hostName,
+                eventPreview.hostUsername,
+              ].filter(Boolean);
+              
+              const userIdentifiers = [
+                userName,
+                currentUser?.username,
+                currentUser?.name,
+              ].filter(Boolean);
+              
+              const isHost = userIdentifiers.some(userId => 
+                hostIdentifiers.some(hostId => hostId === userId)
+              );
+              
+              const canEdit = isAdmin || isHost;
+              
+              return (
               <div style={{
                 position: "absolute",
                 top: 70,
@@ -4638,189 +4656,198 @@ function SocialHome({
                 overflow: "hidden",
                 zIndex: 1001,
               }}>
-                <button
-                  onClick={() => {
-                    setShowAdminMenu(false);
-                    setAdminEditMode(true);
-                    setAdminEditForm({
-                      name: eventPreview.name || "",
-                      description: eventPreview.description || "",
-                      location: eventPreview.location || "cite",
-                      venue: eventPreview.venue || "",
-                      address: eventPreview.address || "",
-                      coordinates: eventPreview.coordinates || null,
-                      date: eventPreview.date || "",
-                      time: eventPreview.time || "",
-                      category: eventPreview.category || "food",
-                      languages: Array.isArray(eventPreview.languages) ? eventPreview.languages.slice() : [],
-                      capacity: eventPreview.capacity || null,
-                      imageUrl: eventPreview.imageUrl || "",
-                    });
-                  }}
-                  style={{
-                    width: "100%",
-                    background: "white",
-                    color: theme.text,
-                    border: "none",
-                    padding: "12px 20px",
-                    textAlign: "left",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    borderBottom: "1px solid #eee",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                >
-                  ✏️ Edit Event
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAdminMenu(false);
-                    alert("Manage Co-Hosts feature coming soon!");
-                  }}
-                  style={{
-                    width: "100%",
-                    background: "white",
-                    color: theme.text,
-                    border: "none",
-                    padding: "12px 20px",
-                    textAlign: "left",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    borderBottom: "1px solid #eee",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                >
-                  👥 Manage Co-Hosts
-                </button>
-                <button
-                  onClick={async () => {
-                    setShowAdminMenu(false);
-                    if (window.confirm("Archive this event? It will be moved to the Archive tab and hidden from the main feed.")) {
-                      try {
-                        await archiveEvent(eventPreview.id, userName);
-                        alert("Event archived successfully!");
-                        setEventPreview(null);
-                        window.location.reload();
-                      } catch (error) {
-                        console.error("Failed to archive:", error);
-                        alert("Failed to archive event: " + error.message);
+                {canEdit && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setShowAdminMenu(false);
+                        setAdminEditMode(true);
+                        setAdminEditForm({
+                          name: eventPreview.name || "",
+                          description: eventPreview.description || "",
+                          location: eventPreview.location || "cite",
+                          venue: eventPreview.venue || "",
+                          address: eventPreview.address || "",
+                          coordinates: eventPreview.coordinates || null,
+                          date: eventPreview.date || "",
+                          time: eventPreview.time || "",
+                          category: eventPreview.category || "food",
+                          languages: Array.isArray(eventPreview.languages) ? eventPreview.languages.slice() : [],
+                          capacity: eventPreview.capacity || null,
+                          imageUrl: eventPreview.imageUrl || "",
+                        });
+                      }}
+                      style={{
+                        width: "100%",
+                        background: "white",
+                        color: theme.text,
+                        border: "none",
+                        padding: "12px 20px",
+                        textAlign: "left",
+                        fontWeight: 600,
+                        fontSize: 14,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        borderBottom: "1px solid #eee",
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                    >
+                      ✏️ Edit Event
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowAdminMenu(false);
+                        alert("Manage Co-Hosts feature coming soon!");
+                      }}
+                      style={{
+                        width: "100%",
+                        background: "white",
+                        color: theme.text,
+                        border: "none",
+                        padding: "12px 20px",
+                        textAlign: "left",
+                        fontWeight: 600,
+                        fontSize: 14,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        borderBottom: "1px solid #eee",
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                    >
+                      👥 Manage Co-Hosts
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setShowAdminMenu(false);
+                        if (window.confirm("Archive this event? It will be moved to the Archive tab and hidden from the main feed.")) {
+                          try {
+                            await archiveEvent(eventPreview.id, userName);
+                            alert("Event archived successfully!");
+                            setEventPreview(null);
+                            window.location.reload();
+                          } catch (error) {
+                            console.error("Failed to archive:", error);
+                            alert("Failed to archive event: " + error.message);
+                          }
+                        }
+                      }}
+                      style={{
+                        width: "100%",
+                        background: "white",
+                        color: theme.text,
+                        border: "none",
+                        padding: "12px 20px",
+                        textAlign: "left",
+                        fontWeight: 600,
+                        fontSize: 14,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        borderBottom: "1px solid #eee",
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                    >
+                      📦 Archive Event
+                    </button>
+                  </>
+                )}
+                {canEdit && (
+                  <button
+                    onClick={() => {
+                      setShowAdminMenu(false);
+                      // Populate form with event data for duplication
+                      setNewEvent({
+                        name: eventPreview.title || eventPreview.name || "",
+                        location: eventPreview.location || "cite",
+                        venue: eventPreview.venue || "",
+                        address: eventPreview.address || "",
+                        coordinates: eventPreview.coordinates || null,
+                        date: "", // Leave date empty for user to set new date
+                        time: eventPreview.time || "",
+                        endTime: eventPreview.endTime || "",
+                        description: eventPreview.description || "",
+                        category: eventPreview.category || "language",
+                        subcategory: eventPreview.subcategory || "",
+                        languages: eventPreview.languages || [],
+                        capacity: eventPreview.capacity || 6,
+                        imageUrl: eventPreview.imageUrl || "",
+                        templateEventId: null,
+                        targetInterests: eventPreview.targetInterests || [],
+                        targetCiteConnection: eventPreview.targetCiteConnection || [],
+                        targetReasons: eventPreview.targetReasons || [],
+                      });
+                      setEventPreview(null);
+                      setShowCreateEventModal(true);
+                      setCreateEventStep(1);
+                    }}
+                    style={{
+                      width: "100%",
+                      background: "white",
+                      color: theme.text,
+                      border: "none",
+                      padding: "12px 20px",
+                      textAlign: "left",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      borderBottom: "1px solid #eee",
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                  >
+                    📋 Duplicate Event
+                  </button>
+                )}
+                {canEdit && (
+                  <button
+                    onClick={async () => {
+                      setShowAdminMenu(false);
+                      if (window.confirm("⚠️ Delete this event permanently? This cannot be undone!")) {
+                        try {
+                          await deleteEvent(eventPreview.id, userName);
+                          alert("Event deleted successfully!");
+                          setEventPreview(null);
+                          window.location.reload();
+                        } catch (error) {
+                          console.error("Failed to delete:", error);
+                          alert("Failed to delete event: " + error.message);
+                        }
                       }
-                    }
-                  }}
-                  style={{
-                    width: "100%",
-                    background: "white",
-                    color: theme.text,
-                    border: "none",
-                    padding: "12px 20px",
-                    textAlign: "left",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    borderBottom: "1px solid #eee",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                >
-                  📦 Archive Event
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAdminMenu(false);
-                    // Populate form with event data for duplication
-                    setNewEvent({
-                      name: eventPreview.title || eventPreview.name || "",
-                      location: eventPreview.location || "cite",
-                      venue: eventPreview.venue || "",
-                      address: eventPreview.address || "",
-                      coordinates: eventPreview.coordinates || null,
-                      date: "", // Leave date empty for user to set new date
-                      time: eventPreview.time || "",
-                      endTime: eventPreview.endTime || "",
-                      description: eventPreview.description || "",
-                      category: eventPreview.category || "language",
-                      subcategory: eventPreview.subcategory || "",
-                      languages: eventPreview.languages || [],
-                      capacity: eventPreview.capacity || 6,
-                      imageUrl: eventPreview.imageUrl || "",
-                      templateEventId: null,
-                      targetInterests: eventPreview.targetInterests || [],
-                      targetCiteConnection: eventPreview.targetCiteConnection || [],
-                      targetReasons: eventPreview.targetReasons || [],
-                    });
-                    setEventPreview(null);
-                    setShowCreateEventModal(true);
-                    setCreateEventStep(1);
-                  }}
-                  style={{
-                    width: "100%",
-                    background: "white",
-                    color: theme.text,
-                    border: "none",
-                    padding: "12px 20px",
-                    textAlign: "left",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    borderBottom: "1px solid #eee",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                >
-                  📋 Duplicate Event
-                </button>
-                <button
-                  onClick={async () => {
-                    setShowAdminMenu(false);
-                    if (window.confirm("⚠️ Delete this event permanently? This cannot be undone!")) {
-                      try {
-                        await deleteEvent(eventPreview.id, userName);
-                        alert("Event deleted successfully!");
-                        setEventPreview(null);
-                        window.location.reload();
-                      } catch (error) {
-                        console.error("Failed to delete:", error);
-                        alert("Failed to delete event: " + error.message);
-                      }
-                    }
-                  }}
-                  style={{
-                    width: "100%",
-                    background: "white",
-                    color: "#EA2B2B",
-                    border: "none",
-                    padding: "12px 20px",
-                    textAlign: "left",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "#FEE"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                >
-                  🗑️ Delete Event
-                </button>
+                    }}
+                    style={{
+                      width: "100%",
+                      background: "white",
+                      color: "#EA2B2B",
+                      border: "none",
+                      padding: "12px 20px",
+                      textAlign: "left",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "#FEE"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                  >
+                    🗑️ Delete Event
+                  </button>
+                )}
               </div>
-            )}
+              );
+            })()}
 
             {/* Event Title - Large, prominent */}
             <h2 style={{ 

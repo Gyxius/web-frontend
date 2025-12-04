@@ -847,7 +847,7 @@ function SocialChat({
                 Share
               </button>
             
-              {/* Edit/Options Button - For host or admin */}
+              {/* Settings Button - For admins and hosts only */}
               {((event?.host && event.host.name === currentUser) || (typeof currentUser === 'string' && currentUser.toLowerCase() === 'admin') || (typeof currentUser === 'object' && (currentUser?.username?.toLowerCase?.() === 'admin' || currentUser?.name === 'Admin')) || (event?.createdBy && String(event.createdBy).toLowerCase() === 'admin') || (event?.created_by && String(event.created_by).toLowerCase() === 'admin')) && (
                 <div style={{ position: "relative" }}>
                   <button
@@ -907,152 +907,218 @@ function SocialChat({
                         overflow: "hidden",
                         border: `1px solid ${theme.border}`,
                       }}>
-                        <button
-                          style={{
-                            width: "100%",
-                            padding: "14px 20px",
-                            border: "none",
-                            background: "white",
-                            textAlign: "left",
-                            cursor: "pointer",
-                            fontSize: 15,
-                            fontWeight: 600,
-                            color: theme.text,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
-                            borderBottom: `1px solid ${theme.border}`,
-                          }}
-                          onClick={() => {
-                            setEditedEvent({
-                              name: event?.name || "",
-                              location: event?.location || "cite",
-                              date: event?.date || "",
-                              time: event?.time || "",
-                              description: event?.description || "",
-                              category: event?.category || "food",
-                              languages: event?.languages || [],
-                              capacity: event?.capacity || 6,
-                              imageUrl: event?.imageUrl || "",
-                            });
-                            setImageFile(null);
-                            setShowEditModal(true);
-                            setShowOptionsMenu(false);
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                        >
-                          <span>✏️</span> Edit Event
-                        </button>
-                        
-                        <button
-                          style={{
-                            width: "100%",
-                            padding: "14px 20px",
-                            border: "none",
-                            background: "white",
-                            textAlign: "left",
-                            cursor: "pointer",
-                            fontSize: 15,
-                            fontWeight: 600,
-                            color: theme.text,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
-                            borderBottom: `1px solid ${theme.border}`,
-                          }}
-                          onClick={() => {
-                            setShowManageHostsModal(true);
-                            setShowOptionsMenu(false);
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                        >
-                          <span>👥</span> Manage Co-Hosts
-                        </button>
-                        
-                        <button
-                          style={{
-                            width: "100%",
-                            padding: "14px 20px",
-                            border: "none",
-                            background: "white",
-                            textAlign: "left",
-                            cursor: "pointer",
-                            fontSize: 15,
-                            fontWeight: 600,
-                            color: theme.text,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
-                            borderBottom: `1px solid ${theme.border}`,
-                          }}
-                          onClick={async () => {
-                            setShowOptionsMenu(false);
-                            if (window.confirm("Archive this hangout? It will be moved to the Archive tab and hidden from the main feed.")) {
-                              try {
-                                const username = currentUser?.name || currentUser?.username || 
-                                               (typeof currentUser === 'string' ? currentUser : null);
-                                if (!username) {
-                                  alert("Could not determine current user. Please try logging in again.");
-                                  return;
-                                }
-                                await api.archiveEvent(event.id, username);
-                                alert("Hangout archived successfully!");
-                                if (onBack) onBack();
-                                else window.location.reload();
-                              } catch (error) {
-                                console.error("Failed to archive:", error);
-                                alert("Failed to archive hangout: " + error.message);
-                              }
-                            }
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                        >
-                          <span>📦</span> Archive Event
-                        </button>
-                        
-                        <button
-                          style={{
-                            width: "100%",
-                            padding: "14px 20px",
-                            border: "none",
-                            background: "white",
-                            textAlign: "left",
-                            cursor: "pointer",
-                            fontSize: 15,
-                            fontWeight: 600,
-                            color: "#FF4B4B",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
-                          }}
-                          onClick={async () => {
-                            console.log("Delete button clicked");
-                            const confirmed = window.confirm("Are you sure you want to delete this event? This action cannot be undone.");
-                            console.log("User confirmed:", confirmed);
-                            if (confirmed) {
-                              setShowOptionsMenu(false);
-                              console.log("Calling onDeleteEvent with:", event);
-                              console.log("onDeleteEvent exists:", !!onDeleteEvent);
-                              if (onDeleteEvent) {
-                                try {
-                                  await onDeleteEvent(event);
-                                  console.log("onDeleteEvent completed");
-                                } catch (error) {
-                                  console.error("Error in onDeleteEvent:", error);
-                                }
-                              } else {
-                                console.error("onDeleteEvent is not defined!");
-                              }
-                            }
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = "#FFF5F5"}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                        >
-                          <span>🗑️</span> Delete Event
-                        </button>
+                        {/* Check if user is host or admin */}
+                        {(() => {
+                          const isAdmin = (typeof currentUser === 'string' && currentUser.toLowerCase() === 'admin') || (typeof currentUser === 'object' && (currentUser?.username?.toLowerCase?.() === 'admin' || currentUser?.name === 'Admin'));
+                          const isHost = (event?.host && event.host.name === currentUser) || (event?.createdBy && String(event.createdBy).toLowerCase() === 'admin') || (event?.created_by && String(event.created_by).toLowerCase() === 'admin');
+                          const canEdit = isAdmin || isHost;
+                          
+                          return (
+                            <>
+                              {canEdit && (
+                                <>
+                                  <button
+                                    style={{
+                                      width: "100%",
+                                      padding: "14px 20px",
+                                      border: "none",
+                                      background: "white",
+                                      textAlign: "left",
+                                      cursor: "pointer",
+                                      fontSize: 15,
+                                      fontWeight: 600,
+                                      color: theme.text,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 12,
+                                      borderBottom: `1px solid ${theme.border}`,
+                                    }}
+                                    onClick={() => {
+                                      setEditedEvent({
+                                        name: event?.name || "",
+                                        location: event?.location || "cite",
+                                        date: event?.date || "",
+                                        time: event?.time || "",
+                                        description: event?.description || "",
+                                        category: event?.category || "food",
+                                        languages: event?.languages || [],
+                                        capacity: event?.capacity || 6,
+                                        imageUrl: event?.imageUrl || "",
+                                      });
+                                      setImageFile(null);
+                                      setShowEditModal(true);
+                                      setShowOptionsMenu(false);
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                                  >
+                                    <span>✏️</span> Edit Event
+                                  </button>
+                                  
+                                  <button
+                                    style={{
+                                      width: "100%",
+                                      padding: "14px 20px",
+                                      border: "none",
+                                      background: "white",
+                                      textAlign: "left",
+                                      cursor: "pointer",
+                                      fontSize: 15,
+                                      fontWeight: 600,
+                                      color: theme.text,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 12,
+                                      borderBottom: `1px solid ${theme.border}`,
+                                    }}
+                                    onClick={() => {
+                                      setShowManageHostsModal(true);
+                                      setShowOptionsMenu(false);
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                                  >
+                                    <span>👥</span> Manage Co-Hosts
+                                  </button>
+                                  
+                                  <button
+                                    style={{
+                                      width: "100%",
+                                      padding: "14px 20px",
+                                      border: "none",
+                                      background: "white",
+                                      textAlign: "left",
+                                      cursor: "pointer",
+                                      fontSize: 15,
+                                      fontWeight: 600,
+                                      color: theme.text,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 12,
+                                      borderBottom: `1px solid ${theme.border}`,
+                                    }}
+                                    onClick={async () => {
+                                      setShowOptionsMenu(false);
+                                      if (window.confirm("Archive this hangout? It will be moved to the Archive tab and hidden from the main feed.")) {
+                                        try {
+                                          const username = currentUser?.name || currentUser?.username || 
+                                                         (typeof currentUser === 'string' ? currentUser : null);
+                                          if (!username) {
+                                            alert("Could not determine current user. Please try logging in again.");
+                                            return;
+                                          }
+                                          await api.archiveEvent(event.id, username);
+                                          alert("Hangout archived successfully!");
+                                          if (onBack) onBack();
+                                          else window.location.reload();
+                                        } catch (error) {
+                                          console.error("Failed to archive:", error);
+                                          alert("Failed to archive hangout: " + error.message);
+                                        }
+                                      }
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                                  >
+                                    <span>📦</span> Archive Event
+                                  </button>
+                                </>
+                              )}
+                              
+                              {/* Duplicate button - available to admins and hosts only */}
+                              {canEdit && (
+                                <button
+                                  style={{
+                                    width: "100%",
+                                    padding: "14px 20px",
+                                    border: "none",
+                                    background: "white",
+                                    textAlign: "left",
+                                    cursor: "pointer",
+                                    fontSize: 15,
+                                    fontWeight: 600,
+                                    color: theme.text,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 12,
+                                    borderBottom: `1px solid ${theme.border}`,
+                                  }}
+                                  onClick={() => {
+                                    setShowOptionsMenu(false);
+                                    if (onCreateHangout) {
+                                      // Pre-fill the create hangout form with this event's data
+                                      onCreateHangout({
+                                        templateEvent: {
+                                          name: event?.name || "",
+                                          location: event?.location || "cite",
+                                          venue: event?.venue || "",
+                                          address: event?.address || "",
+                                          coordinates: event?.coordinates || null,
+                                          date: "", // Leave date empty for user to set
+                                          time: event?.time || "",
+                                          endTime: event?.endTime || "",
+                                          description: event?.description || "",
+                                          category: event?.category || "language",
+                                          subcategory: event?.subcategory || "",
+                                          languages: event?.languages || [],
+                                          capacity: event?.capacity || 6,
+                                          imageUrl: event?.imageUrl || "",
+                                        }
+                                      });
+                                    }
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = theme.bg}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                                >
+                                  <span>📋</span> Duplicate Event
+                                </button>
+                              )}
+                              
+                              {canEdit && (
+                                <button
+                                  style={{
+                                    width: "100%",
+                                    padding: "14px 20px",
+                                    border: "none",
+                                    background: "white",
+                                    textAlign: "left",
+                                    cursor: "pointer",
+                                    fontSize: 15,
+                                    fontWeight: 600,
+                                    color: "#FF4B4B",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 12,
+                                  }}
+                                  onClick={async () => {
+                                    console.log("Delete button clicked");
+                                    const confirmed = window.confirm("Are you sure you want to delete this event? This action cannot be undone.");
+                                    console.log("User confirmed:", confirmed);
+                                    if (confirmed) {
+                                      setShowOptionsMenu(false);
+                                      console.log("Calling onDeleteEvent with:", event);
+                                      console.log("onDeleteEvent exists:", !!onDeleteEvent);
+                                      if (onDeleteEvent) {
+                                        try {
+                                          await onDeleteEvent(event);
+                                          console.log("onDeleteEvent completed");
+                                        } catch (error) {
+                                          console.error("Error in onDeleteEvent:", error);
+                                        }
+                                      } else {
+                                        console.error("onDeleteEvent is not defined!");
+                                      }
+                                    }
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = "#FFF5F5"}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                                >
+                                  <span>🗑️</span> Delete Event
+                                </button>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </>
                   )}
