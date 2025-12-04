@@ -2853,7 +2853,7 @@ function SocialHome({
           setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "language", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
           setShowAllLanguages(false);
         }}>
-          <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "visible", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
+          <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "auto", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
             
             {/* Progress Indicator */}
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 24 }}>
