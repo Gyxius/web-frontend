@@ -4435,7 +4435,7 @@ function SocialHome({
 
       {/* Event Preview Modal - For viewing events before joining */}
       {eventPreview && (
-        <div 
+        <div
           style={{
             position: "fixed",
             top: 0,
@@ -4604,15 +4604,7 @@ function SocialHome({
                     hostIdentifiers.some(hostId => hostId === userId)
                   );
                   
-                  // DEBUG: Log the comparison values
-                  console.log('🔍 Host Check Debug:', {
-                    eventName: eventPreview?.name,
-                    hostIdentifiers,
-                    userIdentifiers,
-                    isHost,
-                    isAdmin
-                  });
-                  
+                  // Show settings menu to admins OR hosts only
                   return (isAdmin || isHost) ? (
                   <button
                     onClick={() => {
@@ -5292,6 +5284,9 @@ function SocialHome({
                   ✏️ Edit
                 </button>
               )}
+              
+              {/* Temporary bottom Duplicate button removed; feature is in settings menu */}
+              
               <button
                 style={{
                   padding: "16px 24px",
