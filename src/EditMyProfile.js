@@ -989,7 +989,6 @@ function EditMyProfile({ userName, joinedEvents = [], onBack, onSignOut, startEd
               {[
                 { value: 'yes', label: '🏠 Live on campus' },
                 { value: 'alumni', label: '🎓 Alumni' },
-                { value: 'visit', label: '🚶 Visit often' },
                 { value: 'no', label: '❌ No connection' }
               ].map(option => (
                 <button
@@ -1017,7 +1016,6 @@ function EditMyProfile({ userName, joinedEvents = [], onBack, onSignOut, startEd
             <div style={styles.value}>
               {profile.citeStatus === 'yes' ? '🏠 Live on campus' :
                profile.citeStatus === 'alumni' ? '🎓 Alumni' :
-               profile.citeStatus === 'visit' ? '🚶 Visit often' :
                profile.citeStatus === 'no' ? '❌ No connection' :
                'Not specified'}
             </div>

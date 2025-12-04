@@ -177,6 +177,25 @@ function SocialHome({
     }
   }, [createEventStep, showCreateEventModal]);
   
+  // Auto-set location to Paris for non-Cité users
+  useEffect(() => {
+    if (showCreateEventModal && userProfile && createEventStep === 2) {
+      if (userProfile.citeStatus !== 'yes' && userProfile.citeStatus !== 'alumni') {
+        setNewEvent(prev => ({...prev, location: "paris"}));
+      }
+    }
+  }, [showCreateEventModal, userProfile, createEventStep]);
+  
+  // Auto-skip Step 12 (Cité targeting) for non-Cité users
+  useEffect(() => {
+    if (createEventStep === 12 && userProfile) {
+      if (userProfile.citeStatus !== 'yes' && userProfile.citeStatus !== 'alumni') {
+        // Non-Cité users should not see this step - it will be handled by hiding the UI
+        // The create event button will be shown directly
+      }
+    }
+  }, [createEventStep, userProfile]);
+  
   // Onboarding tooltip state
   const [showOnboardingTooltip, setShowOnboardingTooltip] = useState(() => {
     // Check if user has seen the tooltip before
@@ -244,28 +263,32 @@ function SocialHome({
   });
   const [showAllLanguages, setShowAllLanguages] = useState(false);
   const [languageSearchQuery, setLanguageSearchQuery] = useState("");
+  const [citeOnlyEvent, setCiteOnlyEvent] = useState(false); // Toggle for restricting event to Cité residents/alumni only
 
   // Handle template event for "Create Hangout" feature
   useEffect(() => {
     if (templateEventToCreate) {
+      const isDuplicate = templateEventToCreate.isDuplicate;
+      
       setNewEvent({
-        name: "", // User customizes the hangout name
+        name: isDuplicate ? (templateEventToCreate.name || "") : "", // Keep name for duplicate, clear for hangout
         location: templateEventToCreate.location || "cite",
         venue: templateEventToCreate.venue || "",
         address: templateEventToCreate.address || "",
         coordinates: templateEventToCreate.coordinates || null,
-        date: templateEventToCreate.date || "", // Copy date from template
-        time: templateEventToCreate.time || "", // Copy time from template
-  endTime: templateEventToCreate.endTime || "",
-        description: "", // User writes their own hangout description
+        date: isDuplicate ? "" : (templateEventToCreate.date || ""), // Clear date for duplicate, copy for hangout
+        time: templateEventToCreate.time || "",
+        endTime: templateEventToCreate.endTime || "",
+        description: isDuplicate ? (templateEventToCreate.description || "") : "", // Keep description for duplicate, clear for hangout
         category: templateEventToCreate.category || "food",
-        languages: [], // User customizes languages
-        capacity: 6, // User customizes capacity
+        subcategory: templateEventToCreate.subcategory || "",
+        languages: isDuplicate ? (templateEventToCreate.languages || []) : [], // Keep languages for duplicate, clear for hangout
+        capacity: isDuplicate ? (templateEventToCreate.capacity || 6) : 6, // Keep capacity for duplicate, default for hangout
         imageUrl: templateEventToCreate.imageUrl || "",
-        templateEventId: templateEventToCreate.id,
-        targetInterests: [], // Initialize targeting arrays
-        targetCiteConnection: [],
-        targetReasons: [],
+        templateEventId: isDuplicate ? null : (templateEventToCreate.id || null), // No template link for duplicate
+        targetInterests: templateEventToCreate.targetInterests || [],
+        targetCiteConnection: templateEventToCreate.targetCiteConnection || [],
+        targetReasons: templateEventToCreate.targetReasons || [],
       });
       setShowCreateEventModal(true);
       setCreateEventStep(1);
@@ -1677,7 +1700,7 @@ function SocialHome({
                       )}
                       
                       {event.category && (
-                        <div style={{ marginTop: 4 }}>
+                        <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                           <span style={{
                             display: "inline-flex",
                             alignItems: "center",
@@ -1692,6 +1715,22 @@ function SocialHome({
                             <span>{categoryBadge.emoji}</span>
                             <span>{categoryBadge.label}</span>
                           </span>
+                          {event.subcategory && (
+                            <span style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              padding: "6px 12px",
+                              borderRadius: 999,
+                              background: `${categoryBadge.color}30`,
+                              color: categoryBadge.color,
+                              fontSize: 13,
+                              fontWeight: 600,
+                              border: `1.5px solid ${categoryBadge.color}`,
+                              textTransform: 'capitalize',
+                            }}>
+                              {event.subcategory.charAt(0).toUpperCase() + event.subcategory.slice(1)}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1871,7 +1910,7 @@ function SocialHome({
                   )}
 
                   {nextEvent.category && (
-                    <div style={{ marginTop: 8 }}>
+                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       <span style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -1886,6 +1925,22 @@ function SocialHome({
                         <span>{categoryBadge.emoji}</span>
                         <span>{categoryBadge.label}</span>
                       </span>
+                      {nextEvent.subcategory && (
+                        <span style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          padding: "6px 12px",
+                          borderRadius: 999,
+                          background: `${categoryBadge.color}30`,
+                          color: categoryBadge.color,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          border: `1.5px solid ${categoryBadge.color}`,
+                          textTransform: 'capitalize',
+                        }}>
+                          {nextEvent.subcategory.charAt(0).toUpperCase() + nextEvent.subcategory.slice(1)}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1958,19 +2013,36 @@ function SocialHome({
                           </div>
 
                           {event.category && (
-                            <span style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                              padding: "4px 10px",
-                              borderRadius: 999,
-                              background: categoryBadge.color,
-                              color: "white",
-                              fontSize: 12,
-                              fontWeight: 700,
-                            }}>
-                              {categoryBadge.emoji} {categoryBadge.label}
-                            </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                              <span style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                padding: "4px 10px",
+                                borderRadius: 999,
+                                background: categoryBadge.color,
+                                color: "white",
+                                fontSize: 12,
+                                fontWeight: 700,
+                              }}>
+                                {categoryBadge.emoji} {categoryBadge.label}
+                              </span>
+                              {event.subcategory && (
+                                <span style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: `${categoryBadge.color}30`,
+                                  color: categoryBadge.color,
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  border: `1.5px solid ${categoryBadge.color}`,
+                                }}>
+                                  {event.subcategory.charAt(0).toUpperCase() + event.subcategory.slice(1)}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -2050,19 +2122,36 @@ function SocialHome({
                           </div>
 
                           {event.category && (
-                            <span style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                              padding: "4px 10px",
-                              borderRadius: 999,
-                              background: categoryBadge.color,
-                              color: "white",
-                              fontSize: 12,
-                              fontWeight: 700,
-                            }}>
-                              {categoryBadge.emoji} {categoryBadge.label}
-                            </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                              <span style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                padding: "4px 10px",
+                                borderRadius: 999,
+                                background: categoryBadge.color,
+                                color: "white",
+                                fontSize: 12,
+                                fontWeight: 700,
+                              }}>
+                                {categoryBadge.emoji} {categoryBadge.label}
+                              </span>
+                              {event.subcategory && (
+                                <span style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: `${categoryBadge.color}30`,
+                                  color: categoryBadge.color,
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  border: `1.5px solid ${categoryBadge.color}`,
+                                }}>
+                                  {event.subcategory.charAt(0).toUpperCase() + event.subcategory.slice(1)}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -2215,7 +2304,7 @@ function SocialHome({
                               fontSize: 12,
                               fontWeight: 600,
                             }}>
-                              {item.subcategory}
+                              {item.subcategory.charAt(0).toUpperCase() + item.subcategory.slice(1)}
                             </span>
                           )}
                         </div>
@@ -2449,13 +2538,14 @@ function SocialHome({
                               alignItems: 'center',
                               padding: '6px 12px',
                               borderRadius: 999,
-                              background: theme.card,
+                              background: `${categoryBadge.color}30`,
+                              color: categoryBadge.color,
                               border: `1.5px solid ${categoryBadge.color}`,
-                              color: theme.text,
-                              fontSize: 12,
+                              fontSize: 13,
                               fontWeight: 600,
+                              textTransform: 'capitalize',
                             }}>
-                              {item.subcategory}
+                              {item.subcategory.charAt(0).toUpperCase() + item.subcategory.slice(1)}
                             </span>
                           )}
                         </div>
@@ -2851,6 +2941,7 @@ function SocialHome({
           setShowCreateEventModal(false);
           setCreateEventStep(1);
           setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "language", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
+          setCiteOnlyEvent(false);
           setShowAllLanguages(false);
         }}>
           <div style={{...styles.modal, maxHeight: isMobile ? "90vh" : "85vh", overflowY: "auto", padding: isMobile ? 20 : 32}} onClick={(e) => e.stopPropagation()}>
@@ -2947,27 +3038,30 @@ function SocialHome({
                   <p style={{ fontSize: isMobile ? 13 : 14, color: theme.textMuted, marginBottom: 12, fontWeight: 600 }}>
                     📌 Area Category
                   </p>
-                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16 }}>
-                    <button
-                      style={{
-                        padding: isMobile ? 20 : 24,
-                        borderRadius: 14,
-                        border: `2px solid ${newEvent.location === "cite" ? theme.primary : theme.border}`,
-                        background: newEvent.location === "cite" ? theme.primary : theme.card,
-                        color: newEvent.location === "cite" ? "white" : theme.text,
-                        fontSize: isMobile ? 16 : 18,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                      onClick={() => setNewEvent({...newEvent, location: "cite"})}
-                    >
-                      <div style={{ fontSize: 36, marginBottom: 8 }}>🏛️</div>
-                      Cité Universitaire
-                      <div style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>
-                        Inside Cité campus
-                      </div>
-                    </button>
+                  {console.log('[DEBUG] userProfile.citeStatus:', userProfile?.citeStatus, 'Full profile:', userProfile)}
+                  <div style={{ display: "grid", gridTemplateColumns: (userProfile?.citeStatus === 'yes' || userProfile?.citeStatus === 'alumni') ? (isMobile ? "1fr" : "1fr 1fr") : "1fr", gap: 16 }}>
+                    {(userProfile?.citeStatus === 'yes' || userProfile?.citeStatus === 'alumni') && (
+                      <button
+                        style={{
+                          padding: isMobile ? 20 : 24,
+                          borderRadius: 14,
+                          border: `2px solid ${newEvent.location === "cite" ? theme.primary : theme.border}`,
+                          background: newEvent.location === "cite" ? theme.primary : theme.card,
+                          color: newEvent.location === "cite" ? "white" : theme.text,
+                          fontSize: isMobile ? 16 : 18,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                        }}
+                        onClick={() => setNewEvent({...newEvent, location: "cite"})}
+                      >
+                        <div style={{ fontSize: 36, marginBottom: 8 }}>🏛️</div>
+                        Cité Universitaire
+                        <div style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>
+                          Inside Cité campus
+                        </div>
+                      </button>
+                    )}
                     <button
                       style={{
                         padding: isMobile ? 20 : 24,
@@ -4188,6 +4282,62 @@ function SocialHome({
                   💡 Use an image URL from Unsplash, Pexels, or Imgur
                 </p>
 
+                {/* Cité Only Toggle - Only visible to residents/alumni */}
+                {(userProfile?.citeStatus === 'yes' || userProfile?.citeStatus === 'alumni') && (
+                  <div style={{
+                    marginTop: 32,
+                    marginBottom: 24,
+                    padding: isMobile ? 16 : 20,
+                    borderRadius: 14,
+                    border: `2px solid ${citeOnlyEvent ? theme.primary : theme.border}`,
+                    background: citeOnlyEvent ? `${theme.primary}15` : theme.card,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                  onClick={() => setCiteOnlyEvent(!citeOnlyEvent)}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ flex: 1, textAlign: "left" }}>
+                        <div style={{ 
+                          fontSize: isMobile ? 16 : 18, 
+                          fontWeight: 700, 
+                          color: citeOnlyEvent ? theme.primary : theme.text,
+                          marginBottom: 4,
+                        }}>
+                          🏛️ Cité Community Only
+                        </div>
+                        <div style={{ 
+                          fontSize: isMobile ? 13 : 14, 
+                          color: theme.textMuted,
+                        }}>
+                          Restrict this event to current residents and alumni of Cité Internationale
+                        </div>
+                      </div>
+                      <div style={{
+                        width: 52,
+                        height: 28,
+                        borderRadius: 14,
+                        background: citeOnlyEvent ? theme.primary : theme.border,
+                        position: "relative",
+                        marginLeft: 12,
+                        transition: "all 0.2s",
+                      }}>
+                        <div style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 12,
+                          background: "white",
+                          position: "absolute",
+                          top: 2,
+                          left: citeOnlyEvent ? 26 : 2,
+                          transition: "all 0.2s",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
                   <button
                     style={{
@@ -4206,6 +4356,7 @@ function SocialHome({
                     ← Back
                   </button>
                   <button
+                    data-create-event-btn
                     style={{
                       flex: 1,
                       background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
@@ -4218,9 +4369,83 @@ function SocialHome({
                       cursor: "pointer",
                       boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
                     }}
-                    onClick={() => handleNextStep(10, 12)}
+                    onClick={async () => {
+                      console.log('[BUTTON CLICK] Create Event button clicked (Step 10)');
+                      // Validate end time before creating
+                      if (newEvent.time && newEvent.endTime && !isValidEndTime(newEvent.time, newEvent.endTime)) {
+                        alert("End time must be after start time");
+                        return;
+                      }
+                      
+                      // Create event via API
+                      try {
+                        const eventData = {
+                          name: newEvent.name,
+                          location: newEvent.location,
+                          venue: newEvent.venue,
+                          address: newEvent.address,
+                          coordinates: newEvent.coordinates,
+                          date: newEvent.date,
+                          time: newEvent.time,
+                          end_time: newEvent.endTime || null,
+                          description: newEvent.description || "",
+                          category: newEvent.category,
+                          subcategory: newEvent.subcategory || "",
+                          languages: newEvent.languages,
+                          image_url: newEvent.imageUrl || "",
+                          is_public: true,
+                          event_type: "in-person",
+                          capacity: newEvent.capacity,
+                          created_by: userName,
+                          is_featured: false,
+                          template_event_id: newEvent.templateEventId || null,
+                          target_interests: newEvent.targetInterests.length > 0 ? newEvent.targetInterests : null,
+                          target_cite_connection: citeOnlyEvent ? ['yes', 'alumni'] : null,
+                          target_reasons: newEvent.targetReasons.length > 0 ? newEvent.targetReasons : null,
+                        };
+                        
+                        // Call the API to create the event
+                        const result = await createEvent(eventData);
+                        
+                        // Award 3 points for hosting an event
+                        if (addPoints) {
+                          const newPoints = addPoints(userName, 3);
+                          alert(`🎉 Event created successfully!\n\n⭐ +3 points earned! You now have ${newPoints} points!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section`);
+                        } else {
+                          alert("🎉 Event created successfully!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section");
+                        }
+                        
+                        // Reset modal and refresh events
+                        setShowCreateEventModal(false);
+                        setCreateEventStep(1);
+                        setNewEvent({
+                          name: "",
+                          location: "",
+                          venue: "",
+                          address: "",
+                          coordinates: null,
+                          date: "",
+                          time: "",
+                          endTime: "",
+                          description: "",
+                          category: "",
+                          subcategory: "",
+                          languages: [],
+                          imageUrl: "",
+                          capacity: 6,
+                          templateEventId: null,
+                          targetInterests: [],
+                          targetCiteConnection: [],
+                          targetReasons: [],
+                        });
+                        setCiteOnlyEvent(false);
+                      } catch (error) {
+                        console.error("Error creating event:", error);
+                        alert(`Failed to create event: ${error.message}`);
+                      }
+                    }}
                   >
-                    Next →
+                    Create Event ✨
                   </button>
                 </div>
               </div>
@@ -4229,8 +4454,8 @@ function SocialHome({
             {/* Step 11: Target Interests (Optional) - SKIPPED */}
             {createEventStep === 11 && null}
 
-            {/* Step 12: Target Cité Connection (Optional) */}
-            {createEventStep === 12 && (
+            {/* Step 12: Target Cité Connection (Optional) - Only for Cité residents/alumni */}
+            {createEventStep === 12 && (userProfile?.citeStatus === 'yes' || userProfile?.citeStatus === 'alumni') && (
               <div 
                 data-step="12"
                 style={{ textAlign: "center", ...fadeIn }}
@@ -4254,7 +4479,6 @@ function SocialHome({
                   {[
                     { value: "yes", label: "🏠 Live on campus", desc: "Current Cité residents" },
                     { value: "alumni", label: "🎓 Alumni", desc: "Former Cité residents" },
-                    { value: "visit", label: "🚶 Visit often", desc: "Regular visitors" },
                     { value: "no", label: "❌ No connection", desc: "Not connected to Cité" },
                   ].map((option) => {
                     const isSelected = newEvent.targetCiteConnection.includes(option.value);
@@ -4354,7 +4578,7 @@ function SocialHome({
                           is_featured: false,
                           template_event_id: newEvent.templateEventId || null,
                           target_interests: newEvent.targetInterests.length > 0 ? newEvent.targetInterests : null,
-                          target_cite_connection: newEvent.targetCiteConnection.length > 0 ? newEvent.targetCiteConnection : null,
+                          target_cite_connection: citeOnlyEvent ? ['yes', 'alumni'] : (newEvent.targetCiteConnection.length > 0 ? newEvent.targetCiteConnection : null),
                           target_reasons: newEvent.targetReasons.length > 0 ? newEvent.targetReasons : null,
                         };
                         
@@ -4380,6 +4604,134 @@ function SocialHome({
                         console.log("STEP 9: Resetting form and closing modal...");
                         // Reset form and close
                         setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "language", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
+                        setCiteOnlyEvent(false);
+                        setCreateEventStep(1);
+                        setShowCreateEventModal(false);
+                        setShowAllLanguages(false);
+                        console.log("STEP 10: Event creation complete!");
+                      } catch (err) {
+                        console.error("❌ ERROR at some step:");
+                        console.error("Error object:", err);
+                        console.error("Error message:", err.message);
+                        console.error("Error name:", err.name);
+                        console.error("Error stack:", err.stack);
+                        alert("Failed to create event. Please try again.\n\nError: " + err.message);
+                      }
+                    }}
+                  >
+                    Create Event ✨
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 12: Simple Create Event for non-Cité users */}
+            {createEventStep === 12 && userProfile && (userProfile.citeStatus !== 'yes' && userProfile.citeStatus !== 'alumni') && (
+              <div 
+                data-step="12"
+                style={{ textAlign: "center", ...fadeIn }}
+                tabIndex={0}
+              >
+                <h3 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, marginBottom: 12, color: theme.text }}>
+                  Ready to create your event? 🎉
+                </h3>
+                <p style={{ fontSize: isMobile ? 14 : 16, color: theme.textMuted, marginBottom: 32 }}>
+                  Review your details and click below to publish!
+                </p>
+
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "14px" : "16px",
+                      borderRadius: 14,
+                      border: `2px solid ${theme.border}`,
+                      background: theme.card,
+                      color: theme.text,
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setCreateEventStep(10)}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    data-create-event-btn
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+                      color: "white",
+                      border: "none",
+                      borderRadius: 14,
+                      padding: isMobile ? "14px" : "16px",
+                      fontWeight: 900,
+                      fontSize: isMobile ? 16 : 18,
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(88,204,2,0.28)",
+                    }}
+                    onClick={async () => {
+                      console.log('[BUTTON CLICK] Create Event button clicked (Step 12 - Non-Cité user)');
+                      // Validate end time before creating
+                      if (newEvent.time && newEvent.endTime && !isValidEndTime(newEvent.time, newEvent.endTime)) {
+                        alert("End time must be after start time");
+                        return;
+                      }
+                      
+                      // Create event via API
+                      try {
+                        console.log("STEP 1: Button clicked, starting event creation");
+                        console.log("STEP 2: Current newEvent state:", JSON.stringify(newEvent, null, 2));
+                        console.log("STEP 3: Current userName:", userName);
+                        
+                        const eventData = {
+                          name: newEvent.name,
+                          location: newEvent.location,
+                          venue: newEvent.venue,
+                          address: newEvent.address,
+                          coordinates: newEvent.coordinates,
+                          date: newEvent.date,
+                          time: newEvent.time,
+                          end_time: newEvent.endTime || null,
+                          description: newEvent.description || "",
+                          category: newEvent.category,
+                          subcategory: newEvent.subcategory || "",
+                          languages: newEvent.languages,
+                          image_url: newEvent.imageUrl || "",
+                          is_public: true,
+                          event_type: "in-person",
+                          capacity: newEvent.capacity,
+                          created_by: userName,
+                          is_featured: false,
+                          template_event_id: newEvent.templateEventId || null,
+                          target_interests: null, // Non-Cité users don't target
+                          target_cite_connection: null, // Non-Cité users don't target
+                          target_reasons: null, // Non-Cité users don't target
+                        };
+                        
+                        console.log("STEP 4: Prepared eventData:", JSON.stringify(eventData, null, 2));
+                        console.log("STEP 5: About to call createEvent API...");
+                        
+                        // Call the API to create the event
+                        const result = await createEvent(eventData);
+                        
+                        console.log("STEP 6: API call successful! Result:", result);
+                        console.log("STEP 7: Awarding points...");
+                        
+                        // Award 3 points for hosting an event
+                        if (addPoints) {
+                          const newPoints = addPoints(userName, 3);
+                          console.log("STEP 8: Points awarded! New total:", newPoints);
+                          alert(`🎉 Event created successfully!\n\n⭐ +3 points earned! You now have ${newPoints} points!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section`);
+                        } else {
+                          console.log("STEP 8: No points system available");
+                          alert("🎉 Event created successfully!\n\nYour event will appear in:\n• Your 'My Hosted Events' section\n• Other users' 'Community Events' section");
+                        }
+                        
+                        console.log("STEP 9: Resetting form and closing modal...");
+                        // Reset form and close
+                        setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "language", languages: [], capacity: 6, imageUrl: "", templateEventId: null, targetInterests: [], targetCiteConnection: [], targetReasons: [] });
+                        setCiteOnlyEvent(false);
                         setCreateEventStep(1);
                         setShowCreateEventModal(false);
                         setShowAllLanguages(false);
@@ -4424,6 +4776,7 @@ function SocialHome({
                 setShowCreateEventModal(false);
                 setCreateEventStep(1);
                 setNewEvent({ name: "", location: "cite", venue: "", address: "", coordinates: null, date: "", time: "", endTime: "", description: "", category: "language", languages: [], capacity: 6, imageUrl: "", templateEventId: null });
+                setCiteOnlyEvent(false);
                 setShowAllLanguages(false);
               }}
             >
@@ -4761,56 +5114,6 @@ function SocialHome({
                 )}
                 {canEdit && (
                   <button
-                    onClick={() => {
-                      setShowAdminMenu(false);
-                      // Populate form with event data for duplication
-                      setNewEvent({
-                        name: eventPreview.title || eventPreview.name || "",
-                        location: eventPreview.location || "cite",
-                        venue: eventPreview.venue || "",
-                        address: eventPreview.address || "",
-                        coordinates: eventPreview.coordinates || null,
-                        date: "", // Leave date empty for user to set new date
-                        time: eventPreview.time || "",
-                        endTime: eventPreview.endTime || "",
-                        description: eventPreview.description || "",
-                        category: eventPreview.category || "language",
-                        subcategory: eventPreview.subcategory || "",
-                        languages: eventPreview.languages || [],
-                        capacity: eventPreview.capacity || 6,
-                        imageUrl: eventPreview.imageUrl || "",
-                        templateEventId: null,
-                        targetInterests: eventPreview.targetInterests || [],
-                        targetCiteConnection: eventPreview.targetCiteConnection || [],
-                        targetReasons: eventPreview.targetReasons || [],
-                      });
-                      setEventPreview(null);
-                      setShowCreateEventModal(true);
-                      setCreateEventStep(1);
-                    }}
-                    style={{
-                      width: "100%",
-                      background: "white",
-                      color: theme.text,
-                      border: "none",
-                      padding: "12px 20px",
-                      textAlign: "left",
-                      fontWeight: 600,
-                      fontSize: 14,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      borderBottom: "1px solid #eee",
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "white"}
-                  >
-                    📋 Duplicate Event
-                  </button>
-                )}
-                {canEdit && (
-                  <button
                     onClick={async () => {
                       setShowAdminMenu(false);
                       if (window.confirm("⚠️ Delete this event permanently? This cannot be undone!")) {
@@ -4963,14 +5266,45 @@ function SocialHome({
               )}
               
               {/* Category */}
-              {eventPreview.category && (
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 18 }}>🎯</span>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>
-                    {getCategoryEmoji(eventPreview.category)} {eventPreview.category}
+              {eventPreview.category && (() => {
+                const categoryBadge = getCategoryBadge(eventPreview.category);
+                return (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 18 }}>🎯</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "6px 14px",
+                        borderRadius: 999,
+                        background: categoryBadge.color,
+                        color: "white",
+                        fontSize: 14,
+                        fontWeight: 700,
+                      }}>
+                        <span>{categoryBadge.emoji}</span>
+                        <span>{categoryBadge.label}</span>
+                      </span>
+                      {eventPreview.subcategory && (
+                        <span style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          padding: "6px 14px",
+                          borderRadius: 999,
+                          background: `${categoryBadge.color}30`,
+                          color: categoryBadge.color,
+                          fontSize: 14,
+                          fontWeight: 600,
+                          border: `1.5px solid ${categoryBadge.color}`,
+                        }}>
+                          {eventPreview.subcategory}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
             {/* COMPONENT 2: DESCRIPTION BLOCK */}
@@ -6397,13 +6731,13 @@ function SocialHome({
                                   alignItems: 'center',
                                   padding: '6px 12px',
                                   borderRadius: 999,
-                                  background: theme.card,
+                                  background: `${categoryBadge.color}30`,
+                                  color: categoryBadge.color,
                                   border: `1.5px solid ${categoryBadge.color}`,
-                                  color: theme.text,
-                                  fontSize: 12,
+                                  fontSize: 13,
                                   fontWeight: 600,
                                 }}>
-                                  {event.subcategory}
+                                  {event.subcategory.charAt(0).toUpperCase() + event.subcategory.slice(1)}
                                 </span>
                               )}
                             </div>

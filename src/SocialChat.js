@@ -1046,24 +1046,26 @@ function SocialChat({
                                   onClick={() => {
                                     setShowOptionsMenu(false);
                                     if (onCreateHangout) {
-                                      // Pre-fill the create hangout form with this event's data
+                                      // Pre-fill the create hangout form with this event's data (for duplication)
                                       onCreateHangout({
-                                        templateEvent: {
-                                          name: event?.name || "",
-                                          location: event?.location || "cite",
-                                          venue: event?.venue || "",
-                                          address: event?.address || "",
-                                          coordinates: event?.coordinates || null,
-                                          date: "", // Leave date empty for user to set
-                                          time: event?.time || "",
-                                          endTime: event?.endTime || "",
-                                          description: event?.description || "",
-                                          category: event?.category || "language",
-                                          subcategory: event?.subcategory || "",
-                                          languages: event?.languages || [],
-                                          capacity: event?.capacity || 6,
-                                          imageUrl: event?.imageUrl || "",
-                                        }
+                                        name: event?.name || "",
+                                        location: event?.location || "cite",
+                                        venue: event?.venue || "",
+                                        address: event?.address || "",
+                                        coordinates: event?.coordinates || null,
+                                        date: "", // Leave date empty for user to set
+                                        time: event?.time || "",
+                                        endTime: event?.endTime || "",
+                                        description: event?.description || "",
+                                        category: event?.category || "language",
+                                        subcategory: event?.subcategory || "",
+                                        languages: event?.languages || [],
+                                        capacity: event?.capacity || 6,
+                                        imageUrl: event?.imageUrl || "",
+                                        targetInterests: event?.targetInterests || [],
+                                        targetCiteConnection: event?.targetCiteConnection || [],
+                                        targetReasons: event?.targetReasons || [],
+                                        isDuplicate: true, // Flag to indicate this is a full duplicate
                                       });
                                     }
                                   }}
@@ -1188,6 +1190,62 @@ function SocialChat({
               />
             )}
           </div>
+          
+          {/* Category & Subcategory */}
+          {event?.category && (() => {
+            // Get category badge details - matching SocialHome.js
+            const categoryMap = {
+              'language': { emoji: '💬', label: 'Language & Exchange', color: '#FF6B6B' },
+              'cultural': { emoji: '🎭', label: 'Cultural Exploration', color: '#F7B731' },
+              'social': { emoji: '🎉', label: 'Social & Nightlife', color: '#A463F2' },
+              'food': { emoji: '🍽️', label: 'Food & Gastronomy', color: '#4ECDC4' },
+              'sports': { emoji: '⚽', label: 'Sports & Outdoors', color: '#45B7D1' },
+              'professional': { emoji: '💼', label: 'Workshops & Professional', color: '#5F27CD' },
+              'other': { emoji: '✨', label: 'Other', color: '#74B9FF' },
+            };
+            
+            const categoryInfo = categoryMap[event.category?.toLowerCase()] || categoryMap['other'];
+            const badgeColor = categoryInfo.color;
+            const emoji = categoryInfo.emoji;
+            const label = categoryInfo.label;
+            
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                <span style={{ fontSize: 18 }}>🎯</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 14px',
+                    borderRadius: 999,
+                    background: badgeColor,
+                    color: 'white',
+                    fontSize: 14,
+                    fontWeight: 700,
+                  }}>
+                    <span>{emoji}</span>
+                    <span>{label}</span>
+                  </span>
+                  {event.subcategory && (
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '6px 14px',
+                      borderRadius: 999,
+                      background: `${badgeColor}30`,
+                      color: badgeColor,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      border: `1.5px solid ${badgeColor}`,
+                    }}>
+                      {event.subcategory.charAt(0).toUpperCase() + event.subcategory.slice(1)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Languages Section - Prominent Display */}
@@ -1344,25 +1402,21 @@ function SocialChat({
                   const attendeeCount = Math.max(attendees.length, hangout.host ? 1 : 0);
                   const capacity = hangout.capacity;
                   
-                  // Get hangout type emoji
-                  const hangoutEmoji = 
-                    hangout.category === 'drinks' ? '🍹' :
-                    hangout.category === 'food' ? '🍽️' :
-                    hangout.category === 'party' ? '🎉' :
-                    hangout.category === 'language' ? '💬' :
-                    hangout.category === 'sports' ? '⚽' :
-                    hangout.category === 'arts' ? '🎨' :
-                    hangout.category === 'music' ? '🎵' : '🎯';
-
-                  // Get category badge color
-                  const badgeColor =
-                    hangout.category === 'drinks' ? '#FF6B6B' :
-                    hangout.category === 'food' ? '#FFA500' :
-                    hangout.category === 'party' ? '#9B59B6' :
-                    hangout.category === 'language' ? '#1CB0F6' :
-                    hangout.category === 'sports' ? '#58CC02' :
-                    hangout.category === 'arts' ? '#E91E63' :
-                    hangout.category === 'music' ? '#FF69B4' : '#667eea';
+                  // Get hangout category details - matching SocialHome.js
+                  const categoryMap = {
+                    'language': { emoji: '💬', label: 'Language & Exchange', color: '#FF6B6B' },
+                    'cultural': { emoji: '🎭', label: 'Cultural Exploration', color: '#F7B731' },
+                    'social': { emoji: '🎉', label: 'Social & Nightlife', color: '#A463F2' },
+                    'food': { emoji: '🍽️', label: 'Food & Gastronomy', color: '#4ECDC4' },
+                    'sports': { emoji: '⚽', label: 'Sports & Outdoors', color: '#45B7D1' },
+                    'professional': { emoji: '💼', label: 'Workshops & Professional', color: '#5F27CD' },
+                    'other': { emoji: '✨', label: 'Other', color: '#74B9FF' },
+                  };
+                  
+                  const categoryInfo = categoryMap[hangout.category?.toLowerCase()] || categoryMap['other'];
+                  const hangoutEmoji = categoryInfo.emoji;
+                  const badgeColor = categoryInfo.color;
+                  const categoryLabel = categoryInfo.label;
 
                   return (
                     <div
@@ -1439,19 +1493,36 @@ function SocialChat({
                             {hangout.name}
                           </div>
                           
-                          {/* Category Badge */}
-                          <div style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            padding: '4px 10px',
-                            borderRadius: 12,
-                            background: badgeColor,
-                            color: 'white',
-                            fontSize: 12,
-                            fontWeight: 600,
-                          }}>
-                            {hangout.category || 'Hangout'}
+                          {/* Category Badges */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <div style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              padding: '4px 10px',
+                              borderRadius: 12,
+                              background: badgeColor,
+                              color: 'white',
+                              fontSize: 12,
+                              fontWeight: 600,
+                            }}>
+                              {categoryLabel}
+                            </div>
+                            {hangout.subcategory && (
+                              <div style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                padding: '4px 10px',
+                                borderRadius: 12,
+                                background: `${badgeColor}30`,
+                                color: badgeColor,
+                                border: `1.5px solid ${badgeColor}`,
+                                fontSize: 12,
+                                fontWeight: 600,
+                              }}>
+                                {hangout.subcategory.charAt(0).toUpperCase() + hangout.subcategory.slice(1)}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

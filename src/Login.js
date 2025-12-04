@@ -373,7 +373,7 @@ function Login({ onLogin, onRegistered }) {
   {sectionHeader('Are you connected to Cité universitaire ?')}
       <p style={{ fontSize:13, color:theme.textMuted, margin:'-4px 0 8px' }}>Select your connection to Cité Internationale Universitaire de Paris.</p>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10 }}>
-        {[{value:'yes',label:'🏠 Live on campus'},{value:'alumni',label:'🎓 Alumni'},{value:'visit',label:'🚶 Visit often'},{value:'no',label:'❌ No'}].map(o => (
+        {[{value:'yes',label:'🏠 Live on campus'},{value:'alumni',label:'🎓 Alumni'},{value:'no',label:'❌ No'}].map(o => (
           <button key={o.value} type="button" onClick={()=>setCiteStatus(o.value)} style={{ padding:'14px 16px', textAlign:'left', border:`3px solid ${citeStatus===o.value? theme.primary: theme.border}`, borderRadius:14, background: citeStatus===o.value? `${theme.primary}15`:'white', color:theme.text, fontWeight: citeStatus===o.value?700:600, cursor:'pointer', boxShadow: citeStatus===o.value? '0 2px 8px rgba(88,204,2,0.2)':'none', transition:'all .2s' }}>{o.label}</button>
         ))}
       </div>
