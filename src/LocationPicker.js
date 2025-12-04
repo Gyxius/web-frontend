@@ -342,14 +342,14 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
             left: 0,
             right: 0,
             background: "white",
-            border: `2px solid ${theme?.border || "#EEF2F7"}`,
-            borderTop: "none",
+            border: `2px solid ${theme?.primary || "#58CC02"}`,
+            borderTop: `1px solid ${theme?.border || "#EEF2F7"}`,
             borderRadius: "0 0 12px 12px",
-            maxHeight: 300,
+            maxHeight: 600,
             overflowY: "auto",
-            zIndex: 1000,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            marginBottom: 12,
+            zIndex: 9999,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+            marginTop: -2,
           }}
         >
           {suggestions.map((suggestion, index) => (
@@ -357,18 +357,25 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
               key={suggestion.place_id || index}
               onClick={() => selectSuggestion(suggestion)}
               style={{
-                padding: "12px 16px",
+                padding: "16px 20px",
                 cursor: "pointer",
                 borderBottom: index < suggestions.length - 1 ? `1px solid ${theme?.border || "#EEF2F7"}` : "none",
-                transition: "background 0.2s",
+                transition: "all 0.2s",
+                background: "white",
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = theme?.bg || "#F7F7F5"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = theme?.primary || "#58CC02";
+                e.currentTarget.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "white";
+                e.currentTarget.style.color = theme?.text || "#1F2937";
+              }}
             >
-              <div style={{ fontWeight: 600, fontSize: 14, color: theme?.text || "#1F2937", marginBottom: 4 }}>
+              <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 6 }}>
                 📍 {suggestion.name || suggestion.display_name.split(',')[0]}
               </div>
-              <div style={{ fontSize: 12, color: theme?.textMuted || "#6B7280" }}>
+              <div style={{ fontSize: 14, opacity: 0.8, lineHeight: 1.5 }}>
                 {suggestion.display_name}
               </div>
             </div>
