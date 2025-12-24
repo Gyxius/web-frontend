@@ -4405,7 +4405,7 @@ function SocialHome({
                         };
                         
                         // Call the API to create the event
-                        const result = await createEvent(eventData);
+                        await createEvent(eventData);
                         
                         // Award 3 points for hosting an event
                         if (addPoints) {
