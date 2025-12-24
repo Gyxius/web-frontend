@@ -2419,7 +2419,6 @@ function SocialChat({
                 {[
                   { value: "yes", label: "🏠 Live on campus", desc: "Current residents" },
                   { value: "alumni", label: "🎓 Alumni", desc: "Former residents" },
-                  { value: "visit", label: "🚶 Visit often", desc: "Regular visitors" },
                   { value: "no", label: "❌ No connection", desc: "Not connected to Cité" },
                 ].map((option) => {
                   const isSelected = (editedEvent.targetCiteConnection || []).includes(option.value);
