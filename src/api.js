@@ -20,30 +20,43 @@ export const getEventById = async (eventId) => {
 };
 
 export const createEvent = async (event) => {
-  // Retry logic for Render cold starts
+  // Retry logic for Render cold starts (free tier spins down after 15min inactivity)
   let lastError;
-  for (let attempt = 1; attempt <= 3; attempt++) {
+  const maxAttempts = 5;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      console.log(`API attempt ${attempt}/3...`);
+      console.log(`API attempt ${attempt}/${maxAttempts}... (Render cold start may take up to 60 seconds)`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout per attempt
+      
       const response = await fetch(`${API_URL}/api/events`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(event),
+        signal: controller.signal,
       });
-      if (!response.ok) throw new Error("Failed to create event");
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create event: ${response.status} ${errorText}`);
+      }
       console.log(`API attempt ${attempt} succeeded!`);
       return response.json();
     } catch (error) {
       console.error(`API attempt ${attempt} failed:`, error.message);
       lastError = error;
-      if (attempt < 3) {
-        const delay = attempt * 2000; // 2s, 4s
-        console.log(`Waiting ${delay}ms before retry...`);
+      if (attempt < maxAttempts) {
+        // Exponential backoff: 5s, 10s, 15s, 20s
+        const delay = attempt * 5000;
+        console.log(`Waiting ${delay/1000}s before retry... (Backend may be waking up)`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
-  throw lastError;
+  // Provide more helpful error message
+  throw new Error("Unable to connect to server. The backend may be starting up (Render free tier cold start). Please wait a minute and try again.");
 };
 
 export const joinEvent = async (eventId, username) => {

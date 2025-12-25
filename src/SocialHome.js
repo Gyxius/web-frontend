@@ -4441,7 +4441,12 @@ function SocialHome({
                         setCiteOnlyEvent(false);
                       } catch (error) {
                         console.error("Error creating event:", error);
-                        alert(`Failed to create event: ${error.message}`);
+                        const errorMessage = error.message || "Unknown error occurred";
+                        if (errorMessage.includes("cold start") || errorMessage.includes("starting up")) {
+                          alert(`⏳ Server is waking up...\n\n${errorMessage}\n\nPlease try again in about 30-60 seconds.`);
+                        } else {
+                          alert(`Failed to create event: ${errorMessage}`);
+                        }
                       }
                     }}
                   >
