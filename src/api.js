@@ -55,8 +55,12 @@ export const createEvent = async (event) => {
       }
     }
   }
-  // Provide more helpful error message
-  throw new Error("Unable to connect to server. The backend may be starting up (Render free tier cold start). Please wait a minute and try again.");
+  // Provide more helpful error message with original error details
+  const errorMsg = lastError?.message || "Unknown error";
+  if (errorMsg.toLowerCase().includes("fetch") || errorMsg.toLowerCase().includes("network")) {
+    throw new Error("Unable to connect to server. The backend may be starting up (Render free tier cold start). Please wait a minute and try again.");
+  }
+  throw lastError || new Error("Failed to create event after multiple attempts");
 };
 
 export const joinEvent = async (eventId, username) => {
