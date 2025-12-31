@@ -180,6 +180,16 @@ export const addFollow = async (user1, user2) => {
   return response.json();
 };
 
+export const removeFollow = async (user1, user2) => {
+  const response = await fetch(`${API_URL}/api/follows`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user1, user2 }),
+  });
+  if (!response.ok) throw new Error("Failed to remove follow");
+  return response.json();
+};
+
 // ===== CHAT ENDPOINTS =====
 
 export const getChatMessages = async (eventId) => {

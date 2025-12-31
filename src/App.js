@@ -554,7 +554,8 @@ function App() {
   } else if (selectedProfile) {
     const currentUserKey = user?.username || user?.name;
     const selectedKey = selectedProfile?.username || selectedProfile?.name;
-    const isFollowing = !!(follows[currentUserKey] && follows[currentUserKey].find(f => f.id === selectedProfile?.id));
+    // Check if currentUser follows selectedProfile (follows array contains username strings)
+    const isFollowing = !!(follows[currentUserKey] && follows[currentUserKey].includes(selectedKey));
     const hasPendingRequest = pendingFollowRequests.some(
       req => req.from === currentUserKey && req.to === selectedKey
     );
@@ -564,16 +565,15 @@ function App() {
     
     // Calculate follower and following counts for selected profile
     const followingCount = follows[selectedKey]?.length || 0;
+    // Count how many users have selectedKey in their follows array (follows arrays contain username strings)
     const followerCount = Object.values(follows).filter(followList => 
-      followList.some(f => (f.id || f.name || f.username) === selectedKey || 
-                           (f.id || f.name || f.username) === (selectedProfile?.id || selectedProfile?.username))
+      followList.includes(selectedKey)
     ).length;
     
     // Get actual followers list (users who follow this profile)
     const followersList = Object.entries(follows)
       .filter(([userKey, followList]) => 
-        followList.some(f => (f.id || f.name || f.username) === selectedKey || 
-                             (f.id || f.name || f.username) === (selectedProfile?.id || selectedProfile?.username))
+        followList.includes(selectedKey)
       )
       .map(([userKey]) => {
         const followerUser = users.find(u => (u.name || u.username) === userKey);
@@ -581,7 +581,13 @@ function App() {
       });
     
     // Get actual following list (users this profile follows)
-    const followingList = follows[selectedKey] || [];
+    // Convert username strings to user objects
+    const followingList = (follows[selectedKey] || []).map(followedUsername => {
+      // followedUsername might be a string or an object
+      const username = typeof followedUsername === 'string' ? followedUsername : (followedUsername.name || followedUsername.username);
+      const followedUser = users.find(u => (u.name || u.username) === username);
+      return followedUser || { name: username, username: username, emoji: '👤' };
+    });
     
     mainContent = (
       <UserProfile
@@ -617,23 +623,11 @@ function App() {
               const currentUserFollows = await api.getFollows(currentUserKey);
               const requesterFollows = await api.getFollows(selectedKey);
               
-              // Convert username strings to user objects
-              const currentUserFollowObjs = currentUserFollows.map(username => {
-                const found = users.find(u => (u.name === username || u.username === username));
-                if (found) return found;
-                return { name: username, username: username, id: username };
-              });
-              const requesterFollowObjs = requesterFollows.map(username => {
-                const found = users.find(u => (u.name === username || u.username === username));
-                if (found) return found;
-                return { name: username, username: username, id: username };
-              });
-              
-              // Update follows state with both users' data
+              // Store follows as username strings (API returns strings)
               setFollows(prev => ({
                 ...prev,
-                [currentUserKey]: currentUserFollowObjs,
-                [selectedKey]: requesterFollowObjs
+                [currentUserKey]: currentUserFollows,
+                [selectedKey]: requesterFollows
               }));
             } catch (error) {
               console.error('Failed to reload follows data:', error);
@@ -648,24 +642,30 @@ function App() {
         onDeclineFollowRequest={() => {
           setPendingFollowRequests(prev => prev.filter(req => !(req.from === selectedKey && req.to === currentUserKey)));
         }}
-        onRemoveFollow={() => {
-          setFollows(prev => {
-            const updated = { ...prev };
-            // Remove from current user's list
-            if (updated[currentUserKey]) {
-              updated[currentUserKey] = updated[currentUserKey].filter(
-                f => f.id !== selectedProfile.id && (f.name !== selectedKey)
-              );
-            }
-            // Remove current user from selected user's list
-            const selfId = user?.id || user?.username || user?.name;
-            if (updated[selectedKey]) {
-              updated[selectedKey] = updated[selectedKey].filter(
-                f => (f.id || f.name) !== selfId
-              );
-            }
-            return updated;
-          });
+        onRemoveFollow={async () => {
+          try {
+            // Call backend API to remove the follow (only one direction)
+            await api.removeFollow(currentUserKey, selectedKey);
+            
+            // Reload follows data from backend to get accurate counts
+            const currentUserFollows = await api.getFollows(currentUserKey);
+            const selectedUserFollows = await api.getFollows(selectedKey);
+            
+            // Update local state with fresh data from backend
+            setFollows(prev => ({
+              ...prev,
+              [currentUserKey]: currentUserFollows,
+              [selectedKey]: selectedUserFollows
+            }));
+            
+            // Remove any pending request from currentUser to selectedUser
+            setPendingFollowRequests(prev => prev.filter(req => !(req.from === currentUserKey && req.to === selectedKey)));
+            
+            console.log(`Successfully unfollowed ${selectedKey}`);
+          } catch (error) {
+            console.error('Failed to unfollow:', error);
+            alert('Failed to unfollow. Please try again.');
+          }
         }}
         isFollowing={isFollowing}
         hasPendingRequest={hasPendingRequest}
