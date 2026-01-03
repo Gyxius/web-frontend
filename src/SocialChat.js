@@ -1949,7 +1949,21 @@ function SocialChat({
                 >
                   {/* Avatar on the left for others, on the right for me */}
                   {!mine && (
-                    <div style={styles.avatarWrapper}>
+                    <div 
+                      style={{
+                        ...styles.avatarWrapper,
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s ease',
+                      }}
+                      onClick={() => {
+                        if (onUserClick && sender) {
+                          onUserClick(sender);
+                        }
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                      title={`View ${displayName}'s profile`}
+                    >
                       {avatarUrl ? (
                         <img src={avatarUrl} alt="avatar" style={styles.avatarImg} />
                       ) : (
