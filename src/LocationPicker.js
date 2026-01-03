@@ -129,30 +129,12 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Load all Cité houses when filterMode is "cite" and field is empty
-  const loadAllCiteHouses = () => {
-    if (filterMode !== "cite") return;
-    
-    // Create suggestion objects from CITE_HOUSES constant
-    // Take first 12 houses as initial suggestions
-    const initialHouses = CITE_HOUSES.slice(0, 12).map((house, index) => ({
-      place_id: `cite_house_${index}`,
-      name: house,
-      display_name: `${house}, Cité Universitaire, Paris 14e, France`,
-      lat: "48.8205877", // Default Cité Universitaire coordinates
-      lon: "2.3390071",
-      isCiteHouse: true, // Flag to identify these as pre-defined houses
-    }));
-    
-    setSuggestions(initialHouses);
-    setShowSuggestions(true);
-  };
-
   // Search for locations using Nominatim (OpenStreetMap's geocoding service)
   const searchLocation = async (query) => {
-    // For cite mode with empty query, show all houses
+    // For cite mode with empty query, don't show anything
     if (filterMode === "cite" && (!query || query.length === 0)) {
-      loadAllCiteHouses();
+      setSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
     
@@ -221,11 +203,9 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
     }, 300); // Shorter delay for better UX
   };
   
-  // Handle focus - show all Cité houses if in cite mode and field is empty
+  // Handle focus - don't auto-show Cité houses, wait for user to type
   const handleFocus = () => {
-    if (filterMode === "cite" && !address) {
-      loadAllCiteHouses();
-    } else if (suggestions.length > 0) {
+    if (suggestions.length > 0) {
       setShowSuggestions(true);
     }
   };
