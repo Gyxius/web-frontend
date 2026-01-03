@@ -307,7 +307,7 @@ function LocationPicker({ onLocationSelect, initialAddress = "", initialCoordina
     <div style={{ position: "relative" }}>
       <input
         type="text"
-        placeholder={filterMode === "cite" ? "Select a Cité house" : "Search for a location (e.g., Fleurus Bar, Cité Universitaire)"}
+        placeholder={filterMode === "cite" ? "Enter an address" : "Search for a location (e.g., Fleurus Bar, Cité Universitaire)"}
         value={address}
         onChange={handleInputChange}
         onFocus={handleFocus}
